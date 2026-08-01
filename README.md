@@ -22,7 +22,7 @@
 ## 📁 專案目錄架構 (Directory Structure)
 
 ```text
-workorder/
+work-order-system/
 ├── work-order-frontend/     # 前端 Vue 3 專案
 └── work-order-backend/      # 後端 Spring Boot 專案
     ├── common/              # 全域通用元件（Config, Exception, Util 等）
@@ -72,7 +72,7 @@ workorder/
 
 ```bash
 git clone https://github.com/pu210/work-order-system.git
-cd 專案目錄
+cd work-order-system
 ```
 
 確認目前分支

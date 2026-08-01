@@ -1,4 +1,4 @@
-package com.eeit219.repair_system;
+package com.eeit219.work_order_system;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

@@ -1,13 +1,13 @@
-package com.eeit219.repair_system;
+package com.eeit219.work_order_system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RepairSystemApplication {
+public class WorkOrderSystem {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RepairSystemApplication.class, args);
+		SpringApplication.run(WorkOrderSystem.class, args);
 	}
 
 }
