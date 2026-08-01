@@ -71,8 +71,8 @@ workorder/
 #### Step 0. 下載遠端專案並進入專案目錄（只有「第一次」加入專案需要）
 
 ```bash
-git clone https://github.com/your-username/workorder.git
-cd workorder
+git clone https://github.com/pu210/work-order-system.git
+cd 專案目錄
 ```
 
 確認目前分支

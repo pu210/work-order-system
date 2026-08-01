@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.eeit219</groupId>
-	<artifactId>repair-system</artifactId>
+	<artifactId>work-order-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name/>
+	<name>work-order-backend</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -38,6 +38,37 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-security</artifactId>
+    		<scope>compile</scope>
+		</dependency>
+
+		<!-- 
+        JWT 身份驗證套件群 (JJWT)
+        - api: 核心介面 (編譯期使用)
+        - impl: 簽名與加解密邏輯實作 (執行期使用)
+        - jackson: JSON 資料轉化與解析 (執行期使用)
+    	-->
+
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-api</artifactId>
+			<version>0.13.0</version>
+		</dependency>
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-impl</artifactId>
+			<version>0.13.0</version>
+    		<scope>runtime</scope>
+		</dependency>
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-jackson</artifactId>
+			<version>0.13.0</version>
+    		<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
