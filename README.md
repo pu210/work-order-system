@@ -134,7 +134,7 @@ git add .
 2. 提交 Commit (建議加上規範前綴，如 feat, fix)
 
 ```bash
-   git commit -m "feat: 新增工單模組基本資料夾架構與 Controller"
+git commit -m "feat: 新增工單模組基本資料夾架構與 Controller"
 ```
 
 #### Step 4. 推送分支至 GitHub
