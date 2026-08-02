@@ -1,11 +1,13 @@
-### OS generated files (全域忽略 macOS 系統檔) ###
+### OS generated files  ###
 .DS_Store
 **/.DS_Store
+Thumbs.db
 
 HELP.md
-target/
 **/target/
-.mvn/wrapper/maven-wrapper.jar
+**/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -19,39 +21,60 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
 
+# 其他編輯器暫存
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+
 
 ### VS Code ###
 .vscode/
-**/.vscode/
 
-# 忽略真實的設定檔
+
+# 忽略真實的設定檔 (包含 properties/yml/yaml)
 **/src/main/resources/application.properties
+**/src/main/resources/application.yml
+**/src/main/resources/application.yaml
+**/src/main/resources/application-*.properties
+**/src/main/resources/application-*.yml
+**/src/main/resources/application-*.yaml
 
 # 但不要忽略範本檔（通常預設就不會忽略 .example）
 !**/src/main/resources/application.properties.example
 
 ### Frontend (Vue / Node.js) ###
-node_modules/
+logs/
+*.log
 **/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-dist/
+dist-ssr
+coverage/
 **/dist/
-.env.local
-.env.*.local
+.env
+.env.*
+*.local
+*.tsbuildinfo
+.eslintcache
+
+# 前端測試 (Cypress / Vitest)
+cypress/videos/
+cypress/screenshots/
+__screenshots__/
