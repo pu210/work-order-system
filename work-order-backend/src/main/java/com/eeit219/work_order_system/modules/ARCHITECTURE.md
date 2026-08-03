@@ -26,7 +26,7 @@ workorder
     │   ├── dto/        # 資料傳輸物件（Request / Response DTO）
     │   └── entity/     # 資料庫實體物件 (Data Model)
     │
-    ├── b/         # 報修單建立模組範例
+    ├── b/       # 報修單建立模組範例
     │   ├── controller/
     │   ├── service/
     │   ├── repository/
@@ -39,22 +39,22 @@ workorder
     │   ├── repository/
     │   ├── dto/
     │   └── entity/
-    ├── d/        # 維修紀錄、人員管理模組
+    ├── d/       # 維修紀錄、人員管理模組
     │   ├── controller/
     │   ├── service/
     │   ├── repository/
     │   ├── dto/
     │   └── entity/
-    ├── e/      # 首頁、通知、報表模組
+    ├── e/       # 首頁、通知、報表模組
     │   ├── controller/
     │   ├── service/
     │   ├── repository/
     │   ├── dto/
     │   └── entity/
-    └── f/         # 系統設定、優先級模組
-    │   ├── controller/
-    │   ├── service/
-    │   ├── repository/
-    │   ├── dto/
-    │   └── entity/
+    └── f/       # 系統設定、優先級模組
+        ├── controller/
+        ├── service/
+        ├── repository/
+        ├── dto/
+        └── entity/
 ```
