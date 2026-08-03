@@ -74,6 +74,9 @@ coverage/
 *.tsbuildinfo
 .eslintcache
 
+# 允許上傳 .env 範例檔
+!.env.example
+
 # 前端測試 (Cypress / Vitest)
 cypress/videos/
 cypress/screenshots/
