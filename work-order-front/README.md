@@ -88,8 +88,12 @@ work-order-front/
 
 💡 請勿將包含敏感資訊的 .env 檔案提交至版本控制。
 
-環境變數檔案說明
-.env.example: 環境變數範本檔（提交至 Git，供新成員建立環境使用）。
+環境變數檔案說明:
+
+.env.example: 環境變數範本檔（提交至 Git，供成員建立環境使用）。
+
 .env: 本機開發環境設定檔（不會提交至 Git）。
+
 .env.development: 本地開發環境變數 (API 預設指向 http://localhost:8080)。
+
 .env.production: 線上正式環境變數。
