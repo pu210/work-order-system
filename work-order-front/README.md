@@ -67,6 +67,7 @@ work-order-front/
 ├── src/
 │ ├── assets/ # 靜態資源 (圖片、全域 CSS 等)
 │ ├── components/ # 存放組件
+│ ├── layouts/ # 頁面佈局外框 (如 AuthLayout, MainLayout)
 │ ├── plugins/ # 建立 Axios 實例、設定 baseURL、請求與回應攔截器等
 │ ├── views/ # 頁面級元件 (對應路由頁面)
 │ ├── router/ # 路由設定 (負責設定網址與對應的 view)
