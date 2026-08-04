@@ -4,16 +4,30 @@ import { createRouter, createWebHistory } from 'vue-router'
 // 2. 匯入組件
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
 
 // 3. 定義路由
 const routes = [
-    { path: '/home', 
-      component: Home,
-      name: 'home' },
-    { path: '/', 
-      component: Login,
-      name: 'login' }
-];
+  {
+    path: '/',
+    redirect: '/auth/login'
+  },
+  {
+    path: '/auth',
+    component: AuthLayout,
+    children: [
+      { path: 'login', name: 'login', component:Login}
+    ]
+  },
+  // 2. 登入後的系統頁面（使用 MainLayout，滿版）
+  {
+    path: '/',
+    component: Home,
+    children: [
+      
+    ]
+  }
+]
 
 // 4. 建立 router
 const router = createRouter({
