@@ -1,0 +1,21 @@
+package com.eeit219.work_order_system.modules.e.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
+import com.eeit219.work_order_system.modules.e.entity.WorkOrder;
+
+@Repository
+public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
+
+    // 使用 Hibernate / Spring Data 的 Native Query (原生 SQL 語法) 進行 GROUP BY 大分類統計
+    @Query(value = "SELECT c.name AS categoryName, COUNT(w.id) AS count " +
+            "FROM work_orders w " +
+            "JOIN repair_categories c ON w.category_id = c.id " +
+            "GROUP BY c.name", nativeQuery = true)
+    List<CategoryReportDto> countWorkOrdersByCategory();
+}
