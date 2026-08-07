@@ -73,36 +73,4 @@ public class User {
         updatedTime = LocalDateTime.now();
     }
 
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public String getAccount() {
-        return account;
-    }
-
-    public void setAccount(String account) {
-        this.account = account;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public Boolean getMustChangePassword() {
-        return mustChangePassword;
-    }
-
-    public void setMustChangePassword(Boolean mustChangePassword) {
-        this.mustChangePassword = mustChangePassword;
-    }
-
 }
