@@ -10,21 +10,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * 使用者 Entity。
- *
- * <p>
- * HQL 使用 Entity 與 Java 屬性名稱，例如：
- * {@code FROM Users u WHERE u.account = :account}。
- * </p>
- */
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(name = "UQ_users_account", columnNames = "account"),
-        @UniqueConstraint(name = "UQ_users_email", columnNames = "email")
-})
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -58,9 +52,6 @@ public class User {
 
     @Column(name = "updated_time", nullable = false)
     private LocalDateTime updatedTime;
-
-    public User() {
-    }
 
     @PrePersist
     protected void onCreate() {
@@ -114,51 +105,4 @@ public class User {
         this.mustChangePassword = mustChangePassword;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public Short getStatus() {
-        return status;
-    }
-
-    public void setStatus(Short status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedTime() {
-        return createdTime;
-    }
-
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-
-    public LocalDateTime getUpdatedTime() {
-        return updatedTime;
-    }
-
-    public void setUpdatedTime(LocalDateTime updatedTime) {
-        this.updatedTime = updatedTime;
-    }
 }
