@@ -61,7 +61,7 @@ public class WorkOrder {
     private LocalDateTime dueTime;
 
     @Column(name = "status", nullable = false, length = 50)
-    private String status = "default";
+    private String status = "PENDING_REVIEW";
 
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime;
