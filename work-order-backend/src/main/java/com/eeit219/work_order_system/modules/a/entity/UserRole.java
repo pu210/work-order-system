@@ -3,9 +3,8 @@ package com.eeit219.work_order_system.modules.a.entity;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -20,13 +19,8 @@ import lombok.Setter;
 @Table(name = "user_roles")
 public class UserRole {
 
-    @Id
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
-
-    @Id
-    @Column(name = "role_id", nullable = false)
-    private Integer roleId;
+    @EmbeddedId
+    private UserRoleId id;
 
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime;
