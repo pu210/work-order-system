@@ -20,6 +20,7 @@ import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 @Service
 public class WorkOrderService {
 
+    // 暫時測試用
     private static final Integer DEFAULT_PRIORITY_ID = 1;
 
     private final WorkOrderRepository workOrderRepository;
@@ -64,6 +65,13 @@ public class WorkOrderService {
         return toResponse(saved, subCategory, priority, creator);
     }
 
+    public WorkOrderResponse getById(Integer workOrderId) {
+        WorkOrder workOrder = workOrderRepository.findById(workOrderId)
+                .orElseThrow(() -> new IllegalArgumentException("找不到工單：" + workOrderId));
+
+        return toResponse(workOrder, workOrder.getSubCategory(), workOrder.getPriority(), workOrder.getCreator());
+    }
+
     private Priority resolvePriority(SubCategory subCategory) {
         if (subCategory.getOverridePriority() != null) {
             return subCategory.getOverridePriority();
@@ -91,6 +99,7 @@ public class WorkOrderService {
                 .workOrderId(workOrder.getWorkOrderId())
                 .workOrderNo(workOrder.getWorkOrderNo())
                 .title(workOrder.getTitle())
+                .categoryName(subCategory.getCategory().getName())
                 .subCategoryName(subCategory.getName())
                 .priorityName(priority.getName())
                 .locationDetail(workOrder.getLocationDetail())
