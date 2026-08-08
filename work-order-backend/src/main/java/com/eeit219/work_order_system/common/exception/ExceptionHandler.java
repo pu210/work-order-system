@@ -1,5 +1,26 @@
 package com.eeit219.work_order_system.common.exception;
 
-public class ExceptionHandler {
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.eeit219.work_order_system.common.response.ApiResponse;
+
+@RestControllerAdvice
+public class ExceptionHandler {
+    // 2026_08_09
+    // 非法參數 回 400
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    // 2026_08_09
+    // 非法狀態 回 409 而非 400
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    }
 }
