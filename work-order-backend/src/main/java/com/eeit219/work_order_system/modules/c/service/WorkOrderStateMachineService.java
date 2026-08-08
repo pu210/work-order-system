@@ -11,7 +11,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.eeit219.work_order_system.modules.c.domain.WorkOrderBean;
+import com.eeit219.work_order_system.modules.c.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.c.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
@@ -31,12 +31,12 @@ public class WorkOrderStateMachineService {
     }
 
     @Transactional
-    public WorkOrderBean changeState(
+    public WorkOrder changeState(
             Integer workOrderId,
             WorkOrderEvent event) {
 
         // 1. 查詢工單
-        WorkOrderBean workOrder = findByWorkOrderId(workOrderId);
+        WorkOrder workOrder = findByWorkOrderId(workOrderId);
 
         // 2. 取得資料庫目前狀態
         WorkOrderState oldState = workOrder.getStatus();
@@ -72,9 +72,9 @@ public class WorkOrderStateMachineService {
         }
     }
 
-    public WorkOrderBean findByWorkOrderId(Integer id) {
+    public WorkOrder findByWorkOrderId(Integer id) {
         if (id != null) {
-            Optional<WorkOrderBean> optional = workOrderRepository.findById(id);
+            Optional<WorkOrder> optional = workOrderRepository.findById(id);
             if (optional != null && optional.isPresent()) {
                 return optional.get();
             }
