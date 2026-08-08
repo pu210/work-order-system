@@ -14,27 +14,20 @@ import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
-import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
 import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 
 @Service
 public class WorkOrderService {
 
-    // 暫時測試用
-    private static final Integer DEFAULT_PRIORITY_ID = 1;
-
     private final WorkOrderRepository workOrderRepository;
     private final SubCategoryRepository subCategoryRepository;
-    private final PriorityRepository priorityRepository;
     private final UserRepository userRepository;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
             SubCategoryRepository subCategoryRepository,
-            PriorityRepository priorityRepository,
             UserRepository userRepository) {
         this.workOrderRepository = workOrderRepository;
         this.subCategoryRepository = subCategoryRepository;
-        this.priorityRepository = priorityRepository;
         this.userRepository = userRepository;
     }
 
@@ -57,6 +50,7 @@ public class WorkOrderService {
         workOrder.setContactPhone(request.getContactPhone());
         workOrder.setDescription(request.getDescription());
         workOrder.setCreator(creator);
+        // due_time 等蹦哥的邏輯在這之前先設成派工流程決定
         workOrder.setDueTime(null);
         workOrder.setCreatedTime(LocalDateTime.now());
 
@@ -76,8 +70,12 @@ public class WorkOrderService {
         if (subCategory.getOverridePriority() != null) {
             return subCategory.getOverridePriority();
         }
-        return priorityRepository.findById(DEFAULT_PRIORITY_ID)
-                .orElseThrow(() -> new IllegalStateException("找不到預設優先級：" + DEFAULT_PRIORITY_ID));
+        // override_priority 為 null 時，往上抓大類別的預設優先級
+        Priority defaultPriority = subCategory.getCategory().getDefaultPriority();
+        if (defaultPriority == null) {
+            throw new IllegalStateException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
+        }
+        return defaultPriority;
     }
 
     private String generateWorkOrderNo() {
