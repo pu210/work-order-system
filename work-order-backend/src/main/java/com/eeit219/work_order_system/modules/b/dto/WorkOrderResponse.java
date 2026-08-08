@@ -15,6 +15,7 @@ public class WorkOrderResponse {
     private Integer workOrderId;
     private String workOrderNo;
     private String title;
+    private String categoryName;
     private String subCategoryName;
     private String priorityName;
     private String locationDetail;
