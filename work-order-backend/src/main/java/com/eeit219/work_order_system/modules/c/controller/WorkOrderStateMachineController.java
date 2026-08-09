@@ -20,23 +20,30 @@ public class WorkOrderStateMachineController {
         this.stateMachineService = stateMachineService;
     }
 
-    @PostMapping("/state")
-    public Map<String, Object> changeState(
-            @RequestBody ChangeWorkOrderStateRequest request) {
-
-        try {
-            stateMachineService.changeState(
-                    request.workOrderId(),
-                    request.event());
-
-            return Map.of(
-                    "success", true,
-                    "message", "成功");
-
-        } catch (IllegalStateException exception) {
-            return Map.of(
-                    "success", false,
-                    "message", "無法執行該動作");
+    @PostMapping("/PENDING_REVIEW")
+    public Map<String, Object> PendingReviewChangeState(@RequestBody ChangeWorkOrderStateRequest request) {
+        if (request.workOrderId() == null) {
+            return Map.of("message", "工單ID不可為空");
+        } else if (request.userId() == null) {
+            return Map.of("message", "使用者ID不可為空");
+        } else if (request.event() == null) {
+            return Map.of("message", "事件不可為空");
+        } else if (request.assignedHandler() == null) {
+            return Map.of("message", "指派工程師不可為空");
+        } else if (request.priorityId() == null) {
+            return Map.of("message", "優先權不可為空");
+        } else if (request.dueTime() == null) {
+            return Map.of("message", "預計完成時間不可為空");
+        } else if (request.event() == null) {
+            return Map.of("message", "事件不可為空");
+        } else {
+            try {
+                stateMachineService.review(request);
+                return Map.of("message", "success");
+            } catch (Exception e) {
+                return Map.of("message", e.getMessage());
+            }
         }
     }
+
 }

@@ -46,7 +46,7 @@ public class WorkOrder {
     private LocalDateTime createdTime;
     @Column(name = "creator_user_id",nullable = false)
     private Integer creatorUserId;
-    @Column(name = "assigned_handler",nullable = false)
+    @Column(name = "assigned_handler")
     private Integer assignedHandler;
     @Column(name = "is_overdue",nullable = false)
     private Boolean isOverdue;
