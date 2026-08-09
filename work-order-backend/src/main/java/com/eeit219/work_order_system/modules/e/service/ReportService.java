@@ -15,6 +15,6 @@ public class ReportService {
     private WorkOrderRepository workOrderRepository;
 
     public List<CategoryReportDto> getCategoryReport() {
-        return workOrderRepository.countWorkOrdersByCategory();
+        return workOrderRepository.countWorkOrdersByCategory();	//呼叫方法
     }
 }
