@@ -3,12 +3,15 @@ package com.eeit219.work_order_system.modules.b.service;
 import java.time.LocalDateTime;
 import java.time.Year;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
+import com.eeit219.work_order_system.modules.b.dto.WorkOrderListItemResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
@@ -66,6 +69,10 @@ public class WorkOrderService {
         return toResponse(workOrder, workOrder.getSubCategory(), workOrder.getPriority(), workOrder.getCreator());
     }
 
+    public Page<WorkOrderListItemResponse> list(Integer priorityId, Pageable pageable) {
+        return workOrderRepository.search(priorityId, pageable).map(this::toListItem);
+    }
+
     private Priority resolvePriority(SubCategory subCategory) {
         if (subCategory.getOverridePriority() != null) {
             return subCategory.getOverridePriority();
@@ -107,6 +114,22 @@ public class WorkOrderService {
                 .status(workOrder.getStatus())
                 .createdTime(workOrder.getCreatedTime())
                 .creatorName(creator.getName())
+                .build();
+    }
+
+    private WorkOrderListItemResponse toListItem(WorkOrder workOrder) {
+        return WorkOrderListItemResponse.builder()
+                .workOrderId(workOrder.getWorkOrderId())
+                .workOrderNo(workOrder.getWorkOrderNo())
+                .title(workOrder.getTitle())
+                .categoryName(workOrder.getSubCategory().getCategory().getName())
+                .priorityName(workOrder.getPriority().getName())
+                .status(workOrder.getStatus())
+                .creatorName(workOrder.getCreator().getName())
+                .assignedHandlerName(workOrder.getAssignedHandler() != null
+                        ? workOrder.getAssignedHandler().getName()
+                        : null)
+                .createdTime(workOrder.getCreatedTime())
                 .build();
     }
 }
