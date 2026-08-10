@@ -1,7 +1,6 @@
 package com.eeit219.work_order_system.modules.c.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
@@ -10,9 +9,7 @@ import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.eeit219.work_order_system.modules.c.dto.ChangeWorkOrderStateRequest;
 import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
@@ -37,50 +34,7 @@ public class WorkOrderStateMachineService {
         this.stateMachineFactory = stateMachineFactory;
     }
 
-    @Transactional
-    public void review(ChangeWorkOrderStateRequest request) {
-
-        // 管理員審查需要的處理
-        WorkOrder workOrder = new WorkOrder();
-        workOrder = findByWorkOrderId(request.workOrderId());
-        if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
-            throw new IllegalStateException("目前不是待審查狀態");
-        }
-       
-        if (request.event() == WorkOrderEvent.ACCEPT) {
-            workOrder = changeState(workOrder, request.userId(), request.feedback(),request.event());
-            workOrder.setPriorityId(request.priorityId());
-            workOrder.setDueTime(request.dueTime());
-            workOrder.setAssignedHandler(request.assignedHandler());
-            workOrderRepository.save(workOrder);
-        }else{
-            if(request.feedback()==null){
-                throw new IllegalStateException("拒絕必須填寫反饋");
-            }
-            changeState(workOrder, request.userId(), request.feedback(),request.event());
-        }
-    }
-
-
-    // @Transactional
-    // public WorkOrder completeRepair() {
-    // // 完工需要的處理
-    // return changeState(workOrderId, userId, event);
-    // }
-
-    // @Transactional
-    // public WorkOrder userAcceptance(...) {
-    // // 使用者驗收需要的處理
-    // return changeState(workOrderId, userId, event);
-    // }
-
-    // @Transactional
-    // public WorkOrder adminAcceptance(...) {
-    // // 管理員驗收需要的處理
-    // return changeState(workOrderId, userId, event);
-    // }
-
-    private WorkOrder changeState(
+    public WorkOrder changeState(
             WorkOrder workOrder,
             Integer userId,
             String feedback,
@@ -114,7 +68,7 @@ public class WorkOrderStateMachineService {
             modifyWorkOrderStatus(workOrder, newState);
 
             // 創建一筆新的history
-            createRepairTicketHistory(workOrder, userId,feedback);
+            createRepairTicketHistory(workOrder, userId, feedback);
             return workOrder;
 
         } finally {
@@ -122,17 +76,6 @@ public class WorkOrderStateMachineService {
         }
 
     }
-
-    public WorkOrder findByWorkOrderId(Integer id) {
-        if (id != null) {
-            Optional<WorkOrder> optional = workOrderRepository.findById(id);
-            if (optional != null && optional.isPresent()) {
-                return optional.get();
-            }
-        }
-        return null;
-    }
-
     private void resetStateMachine(
             StateMachine<WorkOrderState, WorkOrderEvent> stateMachine,
             WorkOrderState currentState) {
@@ -175,12 +118,12 @@ public class WorkOrderStateMachineService {
         return result.getResultType() == StateMachineEventResult.ResultType.ACCEPTED;
     }
 
-    public WorkOrder modifyWorkOrderStatus(WorkOrder workOrder, WorkOrderState newState) {
+    private WorkOrder modifyWorkOrderStatus(WorkOrder workOrder, WorkOrderState newState) {
         workOrder.setStatus(newState);
         return workOrderRepository.save(workOrder);
     }
 
-    public RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId,String feedback){
+    private RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId, String feedback) {
         RepairTicketHistory history = new RepairTicketHistory();
         history.setTicketId(workOrder.getWorkOrderId());
         history.setStatus(workOrder.getStatus());
