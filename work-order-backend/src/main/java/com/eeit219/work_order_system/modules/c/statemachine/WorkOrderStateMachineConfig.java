@@ -30,29 +30,23 @@ public class WorkOrderStateMachineConfig extends EnumStateMachineConfigurerAdapt
                     .target(WorkOrderState.CANCELLED)
                     .event(WorkOrderEvent.REJECT)
                     .and()
-                // 待審核 -接受-> 待評估    
+                // 待審核 -接受-> 進行中    
                 .withExternal()
                     .source(WorkOrderState.PENDING_REVIEW)
-                    .target(WorkOrderState.PENDING_EVALUATION)
-                    .event(WorkOrderEvent.ACCEPT)
-                    .and()
-                // 待評估 -拒絕-> 待審核   
-                .withExternal()
-                    .source(WorkOrderState.PENDING_EVALUATION)
-                    .target(WorkOrderState.PENDING_REVIEW)
-                    .event(WorkOrderEvent.REJECT)
-                    .and()  
-                // 待評估 -接受-> 進行中   
-                .withExternal()
-                    .source(WorkOrderState.PENDING_EVALUATION)
                     .target(WorkOrderState.IN_PROGRESS)
                     .event(WorkOrderEvent.ACCEPT)
                     .and()
-                // 進行中 -維修完成-> 使用者驗收
+                // 進行中 -拒絕-> 待審核   
+                .withExternal()
+                    .source(WorkOrderState.IN_PROGRESS)
+                    .target(WorkOrderState.PENDING_REVIEW)
+                    .event(WorkOrderEvent.REJECT)
+                    .and()  
+                // 進行中 -完成-> 使用者驗收
                 .withExternal()
                     .source(WorkOrderState.IN_PROGRESS)
                     .target(WorkOrderState.PENDING_USER_ACCEPTANCE)
-                    .event(WorkOrderEvent.COMPLETE)
+                    .event(WorkOrderEvent.ACCEPT)
                     .and()
                 // 使用者驗收 -接受-> 管理員驗收
                 .withExternal()
@@ -60,10 +54,10 @@ public class WorkOrderStateMachineConfig extends EnumStateMachineConfigurerAdapt
                     .target(WorkOrderState.PENDING_ADMIN_ACCEPTANCE)
                     .event(WorkOrderEvent.ACCEPT)
                     .and()
-                // 管理員驗收 -拒絕-> 待評估
+                // 管理員驗收 -拒絕-> 進行中
                 .withExternal()
                     .source(WorkOrderState.PENDING_ADMIN_ACCEPTANCE)
-                    .target(WorkOrderState.PENDING_EVALUATION)
+                    .target(WorkOrderState.IN_PROGRESS)
                     .event(WorkOrderEvent.REJECT)
                     .and()
                 // 管理員驗收 -接受-> 完成

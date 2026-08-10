@@ -20,7 +20,7 @@ public class WorkOrderStateMachineController {
         this.stateMachineService = stateMachineService;
     }
 
-    @PostMapping("/PENDING_REVIEW")
+    @PostMapping("/status")
     public Map<String, Object> PendingReviewChangeState(@RequestBody ChangeWorkOrderStateRequest request) {
         if (request.workOrderId() == null) {
             return Map.of("message", "工單ID不可為空");

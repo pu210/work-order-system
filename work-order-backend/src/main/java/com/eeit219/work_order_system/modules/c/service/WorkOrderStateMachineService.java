@@ -46,22 +46,21 @@ public class WorkOrderStateMachineService {
         if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
             throw new IllegalStateException("目前不是待審查狀態");
         }
+       
         if (request.event() == WorkOrderEvent.ACCEPT) {
-            workOrder = changeState(workOrder, request.userId(), request.event());
+            workOrder = changeState(workOrder, request.userId(), request.feedback(),request.event());
             workOrder.setPriorityId(request.priorityId());
             workOrder.setDueTime(request.dueTime());
             workOrder.setAssignedHandler(request.assignedHandler());
             workOrderRepository.save(workOrder);
         }else{
-            changeState(workOrder, request.userId(), request.event());
+            if(request.feedback()==null){
+                throw new IllegalStateException("拒絕必須填寫反饋");
+            }
+            changeState(workOrder, request.userId(), request.feedback(),request.event());
         }
     }
 
-    // @Transactional
-    // public WorkOrder evaluate(...) {
-    // // 工單評估需要的處理
-    // return changeState(workOrderId, userId, event);
-    // }
 
     // @Transactional
     // public WorkOrder completeRepair() {
@@ -84,6 +83,7 @@ public class WorkOrderStateMachineService {
     private WorkOrder changeState(
             WorkOrder workOrder,
             Integer userId,
+            String feedback,
             WorkOrderEvent event) {
 
         // 取得資料庫目前狀態
@@ -114,7 +114,7 @@ public class WorkOrderStateMachineService {
             modifyWorkOrderStatus(workOrder, newState);
 
             // 創建一筆新的history
-            createRepairTicketHistory(workOrder, userId);
+            createRepairTicketHistory(workOrder, userId,feedback);
             return workOrder;
 
         } finally {
@@ -180,12 +180,13 @@ public class WorkOrderStateMachineService {
         return workOrderRepository.save(workOrder);
     }
 
-    public RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId) {
+    public RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId,String feedback){
         RepairTicketHistory history = new RepairTicketHistory();
         history.setTicketId(workOrder.getWorkOrderId());
         history.setStatus(workOrder.getStatus());
         history.setEditedTime(LocalDateTime.now());
         history.setEditorId(editorId);
+        history.setFeedback(feedback);
         return repairTicketHistoryRepository.save(history);
     }
 }

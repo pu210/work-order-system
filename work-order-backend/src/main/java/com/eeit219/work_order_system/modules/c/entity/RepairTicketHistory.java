@@ -22,9 +22,9 @@ public class RepairTicketHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "history_id")
-    private Integer HistoryId;
+    private Integer historyId;
     @Column(name = "ticket_id",nullable = false)
-    private Integer TicketId;
+    private Integer ticketId;
     @Enumerated(EnumType.STRING)
     @Column(name = "status",nullable = false)
     private WorkOrderState status;
@@ -32,5 +32,7 @@ public class RepairTicketHistory {
     private LocalDateTime editedTime;
     @Column (name ="editor_id",nullable = false)
     private Integer editorId;
+    @Column(name="feedback")
+    private String feedback;
 
 }
