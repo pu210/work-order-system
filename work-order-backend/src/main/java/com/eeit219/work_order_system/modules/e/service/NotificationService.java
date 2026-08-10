@@ -1,0 +1,32 @@
+package com.eeit219.work_order_system.modules.e.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.eeit219.work_order_system.modules.e.entity.Notification;
+import com.eeit219.work_order_system.modules.e.repository.NotificationRepository;
+
+@Service
+public class NotificationService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Transactional
+    public Notification createTestNotification(Notification notification) {
+        // 設定預設值（如果前端沒傳的話）
+        if (notification.getIsRead() == null) {
+            notification.setIsRead(0); // 預設未讀
+        }
+        
+        // 直接存入 DB 並回傳存好的物件（包含自動產生的 notification_id）
+        return notificationRepository.save(notification);
+    }
+    
+    public List<Notification> getNotificationsByReceiverId(Long receiverId) {
+        return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
+    }
+}
