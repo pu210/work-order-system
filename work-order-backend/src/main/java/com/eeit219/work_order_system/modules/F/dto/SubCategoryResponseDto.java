@@ -15,6 +15,6 @@ public class SubCategoryResponseDto {
     private String overridePriorityName; // 特例優先級名稱
     private Integer effectivePriorityId; // 【核心】最終生效的優先級 ID (有特例用特例，沒有就用大類預設)
     private Boolean status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime created_time;
+    private LocalDateTime updated_time;
 }

@@ -12,12 +12,12 @@ import com.eeit219.work_order_system.modules.F.entity.RepairCategory;
 @Repository
 public interface RepairCategoryRepository extends JpaRepository<RepairCategory, Integer> {
 
-    @Query("SELECT c FROM RepairCategory c WHERE "
-            + "CONCAT(c.repairCategoriesId, '') LIKE %:keyword% OR "
-            + "c.name LIKE %:keyword% OR "
-            + "CONCAT(c.defaultPriorityId, '') LIKE %:keyword% OR "
-            + "c.defaultPriorityName LIKE %:keyword% OR "
-            + "CONCAT(c.createdTime, '') LIKE %:keyword% OR "
-            + "CONCAT(c.updatedTime, '') LIKE %:keyword%")
+    @Query("SELECT c FROM RepairCategory c WHERE " +
+            "CONCAT(c.repairCategoriesId, '') LIKE :keyword OR " +
+            "c.name LIKE :keyword OR " +
+            "CONCAT(c.defaultPriorityId, '') LIKE :keyword OR " +
+            "c.defaultPriority.name LIKE :keyword OR " +
+            "CONCAT(c.createdTime, '') LIKE :keyword OR " +
+            "CONCAT(c.updatedTime, '') LIKE :keyword")
     List<RepairCategory> searchByKeyword(@Param("keyword") String keyword);
 }
