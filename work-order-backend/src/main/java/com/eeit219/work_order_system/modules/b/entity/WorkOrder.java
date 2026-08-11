@@ -3,11 +3,14 @@ package com.eeit219.work_order_system.modules.b.entity;
 import java.time.LocalDateTime;
 
 import com.eeit219.work_order_system.modules.a.entity.User;
+import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -60,8 +63,9 @@ public class WorkOrder {
     @Column(name = "due_time")
     private LocalDateTime dueTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status = "PENDING_REVIEW";
+    private WorkOrderState status = WorkOrderState.PENDING_REVIEW;
 
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime;
