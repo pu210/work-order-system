@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.eeit219.work_order_system.modules.c.dto.ReviewAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.ChangeStatusRequest;
 import com.eeit219.work_order_system.modules.c.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.c.repository.WorkOrderRepository;
@@ -14,45 +13,40 @@ import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import jakarta.transaction.Transactional;
 
 @Service
-public class ReviewService {
+public class ProgressService {
     private final WorkOrderRepository workOrderRepository;
     private final WorkOrderStateMachineService workOrderStateMachineService;
 
-    public ReviewService(WorkOrderRepository workOrderRepository,WorkOrderStateMachineService workOrderStateMachineService) {
+    public ProgressService(WorkOrderRepository workOrderRepository,WorkOrderStateMachineService workOrderStateMachineService) {
         this.workOrderRepository = workOrderRepository;
         this.workOrderStateMachineService=workOrderStateMachineService;
     }
 
     @Transactional
-    public void reviewAccept(ReviewAcceptRequest request, Integer workOrderId) {
+    public void progressAccept(ChangeStatusRequest request, Integer workOrderId) {
         WorkOrder workOrder = findByWorkOrderId(workOrderId);
 
         if (workOrder == null) {
             throw new IllegalArgumentException("找不到指定的工單");
         }
 
-        if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
-            throw new IllegalStateException("目前不是待審查狀態");
+        if (workOrder.getStatus() != WorkOrderState.IN_PROGRESS) {
+            throw new IllegalStateException("目前不是進行中狀態");
         }
 
-        workOrder = workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(), WorkOrderEvent.ACCEPT);
-        workOrder.setPriorityId(request.priorityId());
-        workOrder.setAssignedHandler(request.assignedHandler());
-        workOrder.setDueTime(request.dueTime());
-
-        workOrderRepository.save(workOrder);
+        workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(), WorkOrderEvent.ACCEPT);
     }
 
     @Transactional
-    public void reviewReject(ChangeStatusRequest request, Integer workOrderId) {
+    public void progressReject(ChangeStatusRequest request, Integer workOrderId) {
         WorkOrder workOrder = findByWorkOrderId(workOrderId);
 
         if (workOrder == null) {
             throw new IllegalArgumentException("找不到指定的工單");
         }
 
-        if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
-            throw new IllegalStateException("目前不是待審查狀態");
+        if (workOrder.getStatus() != WorkOrderState.IN_PROGRESS) {
+            throw new IllegalStateException("目前不是進行中狀態");
         }
 
         workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(), WorkOrderEvent.REJECT);

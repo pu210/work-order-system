@@ -1,9 +1,9 @@
 package com.eeit219.work_order_system.modules.c.dto;
 
-public record ReviewRejectRequest(
+public record ChangeStatusRequest(
         Integer userId,
         String feedback) {
-    public ReviewRejectRequest {
+    public ChangeStatusRequest {
         if (feedback == null || feedback.isBlank()) {
             feedback = null;
         } else {
