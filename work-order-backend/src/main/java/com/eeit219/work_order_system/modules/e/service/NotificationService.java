@@ -2,18 +2,19 @@ package com.eeit219.work_order_system.modules.e.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eeit219.work_order_system.modules.e.entity.Notification;
 import com.eeit219.work_order_system.modules.e.repository.NotificationRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
 
     @Transactional
     public Notification createTestNotification(Notification notification) {
