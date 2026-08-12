@@ -1,9 +1,9 @@
 spring.application.name=repair-system
 
-#JWT token expire time (minutes)
+# JWT token expire time (minutes)
 jwt.token.expire=10
 
-#JSON
+# JSON
 spring.jackson.date-format=yyyy-MM-dd
 spring.jackson.time-zone=Asia/Taipei
 
@@ -14,8 +14,8 @@ spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.hibernate.naming.implicit-strategy=org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
-# database connection info
+# database connection info (改成你的地端連線資訊，但資料庫名稱建議配合團隊)
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 spring.datasource.url=jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;database=workorderDB;
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
+spring.datasource.username=sa
+spring.datasource.password=P@ssw0rd
