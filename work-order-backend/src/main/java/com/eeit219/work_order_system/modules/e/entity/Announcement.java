@@ -15,13 +15,10 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(
-    name = "system_announcements",
-    indexes = {
+@Table(name = "system_announcements", indexes = {
         @Index(name = "idx_announcements_is_pinned", columnList = "is_pinned"),
         @Index(name = "idx_announcements_created_time", columnList = "created_time")
-    }
-)
+})
 public class Announcement {
 
     @Id
@@ -39,7 +36,7 @@ public class Announcement {
     private String category = "GENERAL"; // 公告類型（如：MAINTENANCE 維護、FEATURE 新功能、URGENT 緊急通知）
 
     @Column(name = "is_pinned", nullable = false)
-    private Integer isPinned = 0; // 是否置頂（1=是，0=否）
+    private Boolean isPinned = false; // 是否置頂（1=是，0=否）
 
     @Column(name = "start_time")
     private LocalDateTime startTime; // 公告生效時間（用於預約排程發布）

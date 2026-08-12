@@ -39,7 +39,7 @@ public class AnnouncementService {
             announcement.setCategory("GENERAL");
         }
         if (announcement.getIsPinned() == null) {
-            announcement.setIsPinned(0);
+            announcement.setIsPinned(false);
         }
         return announcementRepository.save(announcement);
     }

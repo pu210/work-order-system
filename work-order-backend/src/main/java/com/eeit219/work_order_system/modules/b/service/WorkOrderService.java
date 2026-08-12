@@ -78,7 +78,7 @@ public class WorkOrderService {
             return subCategory.getOverridePriority();
         }
         // override_priority 為 null 時，往上抓大類別的預設優先級
-        Priority defaultPriority = subCategory.getCategory().getDefaultPriority();
+        Priority defaultPriority = subCategory.getRepairCategory().getDefaultPriority();
         if (defaultPriority == null) {
             throw new IllegalStateException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
         }
@@ -104,14 +104,14 @@ public class WorkOrderService {
                 .workOrderId(workOrder.getWorkOrderId())
                 .workOrderNo(workOrder.getWorkOrderNo())
                 .title(workOrder.getTitle())
-                .categoryName(subCategory.getCategory().getName())
+                .categoryName(subCategory.getRepairCategory().getName())
                 .subCategoryName(subCategory.getName())
                 .priorityName(priority.getName())
                 .locationDetail(workOrder.getLocationDetail())
                 .contactPhone(workOrder.getContactPhone())
                 .description(workOrder.getDescription())
                 .dueTime(workOrder.getDueTime())
-                .status(workOrder.getStatus())
+                .status(workOrder.getStatus().name())
                 .createdTime(workOrder.getCreatedTime())
                 .creatorName(creator.getName())
                 .build();
@@ -122,9 +122,9 @@ public class WorkOrderService {
                 .workOrderId(workOrder.getWorkOrderId())
                 .workOrderNo(workOrder.getWorkOrderNo())
                 .title(workOrder.getTitle())
-                .categoryName(workOrder.getSubCategory().getCategory().getName())
+                .categoryName(workOrder.getSubCategory().getRepairCategory().getName())
                 .priorityName(workOrder.getPriority().getName())
-                .status(workOrder.getStatus())
+                .status(workOrder.getStatus().name())
                 .creatorName(workOrder.getCreator().getName())
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()

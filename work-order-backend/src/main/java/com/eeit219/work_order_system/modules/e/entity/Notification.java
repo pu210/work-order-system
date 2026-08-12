@@ -14,10 +14,10 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notification_id")
-    private Long notificationId;
+    private Integer notificationId;
 
     @Column(name = "work_order_id")
-    private Long workOrderId;
+    private Integer workOrderId;
 
     @Column(name = "status", length = 20)
     private String status;
@@ -29,18 +29,18 @@ public class Notification {
     private String message;
 
     @Column(name = "is_read", nullable = false)
-    private Integer isRead = 0; // 預設未讀 (0: 未讀, 1: 已讀)
+    private Boolean isRead = false; // 預設未讀 (0: 未讀, 1: 已讀)
 
     @Column(name = "sender_id")
-    private Long senderId;
+    private Integer senderId;
 
     @Column(name = "receiver_id", nullable = false)
-    private Long receiverId;
+    private Integer receiverId;
 
     @Column(name = "priority_id")
     private Integer priorityId;
 
-    @CreationTimestamp
-    @Column(name = "created_time", updatable = false)
-    private LocalDateTime createdTime;
+    // @CreationTimestamp
+    // @Column(name = "created_time", updatable = false)
+    // private LocalDateTime createdTime;
 }
