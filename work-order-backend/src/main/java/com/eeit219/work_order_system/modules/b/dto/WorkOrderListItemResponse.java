@@ -1,24 +1,12 @@
 package com.eeit219.work_order_system.modules.b.dto;
 
-import java.time.LocalDateTime;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
-public class WorkOrderListItemResponse {
-    private Integer workOrderId;
-    private String workOrderNo;
-    private String title;
-    private String categoryName;
-    private String priorityName;
-    private String status;
-    private String creatorName;
+@SuperBuilder
+public class WorkOrderListItemResponse extends WorkOrderSummary {
     private String assignedHandlerName;
-    private LocalDateTime createdTime;
 }
