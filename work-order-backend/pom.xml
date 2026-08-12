@@ -45,6 +45,21 @@
     		<artifactId>spring-boot-starter-security</artifactId>
     		<scope>compile</scope>
 		</dependency>
+		 	
+
+		<dependency>
+    		<groupId>org.json</groupId>
+    		<artifactId>json</artifactId>
+    		<version>20260522</version>
+	    	<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+    		<artifactId>nimbus-jose-jwt</artifactId>
+    		<version>10.9.1</version>
+    		<scope>compile</scope>
+		</dependency>
 
 		<!-- 
         JWT 身份驗證套件群 (JJWT)
@@ -104,6 +119,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>com.eeit219.work_order_system.WorkOrderSystem</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

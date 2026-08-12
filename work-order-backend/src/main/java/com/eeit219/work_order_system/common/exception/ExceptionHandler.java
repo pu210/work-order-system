@@ -16,11 +16,24 @@ public class ExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
-    // 2026_08_09
-    // 非法狀態 回 409 而非 400
-    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    @org.springframework.web.bind.annotation.ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(
+            ResourceNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ApiResponse.error(
+                        HttpStatus.NOT_FOUND.value(),
+                        exception.getMessage()));
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(
+            IllegalArgumentException exception) {
+
+        return ResponseEntity.badRequest().body(
+                ApiResponse.error(
+                        HttpStatus.BAD_REQUEST.value(),
+                        exception.getMessage()));
+    }
+
 }
