@@ -38,6 +38,8 @@ HELP.md
 *.sln
 *.sw?
 
+
+
 ### NetBeans ###
 
 nbproject/private/
@@ -86,3 +88,4 @@ coverage/
 cypress/videos/
 cypress/screenshots/
 __screenshots__/
+/.metadata/
