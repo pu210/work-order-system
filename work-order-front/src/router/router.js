@@ -5,12 +5,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import Announcements from '@/views/Announcements.vue';
+import Dashboard from '@/views/Dashboard.vue';
 
 // 3. 定義路由
 const routes = [
   {
     path: '/',
-    redirect: '/auth/login'
+    redirect: '/dashboard'
   },
   {
     path: '/auth',
@@ -24,7 +26,8 @@ const routes = [
     path: '/',
     component: Home,
     children: [
-      
+      { path: 'dashboard', name: 'dashboard', component: Dashboard },
+      { path: 'announcements', name: 'announcements', component: Announcements }
     ]
   }
 ]
