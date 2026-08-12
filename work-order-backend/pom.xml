@@ -46,6 +46,20 @@
     		<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+    		<groupId>org.json</groupId>
+    		<artifactId>json</artifactId>
+    		<version>20260522</version>
+	    	<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+    		<artifactId>nimbus-jose-jwt</artifactId>
+    		<version>10.9.1</version>
+    		<scope>compile</scope>
+		</dependency>
+
 		<!-- 
         JWT 身份驗證套件群 (JJWT)
         - api: 核心介面 (編譯期使用)
