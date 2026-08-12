@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.dto;
+package com.eeit219.work_order_system.modules.f.dto;
 
 import lombok.Data;
 

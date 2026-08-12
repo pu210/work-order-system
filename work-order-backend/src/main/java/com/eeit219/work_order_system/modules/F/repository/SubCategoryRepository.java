@@ -1,15 +1,13 @@
-package com.eeit219.work_order_system.modules.F.repository;
+package com.eeit219.work_order_system.modules.f.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-import com.eeit219.work_order_system.modules.F.entity.SubCategory;
+import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
-@Repository
 public interface SubCategoryRepository extends JpaRepository<SubCategory, Integer> {
 
     @Query("SELECT s FROM SubCategory s LEFT JOIN s.repairCategory c WHERE "

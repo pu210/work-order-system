@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F;
+package com.eeit219.work_order_system.modules.f;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

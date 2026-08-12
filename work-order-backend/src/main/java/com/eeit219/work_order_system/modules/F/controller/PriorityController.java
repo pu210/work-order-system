@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.controller;
+package com.eeit219.work_order_system.modules.f.controller;
 
 import java.util.List;
 
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
-import com.eeit219.work_order_system.modules.F.entity.Priority;
-import com.eeit219.work_order_system.modules.F.repository.PriorityRepository;
+import com.eeit219.work_order_system.modules.f.entity.Priority;
+import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
 
 @RestController
 @RequestMapping("/api/priorities")

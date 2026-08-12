@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.entity;
+package com.eeit219.work_order_system.modules.f.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
