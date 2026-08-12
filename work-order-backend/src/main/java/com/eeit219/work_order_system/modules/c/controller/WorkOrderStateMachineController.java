@@ -1,19 +1,23 @@
 package com.eeit219.work_order_system.modules.c.controller;
 
-import java.util.Map;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.common.response.ApiResponse;
+import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.dto.ReviewAcceptRequest;
-import com.eeit219.work_order_system.modules.c.dto.ChangeStatusRequest;
 import com.eeit219.work_order_system.modules.c.service.AdminCheckService;
 import com.eeit219.work_order_system.modules.c.service.ProgressService;
 import com.eeit219.work_order_system.modules.c.service.ReviewService;
 import com.eeit219.work_order_system.modules.c.service.UserCheckService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/work-orders")
@@ -36,132 +40,94 @@ public class WorkOrderStateMachineController {
     }
 
     @PostMapping("/{workOrderId}/review/accept")
-    public Map<String, Object> reviewAccept(
+    public ResponseEntity<ApiResponse<Object>> reviewAccept(
             @PathVariable Integer workOrderId,
-            @RequestBody ReviewAcceptRequest request) {
+            @Valid @RequestBody ReviewAcceptRequest request) {
 
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-
-        if (request.priorityId() == null) {
-            return Map.of("message", "優先級不可為空");
-        }
-
-        if (request.assignedHandler() == null) {
-            return Map.of("message", "指派工程師不可為空");
-        }
-
-        if (request.dueTime() == null) {
-            return Map.of("message", "預計完成時間不可為空");
-        }
-        try {
-            reviewService.reviewAccept(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+        reviewService.reviewAccept(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/review/reject")
-    public Map<String, Object> reviewReject(
+    public ResponseEntity<ApiResponse<Object>> reviewReject(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
+            @Valid @RequestBody RejectWorkOrderRequest request) {
 
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-
-        if (request.feedback() == null) {
-            return Map.of("message", "拒絕工單必須填寫反饋");
-        }
-        try {
-            reviewService.reviewReject(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+        reviewService.reviewReject(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/progress/accept")
-    public Map<String, Object> progressAccept(
+    public ResponseEntity<ApiResponse<Object>> progressAccept(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-        try {
-            progressService.progressAccept(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+            @Valid @RequestBody AcceptWorkOrderRequest request) {
+
+        progressService.progressAccept(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/progress/reject")
-    public Map<String, Object> progressReject(
+    public ResponseEntity<ApiResponse<Object>> progressReject(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-        if (request.feedback() == null) {
-            return Map.of("message", "拒絕工單必須填寫反饋");
-        }
-        try {
-            progressService.progressReject(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+            @Valid @RequestBody RejectWorkOrderRequest request) {
+
+        progressService.progressReject(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/usercheck/accept")
-    public Map<String, Object> userCheckAccept(
+    public ResponseEntity<ApiResponse<Object>> userCheckAccept(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-        try {
-            userCheckService.userCheckAccept(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+            @Valid @RequestBody AcceptWorkOrderRequest request) {
+
+        userCheckService.userCheckAccept(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/admincheck/accept")
-    public Map<String, Object> adminCheckAccept(
+    public ResponseEntity<ApiResponse<Object>> adminCheckAccept(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-        try {
-            adminCheckService.adminCheckAccept(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+            @Valid @RequestBody AcceptWorkOrderRequest request) {
+
+        adminCheckService.adminCheckAccept(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
     @PostMapping("/{workOrderId}/admincheck/reject")
-    public Map<String, Object> adminCheckReject(
+    public ResponseEntity<ApiResponse<Object>> adminCheckReject(
             @PathVariable Integer workOrderId,
-            @RequestBody ChangeStatusRequest request) {
-        if (request.userId() == null) {
-            return Map.of("message", "使用者ID不可為空");
-        }
-        if (request.feedback() == null) {
-            return Map.of("message", "拒絕工單必須填寫反饋");
-        }
-        try {
-            adminCheckService.adminCheckReject(request, workOrderId);
-            return Map.of("message", "success");
-        } catch (Exception e) {
-            return Map.of("message", e.getMessage());
-        }
+            @Valid @RequestBody RejectWorkOrderRequest request) {
+
+        adminCheckService.adminCheckReject(request, workOrderId);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "null",
+                        null));
     }
 
 }
