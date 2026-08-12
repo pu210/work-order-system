@@ -22,19 +22,19 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class WorkOrderDetailrServiceTest {
+class WorkOrderDetailServiceTest {
 
     @Mock
     private WorkOrderDetailRepository workOrderDetailRepository;
 
     @InjectMocks
-    private WorkOrderDetailrService workOrderDetailrService;
+    private WorkOrderDetailService workOrderDetailService;
 
     @Test
     void getWorkOrderDetail_throwsAccessDenied_whenCurrentUserIsNull() {
         assertThrows(
                 AccessDeniedException.class,
-                () -> workOrderDetailrService.getWorkOrderDetail(1, null)
+                () -> workOrderDetailService.getWorkOrderDetail(1, null)
         );
 
         verifyNoInteractions(workOrderDetailRepository);
@@ -47,7 +47,7 @@ class WorkOrderDetailrServiceTest {
 
         assertThrows(
                 EntityNotFoundException.class,
-                () -> workOrderDetailrService.getWorkOrderDetail(999, currentUser)
+                () -> workOrderDetailService.getWorkOrderDetail(999, currentUser)
         );
 
         verify(workOrderDetailRepository).findDetailById(999);
@@ -69,7 +69,7 @@ class WorkOrderDetailrServiceTest {
                 .thenReturn(Optional.of(workOrder));
 
         WorkOrderDetailResponse result =
-                workOrderDetailrService.getWorkOrderDetail(workOrderId, currentUser);
+                workOrderDetailService.getWorkOrderDetail(workOrderId, currentUser);
 
         assertEquals(workOrderId, result.getWorkOrderId());
         assertEquals("WO-2026-0001", result.getWorkOrderNo());
