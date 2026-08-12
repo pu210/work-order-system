@@ -15,6 +15,8 @@ import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.PageResponseDTO;
+import com.eeit219.work_order_system.modules.a.dto.ReviewUserRequestDTO;
+import com.eeit219.work_order_system.modules.a.dto.ReviewUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.UpdateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.UpdateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.UserResponseDTO;
@@ -88,6 +90,25 @@ public class UserController {
                                 ApiResponse.success(
                                                 HttpStatus.OK.value(),
                                                 "使用者分頁查詢成功",
+                                                data));
+        }
+
+        // 管理員審核使用者自行註冊
+        @PatchMapping("/{userId}/approval")
+        public ResponseEntity<ApiResponse<ReviewUserResponseDTO>> reviewRegistration(
+                        @PathVariable Integer userId,
+                        @RequestBody ReviewUserRequestDTO request) {
+
+                ReviewUserResponseDTO data = userService.reviewRegistration(userId, request);
+
+                String message = Boolean.TRUE.equals(request.approved())
+                                ? "使用者帳號核准成功"
+                                : "使用者帳號已拒絕";
+
+                return ResponseEntity.ok(
+                                ApiResponse.success(
+                                                HttpStatus.OK.value(),
+                                                message,
                                                 data));
         }
 }
