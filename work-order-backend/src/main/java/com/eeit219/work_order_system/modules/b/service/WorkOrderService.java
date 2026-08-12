@@ -8,13 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
+import com.eeit219.work_order_system.modules.F.entity.Priority;
+import com.eeit219.work_order_system.modules.F.entity.SubCategory;
+import com.eeit219.work_order_system.modules.F.repository.SubCategoryRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
-import com.eeit219.work_order_system.modules.f.entity.Priority;
-import com.eeit219.work_order_system.modules.f.entity.SubCategory;
-import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 
 @Service
 public class WorkOrderService {
@@ -71,7 +71,7 @@ public class WorkOrderService {
             return subCategory.getOverridePriority();
         }
         // override_priority 為 null 時，往上抓大類別的預設優先級
-        Priority defaultPriority = subCategory.getCategory().getDefaultPriority();
+        Priority defaultPriority = subCategory.getRepairCategory().getDefaultPriority();
         if (defaultPriority == null) {
             throw new IllegalStateException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
         }
@@ -97,7 +97,7 @@ public class WorkOrderService {
                 .workOrderId(workOrder.getWorkOrderId())
                 .workOrderNo(workOrder.getWorkOrderNo())
                 .title(workOrder.getTitle())
-                .categoryName(subCategory.getCategory().getName())
+                .categoryName(subCategory.getRepairCategory().getName())
                 .subCategoryName(subCategory.getName())
                 .priorityName(priority.getName())
                 .locationDetail(workOrder.getLocationDetail())
