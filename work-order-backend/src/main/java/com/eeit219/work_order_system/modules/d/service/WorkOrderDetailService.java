@@ -1,6 +1,5 @@
 package com.eeit219.work_order_system.modules.d.service;
 
-import com.eeit219.work_order_system.common.constant.RoleCodes;
 import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.entity.UserRole;
@@ -17,7 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class WorkOrderDetailrService {
+public class WorkOrderDetailService {
 
     private final WorkOrderDetailRepository workOrderDetailRepository;
 
@@ -41,7 +40,7 @@ public class WorkOrderDetailrService {
 
     // 驗證查看權限
     public void validateViewPermission(WorkOrder workOrder, User currentUser) throws AccessDeniedException {
-        boolean isAdmin = hasRole(currentUser, RoleCodes.ADMIN);
+        boolean isAdmin = hasRole(currentUser, Role.ADMIN);
         boolean isReporter = false;
 
         if (workOrder.getCreator() != null) {
