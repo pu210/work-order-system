@@ -1,12 +1,11 @@
 <template>
-    <h3>首頁</h3>
-    
+  <div class="home-layout container py-4">
+    <router-view />
+  </div>
 </template>
-    
+
 <script setup>
-	
 </script>
-    
-<style>
-    
+
+<style scoped>
 </style>

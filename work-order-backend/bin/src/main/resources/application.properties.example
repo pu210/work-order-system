@@ -1,0 +1,21 @@
+spring.application.name=repair-system
+
+#JWT token expire time (minutes)
+jwt.token.expire=10
+
+#JSON
+spring.jackson.date-format=yyyy-MM-dd
+spring.jackson.time-zone=Asia/Taipei
+
+# JPA
+spring.jpa.database-platform=org.hibernate.dialect.SQLServerDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.hibernate.naming.implicit-strategy=org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+# database connection info
+spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+spring.datasource.url=jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;database=workorderDB;
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
