@@ -20,6 +20,8 @@ import com.eeit219.work_order_system.modules.a.dto.CurrentUserDTO;
 import com.eeit219.work_order_system.modules.a.dto.PageResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.RegisterRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.RegisterResponseDTO;
+import com.eeit219.work_order_system.modules.a.dto.ReviewUserRequestDTO;
+import com.eeit219.work_order_system.modules.a.dto.ReviewUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.UpdateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.UpdateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.UserResponseDTO;
@@ -440,4 +442,73 @@ public class UserService {
                 user.getCreatedTime(),
                 user.getUpdatedTime());
     }
+
+    // 管理員審核使用者自行註冊
+    public ReviewUserResponseDTO reviewRegistration(
+            Integer userId,
+            ReviewUserRequestDTO request) {
+
+        if (request.approved() == null) {
+            throw new IllegalArgumentException("approved為必填");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
+
+        validatePendingUser(user);
+
+        List<String> roleCodes = List.of();
+
+        if (Boolean.TRUE.equals(request.approved())) {
+            roleCodes = validateApprovalRoleCodes(request.roleCodes());
+            List<Role> roles = findRoles(roleCodes);
+
+            userRoleRepository.deleteByIdUserId(userId);
+            userRoleRepository.flush();
+            saveUserRoles(user, roles);
+
+            user.setStatus(User.UserStatus.ACTIVE);
+        } else {
+            userRoleRepository.deleteByIdUserId(userId);
+            user.setStatus(User.UserStatus.REJECTED);
+        }
+
+        User savedUser = userRepository.save(user);
+
+        return new ReviewUserResponseDTO(
+                savedUser.getUserId(),
+                savedUser.getAccount(),
+                savedUser.getName(),
+                savedUser.getEmail(),
+                savedUser.getStatus(),
+                roleCodes);
+
+    }
+
+    private void validatePendingUser(User user) {
+        if (user.getStatus() != User.UserStatus.PENDING) {
+            throw new IllegalArgumentException("只有待審核帳號可以進行審核");
+        }
+    }
+
+    private List<String> validateApprovalRoleCodes(List<String> roleCodes) {
+        if (roleCodes == null || roleCodes.isEmpty()) {
+            throw new IllegalArgumentException("核准帳號時至少需要指派一個角色");
+        }
+
+        return normalizeRoleCodes(roleCodes);
+    }
+
+    private void validateStatusChange(byte currentStatus, byte proposedStatus) {
+        if (currentStatus == User.UserStatus.PENDING
+                && proposedStatus != User.UserStatus.PENDING) {
+            throw new IllegalArgumentException("待審核帳號請使用註冊審核 API");
+        }
+
+        if (currentStatus != User.UserStatus.PENDING
+                && proposedStatus == User.UserStatus.PENDING) {
+            throw new IllegalArgumentException("帳號不可改回待審核狀態");
+        }
+    }
+
 }
