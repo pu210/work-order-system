@@ -20,14 +20,14 @@ public class NotificationService {
     public Notification createTestNotification(Notification notification) {
         // 設定預設值（如果前端沒傳的話）
         if (notification.getIsRead() == null) {
-            notification.setIsRead(0); // 預設未讀
+            notification.setIsRead(false); // 預設未讀
         }
         
         // 直接存入 DB 並回傳存好的物件（包含自動產生的 notification_id）
         return notificationRepository.save(notification);
     }
     
-    public List<Notification> getNotificationsByReceiverId(Long receiverId) {
+    public List<Notification> getNotificationsByReceiverId(Integer receiverId) {
         return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
     }
 }

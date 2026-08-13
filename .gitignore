@@ -88,3 +88,5 @@ cypress/videos/
 cypress/screenshots/
 __screenshots__/
 /.metadata/
+.agents/
+
