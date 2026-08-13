@@ -181,7 +181,7 @@ public class WorkOrderDetailService {
                         workOrder.getDescription()
                 )
                 .dueTime(workOrder.getDueTime())
-                .status(workOrder.getStatus())
+                .status(String.valueOf(workOrder.getStatus()))
                 .createdTime(
                         workOrder.getCreatedTime()
                 )
