@@ -203,6 +203,11 @@ public class UserService {
         byte proposedStatus = request.status() != null
                 ? validateStatus(request.status())
                 : user.getStatus();
+
+        // 轉換帳號狀態
+        if (request.status() != null) {
+            validateStatusChange(user.getStatus(), proposedStatus);
+        }
         List<String> currentRoleCodes = userRoleRepository.findRoleCodesByUserId(userId)
                 .stream()
                 .map(roleCode -> roleCode.trim().toUpperCase())
@@ -500,11 +505,12 @@ public class UserService {
     }
 
     private void validateStatusChange(byte currentStatus, byte proposedStatus) {
+        // 狀態為待審核必須使用註冊審核 API
         if (currentStatus == User.UserStatus.PENDING
                 && proposedStatus != User.UserStatus.PENDING) {
             throw new IllegalArgumentException("待審核帳號請使用註冊審核 API");
         }
-
+        // 其他狀態不可改為待審核
         if (currentStatus != User.UserStatus.PENDING
                 && proposedStatus == User.UserStatus.PENDING) {
             throw new IllegalArgumentException("帳號不可改回待審核狀態");
