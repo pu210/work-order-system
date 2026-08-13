@@ -18,12 +18,13 @@ const routes = [
     path: '/auth',
     component: AuthLayout,
     children: [
-      { path: 'login', name: 'login', component:Login}
+      { path: 'login', name: 'login', component:Login, meta: { guestOnly: true }}
     ]
   },
   // 2. 登入後的系統頁面（使用 MainLayout，滿版）
   {
-    path: '/',
+    path: '/home',
+    name: 'home',
     component: Home,
     children: [
       { path: 'dashboard', name: 'dashboard', component: Dashboard },
@@ -37,6 +38,21 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 });
+
+router.beforeEach((to) => {
+  const isAuthenticated = Boolean(getToken())
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return {
+      name: 'login',
+      query: { returnUrl: to.fullPath }
+    }
+  }
+
+  if (to.meta.guestOnly && isAuthenticated) {
+    return { name: 'home' }
+  }
+})
 
 // 5. 匯出 router 實體，讓 main.js 匯入使用
 export default router

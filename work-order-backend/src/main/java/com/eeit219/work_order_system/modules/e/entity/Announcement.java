@@ -15,13 +15,10 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(
-    name = "system_announcements",
-    indexes = {
+@Table(name = "system_announcements", indexes = {
         @Index(name = "idx_announcements_is_pinned", columnList = "is_pinned"),
         @Index(name = "idx_announcements_created_time", columnList = "created_time")
-    }
-)
+})
 public class Announcement {
 
     @Id

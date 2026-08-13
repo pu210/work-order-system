@@ -22,7 +22,7 @@ public class NotificationService {
         if (notification.getIsRead() == null) {
             notification.setIsRead(false); // 預設未讀
         }
-        
+
         // 直接存入 DB 並回傳存好的物件（包含自動產生的 notification_id）
         return notificationRepository.save(notification);
     }
