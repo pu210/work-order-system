@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.controller;
+package com.eeit219.work_order_system.modules.f.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eeit219.work_order_system.modules.F.entity.RepairCategory;
-import com.eeit219.work_order_system.modules.F.repository.RepairCategoryRepository;
+import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
+import com.eeit219.work_order_system.modules.f.repository.RepairCategoryRepository;
 
 @RestController
 @RequestMapping("/api/repair-categories")

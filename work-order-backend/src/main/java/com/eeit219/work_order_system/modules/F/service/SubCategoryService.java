@@ -1,9 +1,9 @@
-package com.eeit219.work_order_system.modules.F.service; // ← 改成 service 包
-
-import com.eeit219.work_order_system.modules.F.entity.SubCategory;
-import com.eeit219.work_order_system.modules.F.dto.SubCategoryResponseDto;
+package com.eeit219.work_order_system.modules.f.service; // ← 改成 service 包
 
 import org.springframework.stereotype.Service;
+
+import com.eeit219.work_order_system.modules.f.dto.SubCategoryResponseDto;
+import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
 @Service
 public class SubCategoryService {

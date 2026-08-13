@@ -1,3 +1,4 @@
+.m2/
 ### OS generated files  ###
 .DS_Store
 **/.DS_Store
@@ -89,3 +90,5 @@ cypress/videos/
 cypress/screenshots/
 __screenshots__/
 /.metadata/
+.agents/
+

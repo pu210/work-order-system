@@ -1,6 +1,5 @@
-package com.eeit219.work_order_system.modules.F.controller;
+package com.eeit219.work_order_system.modules.f.controller;
 
-import com.eeit219.work_order_system.modules.F.service.SubCategoryService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,14 +15,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eeit219.work_order_system.modules.F.dto.SubCategoryRequestDto;
-import com.eeit219.work_order_system.modules.F.dto.SubCategoryResponseDto;
-import com.eeit219.work_order_system.modules.F.entity.Priority;
-import com.eeit219.work_order_system.modules.F.entity.RepairCategory;
-import com.eeit219.work_order_system.modules.F.entity.SubCategory;
-import com.eeit219.work_order_system.modules.F.repository.PriorityRepository;
-import com.eeit219.work_order_system.modules.F.repository.RepairCategoryRepository;
-import com.eeit219.work_order_system.modules.F.repository.SubCategoryRepository;
+import com.eeit219.work_order_system.modules.f.dto.SubCategoryRequestDto;
+import com.eeit219.work_order_system.modules.f.dto.SubCategoryResponseDto;
+import com.eeit219.work_order_system.modules.f.entity.Priority;
+import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
+import com.eeit219.work_order_system.modules.f.entity.SubCategory;
+import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
+import com.eeit219.work_order_system.modules.f.repository.RepairCategoryRepository;
+import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
+import com.eeit219.work_order_system.modules.f.service.SubCategoryService;
 
 @RestController
 @RequestMapping("/api/sub-categories")

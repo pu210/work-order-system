@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.repository;
+package com.eeit219.work_order_system.modules.f.repository;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.eeit219.work_order_system.modules.F.entity.RepairCategory;
+import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
 
 @Repository
 public interface RepairCategoryRepository extends JpaRepository<RepairCategory, Integer> {

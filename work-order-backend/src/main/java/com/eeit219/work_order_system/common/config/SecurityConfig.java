@@ -21,58 +21,62 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JsonWebTokenFilter jwtFilter;
+        private final JsonWebTokenFilter jwtFilter;
 
-    public SecurityConfig(JsonWebTokenFilter jwtFilter) {
-        this.jwtFilter = jwtFilter;
-    }
+        public SecurityConfig(JsonWebTokenFilter jwtFilter) {
+                this.jwtFilter = jwtFilter;
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> { })
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/login", "/auth/register")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint())
-                        .accessDeniedHandler(accessDeniedHandler()))
-                .addFilterBefore(
-                        jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors(cors -> {
+                                })
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .requestMatchers("/auth/login", "/auth/register",
+                                                                "/api/notifications/**")
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
+                                                                "/api/priorities/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasRole("ADMIN")
+                                                .anyRequest().authenticated())
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(authenticationEntryPoint())
+                                                .accessDeniedHandler(accessDeniedHandler()))
+                                .addFilterBefore(
+                                                jwtFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    private AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, exception) -> writeSecurityError(
-                response, HttpServletResponse.SC_UNAUTHORIZED, "未登入或 Token 無效");
-    }
+        private AuthenticationEntryPoint authenticationEntryPoint() {
+                return (request, response, exception) -> writeSecurityError(
+                                response, HttpServletResponse.SC_UNAUTHORIZED, "未登入或 Token 無效");
+        }
 
-    private AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, exception) -> writeSecurityError(
-                response, HttpServletResponse.SC_FORBIDDEN, "沒有權限執行此操作");
-    }
+        private AccessDeniedHandler accessDeniedHandler() {
+                return (request, response, exception) -> writeSecurityError(
+                                response, HttpServletResponse.SC_FORBIDDEN, "沒有權限執行此操作");
+        }
 
-    private void writeSecurityError(HttpServletResponse response, int status, String message)
-            throws java.io.IOException {
-        response.setStatus(status);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"success\":false,\"status\":" + status
-                + ",\"message\":\"" + message + "\",\"data\":null}");
-    }
+        private void writeSecurityError(HttpServletResponse response, int status, String message)
+                        throws java.io.IOException {
+                response.setStatus(status);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"success\":false,\"status\":" + status
+                                + ",\"message\":\"" + message + "\",\"data\":null}");
+        }
 }

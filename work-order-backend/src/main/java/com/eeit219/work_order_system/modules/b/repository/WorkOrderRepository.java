@@ -17,9 +17,9 @@ import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
 public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
-    boolean existsByWorkOrderNo(String workOrderNo);
+        boolean existsByWorkOrderNo(String workOrderNo);
 
-    Optional<WorkOrder> findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(String prefix);
+        Optional<WorkOrder> findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(String prefix);
 
     @Query("SELECT w FROM WorkOrder w " +
             "JOIN FETCH w.subCategory sc " +
