@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
-import com.eeit219.work_order_system.modules.e.entity.WorkOrder;
+import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.e.service.ReportService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,9 +35,9 @@ public class ReportController {
     }
 
     // 測試用 API：自動在資料庫建立一筆測試工單
-    @GetMapping("/test-create-sample")
-    @PostMapping("/test-create-sample")
-    public WorkOrder createSampleWorkOrder() {
-        return reportService.createSampleWorkOrder();
-    }
+    // @GetMapping("/test-create-sample")
+    // @PostMapping("/test-create-sample")
+    // public WorkOrder createSampleWorkOrder() {
+    // return reportService.createSampleWorkOrder();
+    // }
 }
