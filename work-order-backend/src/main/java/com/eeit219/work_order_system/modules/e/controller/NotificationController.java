@@ -27,12 +27,11 @@ public class NotificationController {
     // POST http://localhost:8080/api/notifications/test
     @PostMapping("/test")
     public Notification createNotificationTest(@RequestBody Notification notification) {
-        
         return notificationService.createTestNotification(notification);
     }
     
     @GetMapping("/user/{receiverId}")
-    public List<Notification> getNotificationsByUser(@PathVariable Long receiverId) {
+    public List<Notification> getNotificationsByUser(@PathVariable Integer receiverId) {
         return notificationService.getNotificationsByReceiverId(receiverId);
     }
 }

@@ -26,8 +26,8 @@ public class NotificationService {
         // 直接存入 DB 並回傳存好的物件（包含自動產生的 notification_id）
         return notificationRepository.save(notification);
     }
-
-    public List<Notification> getNotificationsByReceiverId(Long receiverId) {
+    
+    public List<Notification> getNotificationsByReceiverId(Integer receiverId) {
         return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
     }
 }

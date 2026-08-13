@@ -6,13 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
-import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
+import com.eeit219.work_order_system.modules.e.entity.WorkOrder;
 
-public interface ReportWorkOrderRepository extends JpaRepository<WorkOrder, Long> {
+public interface ReportWorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
-	// 使用 Hibernate / Spring Data 的 Native Query (原生 SQL 語法) 進行 GROUP BY 大分類統計
-	@Query("SELECT w.category.name AS categoryName, COUNT(w.id) AS count " +
-			"FROM WorkOrder w " +
-			"GROUP BY w.category.name")
-	List<CategoryReportDto> countWorkOrdersByCategory(); // 回傳 介面不用寫RETURN
+    // 使用 HQL LEFT JOIN 進行群組統計 (防止 sub_category_id 為 NULL 或未與 sub_categories 連結時被過濾掉)
+    @Query("SELECT COALESCE(s.name, '未指定細項') AS categoryName, COUNT(w.workOrderId) AS count " +
+           "FROM WorkOrder w LEFT JOIN w.subCategory s " +
+           "GROUP BY s.subCategoryId, s.name")
+    List<CategoryReportDto> countWorkOrdersByCategory();
 }
