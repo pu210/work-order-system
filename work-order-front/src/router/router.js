@@ -5,15 +5,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import Forbidden from '@/views/Forbidden.vue'
-import NotFound from '@/views/NotFound.vue'
-import { getToken } from '@/utils/auth.js'
+import Announcements from '@/views/Announcements.vue';
+import Dashboard from '@/views/Dashboard.vue';
 
 // 3. 定義路由
 const routes = [
   {
     path: '/',
-    redirect: '/auth/login'
+    redirect: '/dashboard'
   },
   {
     path: '/auth',
@@ -27,10 +26,11 @@ const routes = [
     path: '/home',
     name: 'home',
     component: Home,
-    meta: { requiresAuth: true }
-  },
-  { path: '/forbidden', name: 'forbidden', component: Forbidden },
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }
+    children: [
+      { path: 'dashboard', name: 'dashboard', component: Dashboard },
+      { path: 'announcements', name: 'announcements', component: Announcements }
+    ]
+  }
 ]
 
 // 4. 建立 router

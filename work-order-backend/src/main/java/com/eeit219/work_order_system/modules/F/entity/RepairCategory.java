@@ -1,6 +1,8 @@
-package com.eeit219.work_order_system.modules.F.entity;
+package com.eeit219.work_order_system.modules.f.entity;
 
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,10 +45,12 @@ public class RepairCategory {
     @Column(name = "default_priority_id")
     private Integer defaultPriorityId;
 
-    @Column(name = "default_priority_name")
-    private String defaultPriorityName;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "default_priority_id", referencedColumnName = "priorities_id", insertable = false, updatable = false)
     private Priority defaultPriority;
+
+    public String getDefaultPriorityName() {
+        return defaultPriority != null ? defaultPriority.getName() : null;
+    }
 }

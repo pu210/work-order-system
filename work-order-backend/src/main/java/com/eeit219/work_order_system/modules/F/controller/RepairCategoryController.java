@@ -1,4 +1,4 @@
-package com.eeit219.work_order_system.modules.F.controller;
+package com.eeit219.work_order_system.modules.f.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eeit219.work_order_system.modules.F.entity.RepairCategory;
-import com.eeit219.work_order_system.modules.F.repository.RepairCategoryRepository;
+import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
+import com.eeit219.work_order_system.modules.f.repository.RepairCategoryRepository;
 
 @RestController
 @RequestMapping("/api/repair-categories")
@@ -40,7 +40,10 @@ public class RepairCategoryController {
         if (category.getStatus() == null) {
             category.setStatus(true);
         }
-        return repairCategoryRepository.save(category);
+        RepairCategory saved = repairCategoryRepository.save(category);
+
+        // 🌟 關鍵：存檔後重新用 ID 查詢一次，讓 EAGER 關聯順便載進來
+        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
     }
 
     @PutMapping("/{repairCategoriesId}")
@@ -50,12 +53,14 @@ public class RepairCategoryController {
                 .orElseThrow(() -> new RuntimeException("找不到該報修大類 ID: " + repairCategoriesId));
 
         category.setName(categoryDetails.getName());
-        category.setName(categoryDetails.getName());
         category.setDefaultPriorityId(categoryDetails.getDefaultPriorityId());
         category.setStatus(categoryDetails.getStatus());
         category.setUpdatedTime(LocalDateTime.now());
 
-        return repairCategoryRepository.save(category);
+        RepairCategory saved = repairCategoryRepository.save(category);
+
+        // 🌟 關鍵：更新後也重新用 ID 查詢一次
+        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
     }
 
     @PatchMapping("/{repairCategoriesId}/status")
@@ -66,6 +71,7 @@ public class RepairCategoryController {
         category.setStatus(status);
         category.setUpdatedTime(LocalDateTime.now());
 
-        return repairCategoryRepository.save(category);
+        RepairCategory saved = repairCategoryRepository.save(category);
+        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
     }
 }

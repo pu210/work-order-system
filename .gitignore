@@ -1,3 +1,4 @@
+.m2/
 ### OS generated files  ###
 .DS_Store
 **/.DS_Store
@@ -37,6 +38,8 @@ HELP.md
 *.njsproj
 *.sln
 *.sw?
+
+
 
 ### NetBeans ###
 
@@ -86,3 +89,6 @@ coverage/
 cypress/videos/
 cypress/screenshots/
 __screenshots__/
+/.metadata/
+.agents/
+
