@@ -28,7 +28,8 @@ public class PasswordResetService {
     private final String passwordResetUrl;
 
     public PasswordResetService(PasswordResetTokenRepository passwordResetTokenRepository,
-            UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordResetTokenUtility tokenUtility,
+            UserRepository userRepository, PasswordEncoder passwordEncoder,
+            PasswordResetTokenUtility tokenUtility,
             MailService mailService, @Value("${app.password-reset-url}") String passwordResetUrl) {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
