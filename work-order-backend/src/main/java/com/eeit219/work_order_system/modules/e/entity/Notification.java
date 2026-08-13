@@ -41,7 +41,7 @@ public class Notification {
     private Integer priorityId; // 優先程度（外鍵）
 
     @CreationTimestamp
-    @Column(name = "created_time", updatable = false)
+    @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime; // 建立時間
 
     // 手動補充 Getter / Setter，防止 IDE (Lombok) 對 isRead 欄位名稱產生判斷快取誤差
