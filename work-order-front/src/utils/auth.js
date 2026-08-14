@@ -8,7 +8,9 @@ export function getToken() {
 export function saveAuth(data) {
   localStorage.setItem(TOKEN_KEY, data.token)
   localStorage.setItem(USER_KEY, JSON.stringify({
+    userId: data.userId,
     account: data.account,
+    name: data.name,
     email: data.email,
     roleCodes: data.roleCodes || []
   }))

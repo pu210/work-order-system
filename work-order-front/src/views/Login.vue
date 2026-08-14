@@ -8,17 +8,10 @@
       <div class="mb-3">
         <label class="form-label text-dark small fw-medium mb-1">帳號</label>
         <div class="input-group custom-input-group">
-          <span
-            class="input-group-text bg-white border-end-0 text-secondary ps-3"
-          >
+          <span class="input-group-text bg-white border-end-0 text-secondary ps-3">
             <i class="bi bi-person fs-5"></i>
           </span>
-          <input
-            v-model.trim="account"
-            type="text"
-            class="form-control border-start-0 ps-2"
-            placeholder="請輸入帳號"
-          />
+          <input v-model.trim="account" type="text" class="form-control border-start-0 ps-2" placeholder="請輸入帳號" />
         </div>
       </div>
 
@@ -26,36 +19,21 @@
       <div class="mb-2">
         <label class="form-label text-dark small fw-medium mb-1">密碼</label>
         <div class="input-group custom-input-group">
-          <span
-            class="input-group-text bg-white border-end-0 text-secondary ps-3"
-          >
+          <span class="input-group-text bg-white border-end-0 text-secondary ps-3">
             <i class="bi bi-lock fs-6"></i>
           </span>
-          <input
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            class="form-control border-start-0 border-end-0 ps-2"
-            placeholder="請輸入密碼"
-          />
-          <button
-            type="button"
-            class="input-group-text bg-white border-start-0 text-secondary pe-3 password-toggle"
-            :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'"
-            @click="showPassword = !showPassword"
-          >
-            <i
-              :class="['bi', showPassword ? 'bi-eye-slash' : 'bi-eye', 'fs-5']"
-            ></i>
+          <input v-model="password" :type="showPassword ? 'text' : 'password'"
+            class="form-control border-start-0 border-end-0 ps-2" placeholder="請輸入密碼" />
+          <button type="button" class="input-group-text bg-white border-start-0 text-secondary pe-3 password-toggle"
+            :aria-label="showPassword ? '隱藏密碼' : '顯示密碼'" @click="showPassword = !showPassword">
+            <i :class="['bi', showPassword ? 'bi-eye-slash' : 'bi-eye', 'fs-5']"></i>
           </button>
         </div>
       </div>
 
       <!-- 忘記密碼？ -->
       <div class="text-end mb-4">
-        <router-link
-          to="/forgot-password"
-          class="text-decoration-none small text-primary fw-medium"
-        >
+        <router-link to="/forgot-password" class="text-decoration-none small text-primary fw-medium">
           忘記密碼？
         </router-link>
       </div>
@@ -65,11 +43,7 @@
         {{ errorMessage }}
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-red w-100 py-2.5 fw-bold mb-3"
-        :disabled="submitting"
-      >
+      <button type="submit" class="btn btn-red w-100 py-2.5 fw-bold mb-3" :disabled="submitting">
         {{ submitting ? "登入中…" : "登入" }}
       </button>
 
@@ -81,18 +55,13 @@
       </div>
 
       <!-- 註冊按鈕 -->
-      <button
-        type="button"
-        class="btn btn-outline-custom w-100 py-2.5 fw-bold mb-3"
-      >
+      <button type="button" class="btn btn-outline-custom w-100 py-2.5 fw-bold mb-3">
         註冊
       </button>
 
       <!-- Google 登入按鈕 -->
-      <a
-        href="https://accounts.google.com/o/oauth2/v2/auth"
-        class="btn btn-google w-100 py-2.5 fw-medium d-flex align-items-center justify-content-center gap-2 text-decoration-none"
-      >
+      <a href="https://accounts.google.com/o/oauth2/v2/auth"
+        class="btn btn-google w-100 py-2.5 fw-medium d-flex align-items-center justify-content-center gap-2 text-decoration-none">
         <i class="bi bi-google fs-5"></i>
         <span>使用 Google 帳號登入</span>
       </a>
@@ -104,10 +73,11 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/plugins/axios.js";
-import { saveAuth } from "@/utils/auth.js";
+import { useAuthStore } from "@/stores/auth.js";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const account = ref("");
 const password = ref("");
 const showPassword = ref(false);
@@ -131,13 +101,13 @@ async function handleLogin() {
       },
       { skipAuthRedirect: true },
     );
-    saveAuth(response.data.data);
+    authStore.login(response.data.data);
 
     const returnUrl =
       typeof route.query.returnUrl === "string" &&
-      route.query.returnUrl.startsWith("/")
+        route.query.returnUrl.startsWith("/")
         ? route.query.returnUrl
-        : "/home";
+        : "/dashboard";
     await router.replace(returnUrl);
   } catch (error) {
     if (!error.response) {
