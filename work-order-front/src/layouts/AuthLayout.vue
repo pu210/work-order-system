@@ -16,7 +16,7 @@
   min-height: 100vh;
   display: flex !important;
   justify-content: center !important; /* 水平置中 */
-  align-items: center !important; /* 垂直置中 */
+  align-items: center !important;     /* 垂直置中 */
   padding: 20px;
   box-sizing: border-box;
 }

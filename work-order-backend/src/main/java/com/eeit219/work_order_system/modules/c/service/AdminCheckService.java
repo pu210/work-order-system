@@ -25,7 +25,7 @@ public class AdminCheckService {
     }
 
     @Transactional
-    public void adminCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId) {
+    public void adminCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId, Integer userId) {
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
 
@@ -33,12 +33,13 @@ public class AdminCheckService {
             throw new InvalidWorkOrderStateException("目前不是管理員審核狀態");
         }
 
-        workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(),
+        workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                 WorkOrderEvent.ACCEPT);
+        workOrderRepository.save(workOrder);
     }
 
     @Transactional
-    public void adminCheckReject(RejectWorkOrderRequest request, Integer workOrderId) {
+    public void adminCheckReject(RejectWorkOrderRequest request, Integer workOrderId, Integer userId) {
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
 
@@ -46,8 +47,10 @@ public class AdminCheckService {
             throw new InvalidWorkOrderStateException("目前不是管理員審核狀態");
         }
 
-        workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(),
+        workOrderStateMachineService.changeState(workOrder,userId, request.feedback(),
                 WorkOrderEvent.REJECT);
+        workOrderRepository.save(workOrder);
+
     }
 
 }

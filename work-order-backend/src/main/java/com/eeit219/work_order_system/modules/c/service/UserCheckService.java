@@ -1,5 +1,6 @@
 package com.eeit219.work_order_system.modules.c.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
@@ -24,16 +25,20 @@ public class UserCheckService {
     }
 
     @Transactional
-    public void userCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId) {
+    public void userCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId, Integer userId) {
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
+        if (!workOrder.getCreator().getUserId().equals(userId)) {
+            throw new AccessDeniedException("只有報修人員可以操作此工單");
+        }
 
         if (workOrder.getStatus() != WorkOrderState.PENDING_USER_ACCEPTANCE) {
             throw new InvalidWorkOrderStateException("目前不是使用者驗收狀態");
         }
 
-        workOrderStateMachineService.changeState(workOrder, request.userId(), request.feedback(),
+        workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                 WorkOrderEvent.ACCEPT);
+        workOrderRepository.save(workOrder);
     }
 
 }
