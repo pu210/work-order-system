@@ -1,35 +1,56 @@
 <template>
-  <!-- 最外層全白背景 + 絕對水平垂直置中 -->
-  <div class="layout-wrapper">
-    <!-- 中央白色卡片外框 -->
-    <main class="card main-card">
+  <div
+    class="auth-layout d-flex align-items-center justify-content-center vh-100 position-relative overflow-hidden"
+  >
+    <!-- 中央登入卡片 -->
+    <div class="auth-card p-4 p-sm-5 w-100 position-relative z-1">
+      <!-- 標題區 -->
+      <div class="text-center mb-4">
+        <h4 class="fw-bold text-black m-0 tracking-wide">WorkOrder</h4>
+        <p class="text-slate-400 extra-small mt-1 mb-0">
+          企業級設備與工單管理系統
+        </p>
+      </div>
+
+      <!-- 登入頁面內容 -->
       <router-view />
-    </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* 絕對置中容器 */
-.layout-wrapper {
-  background-color: #ffffff !important;
+.auth-layout {
   width: 100%;
   min-height: 100vh;
-  display: flex !important;
-  justify-content: center !important; /* 水平置中 */
-  align-items: center !important;     /* 垂直置中 */
-  padding: 20px;
-  box-sizing: border-box;
+  min-height: 100dvh;
+  height: 100dvh !important;
+  padding: 24px;
+  background-color: #f3f4f6;
 }
 
-/* 質感卡片外框 */
-.main-card {
-  width: 100%;
+.text-slate-400 {
+  color: #090909;
+}
+
+.auth-card {
   max-width: 420px;
-  border-radius: 20px !important;
-  background-color: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid #eaeaea !important;
-  padding: 2.5rem 2rem;
-  margin: 0 auto; /* 確保 margin 雙重保險置中 */
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(20, 33, 61, 0.08);
+}
+
+.extra-small {
+  font-size: 0.8rem;
+}
+
+.tracking-wide {
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 575.98px) {
+  .auth-layout {
+    padding: 16px;
+  }
 }
 </style>

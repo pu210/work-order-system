@@ -27,8 +27,6 @@ public class SubCategoryService {
             return null;
         }
 
-        System.out.println("====== 成功透過 SubCategoryService 轉換 DTO！子類別 ID: " + sub.getSubCategoriesId() + " ======");
-
         SubCategoryResponseDto dto = new SubCategoryResponseDto();
         dto.setSubCategoriesId(sub.getSubCategoriesId());
         dto.setName(sub.getName());
