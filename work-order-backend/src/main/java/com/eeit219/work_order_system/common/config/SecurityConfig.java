@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/auth/login", "/auth/register",
-                                                                "/api/notifications/**")
+                                                                "/auth/forgot-password", "/auth/reset-password")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
                                                                 "/api/priorities/**")

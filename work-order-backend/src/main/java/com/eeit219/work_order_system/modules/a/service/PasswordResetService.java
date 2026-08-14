@@ -53,6 +53,9 @@ public class PasswordResetService {
         String email = request.email().trim().toLowerCase();
 
         User user = userRepository.findByEmail(email).orElse(null);
+        System.out.println("找到使用者：" + (user != null));
+        System.out.println("使用者狀態：" +
+                (user == null ? null : user.getStatus()));
 
         if (user == null
                 || user.getStatus() != User.UserStatus.ACTIVE) {

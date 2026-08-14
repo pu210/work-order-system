@@ -57,7 +57,7 @@ public class LoginController {
 
                 String token = jwtUtil.createToken(user.toString());
                 LoginResponseDTO data = new LoginResponseDTO(
-                                token, bean.account(), bean.email(), bean.roleCodes());
+                                token, bean.account(), bean.email(), bean.roleCodes(), bean.mustChangePassword());
 
                 return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "登入成功", data));
         }
