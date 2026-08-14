@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
 
 public record ReviewAcceptRequest(
-        @NotNull(message = "使用者ID不可為空") Integer userId,
-
         @NotNull(message = "優先級不可為空") Integer priorityId,
 
         @NotNull(message = "指派工程師不可為空") Integer assignedHandlerId,
@@ -20,5 +18,10 @@ public record ReviewAcceptRequest(
         } else {
             feedback = feedback.strip();
         }
+    }
+
+    public Integer userId() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'userId'");
     }
 }

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -114,5 +115,15 @@ public class ExceptionHandler {
                                 .body(ApiResponse.error(
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 "伺服器發生未預期錯誤"));
+        }
+        //403 沒有權限 Forbidden
+        @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
+                        AccessDeniedException exception) {
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(ApiResponse.error(
+                                                HttpStatus.FORBIDDEN.value(),
+                                                exception.getMessage()));
         }
 }
