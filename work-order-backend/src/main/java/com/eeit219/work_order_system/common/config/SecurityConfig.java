@@ -45,6 +45,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/auth/login", "/auth/register",
                                                                 "/auth/forgot-password", "/auth/reset-password")
                                                 .permitAll()
+                                                // 首次登入修改密碼：只需要登入，不限制角色
+                                                .requestMatchers(
+                                                                HttpMethod.PATCH,
+                                                                "/account/changeinitialpassword")
+                                                .authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
                                                                 "/api/priorities/**")
                                                 .hasRole("ADMIN")

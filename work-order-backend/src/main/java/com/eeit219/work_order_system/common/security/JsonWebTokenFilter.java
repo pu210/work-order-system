@@ -70,6 +70,27 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
                             user.getAccount(), null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
+                    String path = request.getServletPath();
+                    boolean isChangeInitialPasswordRequest = "/account/initial-password".equals(path)
+                            && "PATCH".equalsIgnoreCase(request.getMethod());
+
+                    if (Boolean.TRUE.equals(user.getMustChangePassword())
+                            && !isChangeInitialPasswordRequest) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.setCharacterEncoding("UTF-8");
+
+                        JSONObject body = new JSONObject()
+                                .put("success", false)
+                                .put("status", HttpServletResponse.SC_FORBIDDEN)
+                                .put("code", "PASSWORD_CHANGE_REQUIRED")
+                                .put("message", "首次登入必須先修改密碼")
+                                .put("data", JSONObject.NULL)
+                                .put("timestamp", LocalDateTime.now().toString());
+                        response.getWriter().write(body.toString());
+                        return;
+                    }
+
                     filterChain.doFilter(request, response); // 執行後續程式
                     return;
                 }

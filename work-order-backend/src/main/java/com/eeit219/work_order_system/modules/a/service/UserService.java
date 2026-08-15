@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eeit219.work_order_system.modules.a.dto.ChangePasswordRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.CurrentUserDTO;
@@ -76,6 +77,81 @@ public class UserService {
             }
         }
         return null;
+    }
+
+    // 首次登入修改密碼
+    public void changeInitialPassword(ChangePasswordRequestDTO request) {
+        validateChangePasswordRequest(request);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalArgumentException("尚未登入");
+        }
+
+        User user = userRepository.findByAccount(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
+
+        // 只允許尚未完成首次密碼修改的使用者呼叫
+        if (!Boolean.TRUE.equals(user.getMustChangePassword())) {
+            throw new IllegalArgumentException("此帳號不需要修改初始密碼");
+        }
+
+        // 驗證管理員提供的初始密碼
+        if (!passwordEncoder.matches(
+                request.currentPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException("目前密碼不正確");
+        }
+
+        // 新密碼不可與目前密碼相同
+        if (passwordEncoder.matches(
+                request.newPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException("新密碼不可與目前密碼相同");
+        }
+
+        user.setPasswordHash(
+                passwordEncoder.encode(request.newPassword()));
+
+        // 完成首次修改密碼
+        user.setMustChangePassword(false);
+
+        userRepository.save(user);
+    }
+
+    private void validateChangePasswordRequest(
+            ChangePasswordRequestDTO request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("請提供修改密碼資料");
+        }
+
+        if (request.currentPassword() == null
+                || request.currentPassword().isBlank()) {
+            throw new IllegalArgumentException("目前密碼為必填");
+        }
+
+        if (request.newPassword() == null
+                || request.newPassword().isBlank()) {
+            throw new IllegalArgumentException("新密碼為必填");
+        }
+
+        if (request.confirmPassword() == null
+                || request.confirmPassword().isBlank()) {
+            throw new IllegalArgumentException("確認密碼為必填");
+        }
+
+        if (!request.newPassword().equals(
+                request.confirmPassword())) {
+            throw new IllegalArgumentException("兩次輸入的新密碼不一致");
+        }
+
+        if (request.newPassword().length() < 8) {
+            throw new IllegalArgumentException("新密碼至少需要 8 個字元");
+        }
     }
 
     // 註冊帳號
