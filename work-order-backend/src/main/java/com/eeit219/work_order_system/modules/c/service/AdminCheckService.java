@@ -47,7 +47,7 @@ public class AdminCheckService {
             throw new InvalidWorkOrderStateException("目前不是管理員審核狀態");
         }
 
-        workOrderStateMachineService.changeState(workOrder,userId, request.feedback(),
+        workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                 WorkOrderEvent.REJECT);
         workOrderRepository.save(workOrder);
 
