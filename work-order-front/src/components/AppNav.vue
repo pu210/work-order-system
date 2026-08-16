@@ -72,10 +72,10 @@ const initials = computed(() => {
   return name.length <= 2 ? name : name.slice(-2)
 })
 
-function handleLogout() {
+async function handleLogout() {
   dropdownOpen.value = false
   authStore.logout()
-  router.push({ name: 'login' })
+  await router.replace({ name: 'Login' })
 }
 
 function handleClickOutside(event) {
