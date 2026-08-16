@@ -84,15 +84,15 @@ public class ReviewService {
                                 userId,
                                 workOrderId,
                                 "有新任務！",
-                                "工單：" + workOrder.getWorkOrderNo() + ",已指派給你",
+                                "工單：" + workOrder.getWorkOrderNo() + ",已指派給你，請確認",
                                 workOrder.getStatus());
                 // 傳送訊息給使用者
                 notificationService.sendNotification(
                                 workOrder.getCreator().getUserId(),
                                 userId,
                                 workOrderId,
-                                "審查通過！",
-                                "工單：" + workOrder.getWorkOrderNo() + ",已指派負責工程師："
+                                "您所建立的工單由管理員審查通過！",
+                                "工單：" + workOrder.getWorkOrderNo() + ",管理員審查通過，並已指派負責工程師："
                                                 + workOrder.getAssignedHandler().getName(),
                                 workOrder.getStatus());
 
@@ -116,7 +116,7 @@ public class ReviewService {
                                 userId,
                                 workOrderId,
                                 "審查拒絕！",
-                                "工單：" + workOrder.getWorkOrderNo() + ",已被管理員拒絕" ,
+                                "工單：" + workOrder.getWorkOrderNo() + ",已被管理員拒絕,原因：" + request.feedback(),
                                 workOrder.getStatus());
 
         }

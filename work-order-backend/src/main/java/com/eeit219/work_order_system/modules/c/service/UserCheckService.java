@@ -10,6 +10,7 @@ import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
+import com.eeit219.work_order_system.modules.e.service.NotificationService;
 
 import jakarta.transaction.Transactional;
 
@@ -17,11 +18,14 @@ import jakarta.transaction.Transactional;
 public class UserCheckService {
     private final WorkOrderRepository workOrderRepository;
     private final WorkOrderStateMachineService workOrderStateMachineService;
+    private final NotificationService notificationService;
 
     public UserCheckService(WorkOrderRepository workOrderRepository,
-            WorkOrderStateMachineService workOrderStateMachineService) {
+            WorkOrderStateMachineService workOrderStateMachineService,
+            NotificationService notificationService) {
         this.workOrderRepository = workOrderRepository;
         this.workOrderStateMachineService = workOrderStateMachineService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -39,6 +43,15 @@ public class UserCheckService {
         workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                 WorkOrderEvent.ACCEPT);
         workOrderRepository.save(workOrder);
+
+        notificationService.sendNotification(
+                workOrder.getCreator().getUserId(),
+                userId,
+                workOrderId,
+                "審查通過！",
+                "工單：" + workOrder.getWorkOrderNo() + ",已指派負責工程師："
+                        + workOrder.getAssignedHandler().getName(),
+                workOrder.getStatus());
     }
 
 }
