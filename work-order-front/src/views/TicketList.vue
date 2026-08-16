@@ -63,7 +63,7 @@
             v-for="t in tickets"
             :key="t.workOrderId"
             role="button"
-            @click="router.push({ name: 'ticket-detail', params: { id: t.workOrderId } })"
+            @click="router.push({ name: 'ticket-detail', params: { id: t.workOrderId }, query: { from: 'ticket-list' } })"
           >
             <td class="font-monospace">{{ t.workOrderNo }}</td>
             <td>{{ t.title }}</td>

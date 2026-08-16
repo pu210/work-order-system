@@ -110,6 +110,7 @@ public class WorkOrderAttachmentService {
                 .fileSize(attachment.getFileSize())
                 .createdTime(attachment.getCreatedTime())
                 .uploadedUserName(attachment.getUploadedUser().getName())
+                .uploadedUserId(attachment.getUploadedUser().getUserId())
                 .build();
     }
 }

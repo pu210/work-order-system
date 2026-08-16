@@ -103,16 +103,16 @@ public class ExceptionHandler {
                                                 "JSON 格式或欄位格式錯誤"));
         }
 
-        @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
-        public ResponseEntity<ApiResponse<Void>> handleUnexpectedError(
-                        Exception exception) {
+        // @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+        // public ResponseEntity<ApiResponse<Void>> handleUnexpectedError(
+        // Exception exception) {
 
-                log.error("未預期的伺服器錯誤", exception);
+        // log.error("未預期的伺服器錯誤", exception);
 
-                return ResponseEntity.status(
-                                HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(ApiResponse.error(
-                                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                "伺服器發生未預期錯誤"));
-        }
+        // return ResponseEntity.status(
+        // HttpStatus.INTERNAL_SERVER_ERROR)
+        // .body(ApiResponse.error(
+        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        // "伺服器發生未預期錯誤"));
+        // }
 }
