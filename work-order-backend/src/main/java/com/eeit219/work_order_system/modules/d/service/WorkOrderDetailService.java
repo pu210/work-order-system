@@ -8,11 +8,11 @@ import com.eeit219.work_order_system.modules.d.dto.WorkOrderDetailResponse;
 import com.eeit219.work_order_system.modules.d.repository.WorkOrderDetailRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Objects;
-import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -21,17 +21,15 @@ public class WorkOrderDetailService {
     private final WorkOrderDetailRepository workOrderDetailRepository;
 
     // 報修單詳情
-    public WorkOrderDetailResponse getWorkOrderDetail(Integer workOrderId, User currentUser) throws AccessDeniedException {
+    public WorkOrderDetailResponse getWorkOrderDetail(
+            Integer workOrderId,
+            User currentUser){
         if(currentUser == null){
             throw new AccessDeniedException("使用者尚未登入");
         }
-        Optional<WorkOrder> optionalWorkOrder = workOrderDetailRepository.findDetailById(workOrderId);
-
-        if(optionalWorkOrder.isEmpty()){
-            throw new EntityNotFoundException("找不到報修單，ID："+workOrderId);
-        }
-
-        WorkOrder workOrder = optionalWorkOrder.get();
+        WorkOrder workOrder = workOrderDetailRepository
+                .findDetailById(workOrderId)
+                .orElseThrow(() -> new EntityNotFoundException("找不到報修單，ID："+workOrderId));
 
         validateViewPermission(workOrder, currentUser);
 
@@ -39,7 +37,7 @@ public class WorkOrderDetailService {
     }
 
     // 驗證查看權限
-    public void validateViewPermission(WorkOrder workOrder, User currentUser) throws AccessDeniedException {
+    public void validateViewPermission(WorkOrder workOrder, User currentUser){
         boolean isAdmin = hasRole(currentUser, Role.ADMIN);
         boolean isReporter = false;
 

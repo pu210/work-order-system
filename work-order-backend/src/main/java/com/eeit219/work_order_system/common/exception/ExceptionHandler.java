@@ -1,16 +1,15 @@
 package com.eeit219.work_order_system.common.exception;
 
+import com.eeit219.work_order_system.common.response.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import com.eeit219.work_order_system.common.response.ApiResponse;
 
 @RestControllerAdvice
 public class ExceptionHandler {
@@ -114,5 +113,28 @@ public class ExceptionHandler {
                                 .body(ApiResponse.error(
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 "伺服器發生未預期錯誤"));
+        }
+
+        // D Module 無權查看403
+        @org.springframework.web.bind.annotation.ExceptionHandler(
+                AccessDeniedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e){
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(),
+                                e.getMessage()));
+
+        }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(EntityNotFoundException.class)
+        public ResponseEntity<ApiResponse<Void>> EntityNotFound(EntityNotFoundException e) {
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error(
+                                HttpStatus.NOT_FOUND.value(),
+                                e.getMessage()
+                        ));
+
+
         }
 }
