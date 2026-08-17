@@ -14,6 +14,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.eeit219.work_order_system.common.security.JsonWebTokenFilter;
+import com.eeit219.work_order_system.common.security.OAuth2LoginSuccessHandler;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -22,9 +23,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
 
         private final JsonWebTokenFilter jwtFilter;
+        private final OAuth2LoginSuccessHandler oauth2SuccessHandler;
 
-        public SecurityConfig(JsonWebTokenFilter jwtFilter) {
+        public SecurityConfig(JsonWebTokenFilter jwtFilter, OAuth2LoginSuccessHandler oauth2SuccessHandler) {
                 this.jwtFilter = jwtFilter;
+                this.oauth2SuccessHandler = oauth2SuccessHandler;
         }
 
         @Bean
@@ -39,11 +42,13 @@ public class SecurityConfig {
                                 })
                                 .csrf(csrf -> csrf.disable())
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                                 .requestMatchers("/auth/login", "/auth/register",
-                                                                "/auth/forgot-password", "/auth/reset-password")
+                                                                "/auth/forgot-password", "/auth/reset-password",
+                                                                "/oauth2/**",
+                                                                "/login/oauth2/**")
                                                 .permitAll()
                                                 // 首次登入修改密碼：只需要登入，不限制角色
                                                 .requestMatchers(
@@ -56,6 +61,10 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.PATCH, "/users/**").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .successHandler(oauth2SuccessHandler)
+                                                .failureHandler((request, response, exception) -> response.sendRedirect(
+                                                                "http://localhost:5173/auth/login?oauth=failed")))
                                 .exceptionHandling(exception -> exception
                                                 .authenticationEntryPoint(authenticationEntryPoint())
                                                 .accessDeniedHandler(accessDeniedHandler()))

@@ -116,7 +116,10 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
         return "/auth/login".equals(path) ||
                 "/auth/register".equals(path) ||
                 "/auth/reset-password".equals(path) ||
-                "/auth/forgot-password".equals(path);
+                "/auth/forgot-password".equals(path)
+                || "/auth/oauth2/session".equals(path)
+                || path.startsWith("/oauth2/")
+                || path.startsWith("/login/oauth2/");
     }
 
 }
