@@ -218,6 +218,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { getUsers, updateUserStatus } from "@/api/user.js";
+import { getErrorMessage } from "@/utils/apiError.js";
+import { notify } from "@/plugins/notify.js";
 
 const searchQuery = ref("");
 const users = ref([]);
@@ -251,7 +253,7 @@ async function loadUsers() {
     totalElements.value = data.totalElements;
     totalPages.value = data.totalPages;
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || "人員資料載入失敗";
+    errorMessage.value = getErrorMessage(error, "人員資料載入失敗");
   } finally {
     loading.value = false;
   }
@@ -275,7 +277,13 @@ async function toggleStatus(user) {
   const nextStatus = user.status === 1 ? 0 : 1;
   const actionName = nextStatus === 1 ? "啟用" : "停用";
 
-  if (!window.confirm(`確定要${actionName}「${user.name}」的帳號嗎？`)) {
+  const result = await notify.confirm({
+    title: `確定要${actionName}帳號？`,
+    text: `使用者：${user.name}`,
+    confirmButtonText: `確定${actionName}`,
+  });
+
+  if (!result.isConfirmed) {
     return;
   }
 
@@ -285,9 +293,9 @@ async function toggleStatus(user) {
   try {
     await updateUserStatus(user.userId, nextStatus);
     await loadUsers();
+    notify.success(`帳號已成功${actionName}`);
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message || `${actionName}帳號失敗`;
+    errorMessage.value = getErrorMessage(error, `${actionName}帳號失敗`);
   } finally {
     updatingUserId.value = null;
   }
