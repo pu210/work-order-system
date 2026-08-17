@@ -99,12 +99,12 @@
           <span>使用 Google 帳號登入</span>
         </a>
 
-        <button
-          type="button"
+        <router-link
+          to="/auth/register"
           class="btn btn-light w-100 py-2 fw-medium rounded-3 border extra-small text-secondary"
         >
           建立新帳號
-        </button>
+        </router-link>
       </div>
     </form>
   </div>

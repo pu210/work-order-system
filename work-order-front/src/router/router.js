@@ -27,6 +27,7 @@ import UserEdit from "@/views/UserEdit.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import InitialPassword from "@/views/InitialPassword.vue";
+import Register from "@/views/Register.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -49,6 +50,12 @@ const routes = [
         path: "login",
         name: "Login",
         component: Login,
+        meta: { guestOnly: true },
+      },
+      {
+        path: "register",
+        name: "Register",
+        component: Register,
         meta: { guestOnly: true },
       },
       {

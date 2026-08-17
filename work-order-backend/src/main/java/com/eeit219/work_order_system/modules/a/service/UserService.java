@@ -56,27 +56,52 @@ public class UserService {
 
     // 使用者登入
     public CurrentUserDTO loginUser(String account, String password) {
-        if (account != null && account.length() != 0 && password != null && password.length() != 0) {
-            User user = userRepository.findByAccount(account).orElse(null);
-            if (user != null
-                    && user.getStatus() == User.UserStatus.ACTIVE
-                    && user.getPasswordHash() != null
-                    && passwordEncoder.matches(password, user.getPasswordHash())) {
+        if (account == null || account.isBlank()
+                || password == null || password.isBlank()) {
+            return null;
+        }
+
+        User user = userRepository.findByAccount(account.trim()).orElse(null);
+
+        if (user == null
+                || user.getPasswordHash() == null
+                || !passwordEncoder.matches(password, user.getPasswordHash())) {
+            return null;
+        }
+
+        switch (user.getStatus()) {
+            case User.UserStatus.PENDING ->
+                throw new IllegalArgumentException(
+                        "帳號正在審核中，請等待管理員審核");
+
+            case User.UserStatus.DISABLED ->
+                throw new IllegalArgumentException(
+                        "帳號目前已停用，請聯絡管理員");
+
+            case User.UserStatus.REJECTED ->
+                throw new IllegalArgumentException(
+                        "帳號申請未通過，請聯絡管理員");
+
+            case User.UserStatus.ACTIVE -> {
                 return new CurrentUserDTO(
                         user.getUserId(),
                         user.getAccount(),
                         user.getName(),
                         user.getEmail(),
                         user.getMustChangePassword(),
-                        userRoleRepository.findRoleCodesByUserId(user.getUserId())
+                        userRoleRepository
+                                .findRoleCodesByUserId(user.getUserId())
                                 .stream()
                                 .map(roleCode -> roleCode.trim().toUpperCase())
                                 .distinct()
                                 .sorted()
                                 .toList());
             }
+
+            default ->
+                throw new IllegalArgumentException(
+                        "帳號目前無法登入，請聯絡管理員");
         }
-        return null;
     }
 
     // 首次登入修改密碼
@@ -172,6 +197,10 @@ public class UserService {
         }
         if (request.confirmPassword() == null || request.confirmPassword().isBlank()) {
             throw new IllegalArgumentException("confirmPassword為必填");
+        }
+
+        if (request.password().length() < 8) {
+            throw new IllegalArgumentException("密碼至少需要 8 個字元");
         }
 
         String account = request.account().trim();
