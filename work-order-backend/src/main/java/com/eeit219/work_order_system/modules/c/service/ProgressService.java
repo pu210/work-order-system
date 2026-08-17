@@ -96,7 +96,7 @@ public class ProgressService {
                     workOrderId, // 工單 ID
                     "工程師已退回工單，待重新審核！", // 通知標題
                     "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + workOrder.getAssignedHandler().getName()
-                            + " 已退回處理，退回原因：" + request.feedback() + "，請重新審核指派。", // 通知詳細內容
+                            + " 已退回處理，退回原因：" + request.feedback() + "，請重新審核與指派。", // 通知詳細內容
                     workOrder.getStatus()); // 當前狀態 (PENDING_REVIEW)
         }
     }
