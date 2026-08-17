@@ -25,6 +25,8 @@ import { NAV_ITEMS } from "@/router/navItems.js";
 import UserCreate from "@/views/UserCreate.vue";
 import UserEdit from "@/views/UserEdit.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
+import ResetPassword from "@/views/ResetPassword.vue";
+import InitialPassword from "@/views/InitialPassword.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -55,6 +57,12 @@ const routes = [
         component: ForgotPassword,
         meta: { guestOnly: true },
       },
+      {
+        path: "/reset-password",
+        name: "ResetPassword",
+        component: ResetPassword,
+        meta: { guestOnly: true },
+      },
     ],
   },
   // 登入後的系統頁面，全部走 MainLayout（頂端列 + 內容），都需要登入
@@ -63,6 +71,11 @@ const routes = [
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
+      {
+        path: "account/initial-password",
+        name: "initial-password",
+        component: InitialPassword,
+      },
       {
         path: "dashboard",
         name: "Dashboard",

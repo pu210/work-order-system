@@ -190,6 +190,10 @@ async function handleLogin() {
     }
 
     authStore.login(data);
+    if (data.mustChangePassword) {
+      await router.replace({ name: "initial-password" });
+      return;
+    }
     const returnUrl =
       typeof route.query.returnUrl === "string" &&
       route.query.returnUrl.startsWith("/")

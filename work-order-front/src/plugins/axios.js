@@ -23,7 +23,13 @@ instance.interceptors.response.use(
         `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
       );
     } else if (status === 403) {
-      window.location.assign("/forbidden");
+      const code = error.response?.data?.code;
+
+      if (code === "PASSWORD_CHANGE_REQUIRED") {
+        window.location.assign("/account/initial-password");
+      } else {
+        window.location.assign("/forbidden");
+      }
     }
     return Promise.reject(error);
   },

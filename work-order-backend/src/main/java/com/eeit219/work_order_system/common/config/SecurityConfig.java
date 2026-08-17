@@ -53,7 +53,7 @@ public class SecurityConfig {
                                                 // 首次登入修改密碼：只需要登入，不限制角色
                                                 .requestMatchers(
                                                                 HttpMethod.PATCH,
-                                                                "/account/changeinitialpassword")
+                                                                "/account/initial-password")
                                                 .authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
                                                                 "/api/priorities/**")

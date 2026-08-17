@@ -63,3 +63,16 @@ export function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
 }
+export function markPasswordChanged() {
+  const user = getCurrentUser();
+
+  if (!user) return;
+
+  localStorage.setItem(
+    USER_KEY,
+    JSON.stringify({
+      ...user,
+      mustChangePassword: false,
+    }),
+  );
+}
