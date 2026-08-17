@@ -305,6 +305,11 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
 
+        if (user.getStatus() == User.UserStatus.PENDING
+                && request.roleCodes() != null) {
+            throw new IllegalArgumentException("待審核帳號不可直接指派角色");
+        }
+
         byte proposedStatus = request.status() != null
                 ? validateStatus(request.status())
                 : user.getStatus();

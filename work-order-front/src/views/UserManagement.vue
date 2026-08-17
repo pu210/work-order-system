@@ -1,19 +1,3 @@
-<!-- <template>
-  <div>
-    <h3 class="fw-bold mb-3">人員管理</h3>
-    <div class="card p-4 shadow-sm border-0">系統使用者與權限設定</div>
-  </div>
-</template>
-
-<script setup>
-	
-</script>
-    
-<style>
-    
-</style> -->
-
-<!-- src/views/Users.vue -->
 <template>
   <div class="users-page">
     <!-- 頁面頂部：標題與操作按鈕 -->
@@ -21,13 +5,10 @@
       class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3"
     >
       <div>
-        <h4 class="fw-bold text-slate-800 mb-1">帳號管理</h4>
-        <p class="text-muted extra-small mb-0">管理系統使用者帳號與權限設定</p>
+        <h3 class="fw-bold text-slate-800 mb-1">帳號管理</h3>
+        <p class="text-muted extra-small mb-0">管理系統使用者帳號設定</p>
       </div>
-      <!-- <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-2xs extra-small fw-semibold">
-        <i class="bi bi-person-plus-fill fs-6"></i>
-        <span>新增使用者</span>
-      </button> -->
+
       <router-link
         :to="{ name: 'user-create' }"
         class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-2xs extra-small fw-semibold text-decoration-none"
@@ -39,19 +20,32 @@
 
     <!-- 主要表格卡片區 -->
     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
+      <div
+        v-if="errorMessage"
+        class="alert alert-danger py-2 px-3 m-3 extra-small"
+      >
+        {{ errorMessage }}
+      </div>
       <!-- 頂部搜尋框 -->
-      <div class="p-3 border-bottom bg-light-subtle">
-        <div class="input-group search-input-group" style="max-width: 280px">
-          <span class="input-group-text bg-white border-end-0 text-muted ps-3">
-            <i class="bi bi-search extra-small"></i>
-          </span>
-          <input
-            type="text"
-            v-model="searchQuery"
-            class="form-control border-start-0 extra-small ps-1"
-            placeholder="搜尋姓名或信箱..."
-          />
-        </div>
+      <div
+        class="input-group input-group-sm search-input-group"
+        style="max-width: 240px"
+      >
+        <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+          <i class="bi bi-search"></i>
+        </span>
+
+        <input
+          v-model="searchQuery"
+          type="search"
+          class="form-control border-start-0 ps-1"
+          placeholder="搜尋姓名、帳號或信箱"
+          aria-label="搜尋使用者"
+          @keyup.enter="
+            currentPage = 0;
+            loadUsers();
+          "
+        />
       </div>
 
       <!-- 表格內容 -->
@@ -70,9 +64,9 @@
           <tbody class="extra-small text-dark">
             <tr
               v-for="user in users"
-              :key="user.id"
+              :key="user.userId"
               :class="{
-                'opacity-50 bg-light-subtle': user.status === 'disabled',
+                'opacity-50 bg-light-subtle': user.status === 0,
               }"
             >
               <!-- 1. 姓名 (🎯 移除小圈圈，回歸乾淨純文字) -->
@@ -86,25 +80,20 @@
               <!-- 3. 狀態標籤 -->
               <td>
                 <span
-                  v-if="user.status === 'active'"
-                  class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill"
+                  class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill"
                 >
-                  使用中
-                </span>
-                <span
-                  v-else
-                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 rounded-pill"
-                >
-                  已停用
+                  {{ statusLabels[user.status] ?? "未知狀態" }}
                 </span>
               </td>
 
               <!-- 4. 角色 Tag -->
               <td>
                 <span
-                  class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-normal"
+                  v-for="roleCode in user.roleCodes"
+                  :key="roleCode"
+                  class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-normal me-1"
                 >
-                  {{ user.role }}
+                  {{ roleCode }}
                 </span>
               </td>
 
@@ -113,15 +102,10 @@
                 <div
                   class="d-inline-flex align-items-center justify-content-center gap-2"
                 >
-                  <!-- 編輯按鈕 -->
-                  <!-- <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2">
-                    <i class="bi bi-pencil-square"></i>
-                    <span>編輯</span>
-                  </button> -->
                   <router-link
                     :to="{
                       name: 'user-edit',
-                      params: { id: user.id },
+                      params: { id: user.userId },
                     }"
                     class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2"
                   >
@@ -131,24 +115,34 @@
 
                   <!-- 停用 / 啟用按鈕 -->
                   <button
-                    v-if="user.status === 'active'"
+                    v-if="user.status === 1"
                     type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2"
+                    :disabled="updatingUserId === user.userId"
                     @click="toggleStatus(user)"
                     title="停用此帳號"
                   >
-                    <i class="bi bi-person-x"></i>
+                    <span
+                      v-if="updatingUserId === user.userId"
+                      class="spinner-border spinner-border-sm"
+                    ></span>
+                    <i v-else class="bi bi-person-x"></i>
                     <span>停用</span>
                   </button>
 
                   <button
-                    v-else
+                    v-else-if="user.status === 0"
                     type="button"
                     class="btn btn-sm btn-outline-success d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2"
+                    :disabled="updatingUserId === user.userId"
                     @click="toggleStatus(user)"
                     title="啟用此帳號"
                   >
-                    <i class="bi bi-person-check"></i>
+                    <span
+                      v-if="updatingUserId === user.userId"
+                      class="spinner-border spinner-border-sm"
+                    ></span>
+                    <i v-else class="bi bi-person-check"></i>
                     <span>啟用</span>
                   </button>
                 </div>
@@ -162,22 +156,57 @@
       <div
         class="p-3 border-top d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 extra-small text-muted"
       >
-        <div>顯示第 1 至 {{ users.length }} 筆，共 {{ users.length }} 筆</div>
+        <div>
+          顯示第
+          {{ totalElements === 0 ? 0 : currentPage * pageSize + 1 }}
+          至
+          {{ Math.min((currentPage + 1) * pageSize, totalElements) }}
+          筆，共 {{ totalElements }} 筆
+        </div>
 
-        <nav aria-label="Page navigation">
+        <nav v-if="totalPages > 0" aria-label="Page navigation">
           <ul class="pagination pagination-sm m-0">
-            <li class="page-item disabled">
-              <a class="page-link" href="#"
-                ><i class="bi bi-chevron-left"></i
-              ></a>
+            <!-- 上一頁 -->
+            <li class="page-item" :class="{ disabled: currentPage === 0 }">
+              <button
+                class="page-link"
+                type="button"
+                :disabled="currentPage === 0"
+                @click="changePage(currentPage - 1)"
+              >
+                <i class="bi bi-chevron-left"></i>
+              </button>
             </li>
-            <li class="page-item active">
-              <a class="page-link" href="#">1</a>
+
+            <!-- 頁碼 -->
+            <li
+              v-for="pageNumber in totalPages"
+              :key="pageNumber"
+              class="page-item"
+              :class="{ active: currentPage === pageNumber - 1 }"
+            >
+              <button
+                class="page-link"
+                type="button"
+                @click="changePage(pageNumber - 1)"
+              >
+                {{ pageNumber }}
+              </button>
             </li>
-            <li class="page-item">
-              <a class="page-link" href="#"
-                ><i class="bi bi-chevron-right"></i
-              ></a>
+
+            <!-- 下一頁 -->
+            <li
+              class="page-item"
+              :class="{ disabled: currentPage === totalPages - 1 }"
+            >
+              <button
+                class="page-link"
+                type="button"
+                :disabled="currentPage === totalPages - 1"
+                @click="changePage(currentPage + 1)"
+              >
+                <i class="bi bi-chevron-right"></i>
+              </button>
             </li>
           </ul>
         </nav>
@@ -187,44 +216,82 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { getUsers, updateUserStatus } from "@/api/user.js";
 
 const searchQuery = ref("");
+const users = ref([]);
+const currentPage = ref(0);
+const pageSize = ref(10);
+const totalElements = ref(0);
+const totalPages = ref(0);
+const loading = ref(false);
+const errorMessage = ref("");
+const updatingUserId = ref(null);
 
-const users = ref([
-  {
-    id: 1,
-    name: "Eve",
-    email: "eve@sample.com",
-    status: "active",
-    role: "User",
-  },
-  {
-    id: 2,
-    name: "William",
-    email: "william@sample.com",
-    status: "active",
-    role: "User",
-  },
-  {
-    id: 3,
-    name: "Lillian",
-    email: "lillian@ragic.com",
-    status: "active",
-    role: "Admin",
-  },
-  {
-    id: 4,
-    name: "Kayline",
-    email: "kayline@ragic.com",
-    status: "disabled",
-    role: "Admin",
-  },
-]);
-
-const toggleStatus = (user) => {
-  user.status = user.status === "active" ? "disabled" : "active";
+const statusLabels = {
+  0: "已停用",
+  1: "使用中",
+  2: "待審核",
+  3: "審核未通過",
 };
+
+async function loadUsers() {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const data = await getUsers({
+      page: currentPage.value,
+      size: pageSize.value,
+      keyword: searchQuery.value.trim() || undefined,
+    });
+
+    users.value = data.content;
+    totalElements.value = data.totalElements;
+    totalPages.value = data.totalPages;
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || "人員資料載入失敗";
+  } finally {
+    loading.value = false;
+  }
+}
+async function changePage(page) {
+  if (page < 0 || page >= totalPages.value) {
+    return;
+  }
+
+  currentPage.value = page;
+  await loadUsers();
+}
+
+onMounted(loadUsers);
+
+async function toggleStatus(user) {
+  if (user.status !== 0 && user.status !== 1) {
+    return;
+  }
+
+  const nextStatus = user.status === 1 ? 0 : 1;
+  const actionName = nextStatus === 1 ? "啟用" : "停用";
+
+  if (!window.confirm(`確定要${actionName}「${user.name}」的帳號嗎？`)) {
+    return;
+  }
+
+  updatingUserId.value = user.userId;
+  errorMessage.value = "";
+
+  try {
+    await updateUserStatus(user.userId, nextStatus);
+    await loadUsers();
+  } catch (error) {
+    errorMessage.value =
+      error.response?.data?.message || `${actionName}帳號失敗`;
+  } finally {
+    updatingUserId.value = null;
+  }
+}
 </script>
 
 <style scoped>

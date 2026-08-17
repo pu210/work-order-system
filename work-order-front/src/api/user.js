@@ -1,0 +1,8 @@
+import api from "@/plugins/axios.js";
+
+export function getUsers(params) {
+  return api.get("/users", { params }).then((res) => res.data.data);
+}
+export function updateUserStatus(userId, status) {
+  return api.patch(`/users/${userId}`, { status }).then((res) => res.data.data);
+}
