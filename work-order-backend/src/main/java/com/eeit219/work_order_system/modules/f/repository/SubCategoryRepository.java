@@ -6,11 +6,9 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
-@Repository
 public interface SubCategoryRepository extends JpaRepository<SubCategory, Integer> {
 
     // 給模組 b 新增工單用：一次撈齊 overridePriority、所屬大類別與大類別的預設優先級

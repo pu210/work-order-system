@@ -21,9 +21,12 @@
 <style scoped>
 .auth-layout {
   width: 100%;
-  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100dvh;
   padding: 24px;
+  box-sizing: border-box;
   overflow-y: auto;
   background-color: #f3f4f6;
 }

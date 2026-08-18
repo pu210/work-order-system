@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.eeit219.work_order_system.common.exception.BusinessRuleViolationException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.User;
+import com.eeit219.work_order_system.modules.a.entity.UserRole;
+import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderListItemResponse;
@@ -19,6 +21,7 @@ import com.eeit219.work_order_system.modules.b.dto.WorkOrderResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
+import com.eeit219.work_order_system.modules.e.service.NotificationService;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
@@ -29,13 +32,19 @@ public class WorkOrderService {
     private final WorkOrderRepository workOrderRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final WorkOrderAttachmentService workOrderAttachmentService;
+    private final NotificationService notificationService;
+    private final UserRoleRepository userRoleRepository;
 
     public WorkOrderService(WorkOrderRepository workOrderRepository,
             SubCategoryRepository subCategoryRepository,
-            WorkOrderAttachmentService workOrderAttachmentService) {
+            WorkOrderAttachmentService workOrderAttachmentService,
+            NotificationService notificationService,
+            UserRoleRepository userRoleRepository) {
         this.workOrderRepository = workOrderRepository;
         this.subCategoryRepository = subCategoryRepository;
         this.workOrderAttachmentService = workOrderAttachmentService;
+        this.notificationService = notificationService;
+        this.userRoleRepository = userRoleRepository;
     }
 
     // 建立工單：解析優先級、寫入工單本體，附件於建單當下不夾帶（走獨立端點事後上傳）。
@@ -59,6 +68,24 @@ public class WorkOrderService {
         workOrder.setCreatedTime(LocalDateTime.now());
 
         WorkOrder saved = workOrderRepository.save(workOrder);
+
+        // ===== 觸發發送通知給所有管理員 =====
+        // 1. 查詢所有 role_id = 1 (管理員) 的使用者角色關聯紀錄
+        List<UserRole> adminRoles = userRoleRepository.findByIdRoleId(1);
+
+        // 2. 透過 for 迴圈，發送通知給每一位管理員
+        for (UserRole adminRole : adminRoles) {
+            Integer adminUserId = adminRole.getId().getUserId(); // 取得管理員的 userId
+
+            notificationService.sendNotification(
+                    adminUserId, // 接收通知的人（管理員 ID）
+                    creator.getUserId(), // 發送通知的人（報修建單者 ID）
+                    saved.getWorkOrderId(), // 工單 ID
+                    "有新工單待審核！", // 通知標題
+                    "使用者 " + creator.getName() + " 建立了一筆新工單：" + saved.getWorkOrderNo() + "，等待審核。", // 通知詳細內容
+                    saved.getStatus() // 當時工單狀態 (PENDING_REVIEW)
+            );
+        }
 
         return toResponse(saved, subCategory, priority, creator, List.of());
     }
