@@ -10,11 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import com.eeit219.work_order_system.common.response.ApiResponse;
 
 @RestControllerAdvice
 public class ExceptionHandler {
@@ -120,16 +116,6 @@ public class ExceptionHandler {
         //                                         "伺服器發生未預期錯誤"));
         // }
 
-        // 403 沒有權限 Forbidden
-        @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
-        public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
-                        AccessDeniedException exception) {
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(ApiResponse.error(
-                                                HttpStatus.FORBIDDEN.value(),
-                                                exception.getMessage()));
-        }
         // 409 樂觀鎖發生衝突
         @org.springframework.web.bind.annotation.ExceptionHandler(OptimisticLockingFailureException.class)
         public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
