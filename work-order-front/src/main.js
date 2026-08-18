@@ -8,6 +8,10 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./assets/styles/design-system.css";
 
+// 文字 ======================================================================
+import "@fontsource/inter";
+import "@fontsource/inter/700.css";
+// ===========================================================================
 const pinia = createPinia().use(piniaPluginPersistedstate);
 
 createApp(App).use(router).use(pinia).mount("#app");
