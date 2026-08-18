@@ -15,7 +15,7 @@ import TicketAssign from "@/views/TicketAssign.vue";
 import HandlerWorkbench from "@/views/HandlerWorkbench.vue";
 import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
-import SystemSettings from "@/views/SystemSettings.vue";
+import EquipmentCreate from "@/views/EquipmentCreate.vue";
 import Profile from "@/views/Profile.vue";
 import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
@@ -156,7 +156,7 @@ const routes = [
       {
         path: "equipment-create",
         name: "equipment-create",
-        component: SystemSettings,
+        component: EquipmentCreate,
         meta: { roles: rolesFor("equipment-create") },
       },
       { path: "profile", name: "profile", component: Profile },

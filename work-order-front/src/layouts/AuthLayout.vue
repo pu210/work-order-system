@@ -56,26 +56,4 @@
     padding: 16px;
   }
 }
-
-.auth-card {
-  max-width: 420px;
-  background: #fff;
-  border: 1px solid #dfe3e8;
-  border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(20, 33, 61, 0.08);
-}
-
-.extra-small {
-  font-size: 0.8rem;
-}
-
-.tracking-wide {
-  letter-spacing: 0.5px;
-}
-
-@media (max-width: 575.98px) {
-  .auth-layout {
-    padding: 16px;
-  }
-}
 </style>

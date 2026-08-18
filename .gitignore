@@ -1,3 +1,4 @@
+.m2/
 ### OS generated files  ###
 .DS_Store
 **/.DS_Store
@@ -6,6 +7,7 @@ Thumbs.db
 # 編譯產物
 *.class
 bin/
+**/bin/
 
 HELP.md
 **/target/
@@ -36,6 +38,8 @@ HELP.md
 *.njsproj
 *.sln
 *.sw?
+
+
 
 ### NetBeans ###
 
@@ -85,3 +89,6 @@ coverage/
 cypress/videos/
 cypress/screenshots/
 __screenshots__/
+/.metadata/
+.agents/
+
