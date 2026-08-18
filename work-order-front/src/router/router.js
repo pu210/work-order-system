@@ -65,7 +65,7 @@ const routes = [
         meta: { guestOnly: true },
       },
       {
-        path: "/reset-password",
+        path: "reset-password",
         name: "ResetPassword",
         component: ResetPassword,
         meta: { guestOnly: true },
