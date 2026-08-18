@@ -16,9 +16,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,16 +29,24 @@ class WorkOrderDetailServiceTest {
     @Mock
     private WorkOrderDetailRepository workOrderDetailRepository;
 
+    @Mock
+    private WorkOrderAuthorizationService workOrderAuthorizationService;
+
     @InjectMocks
     private WorkOrderDetailService workOrderDetailService;
 
     @Test
     void getWorkOrderDetail_throwsAccessDenied_whenCurrentUserIsNull() {
+        doThrow(new AccessDeniedException("使用者尚未登入"))
+                .when(workOrderAuthorizationService)
+                .validateAuthenticated(null);
+
         assertThrows(
                 AccessDeniedException.class,
                 () -> workOrderDetailService.getWorkOrderDetail(1, null)
         );
 
+        verify(workOrderAuthorizationService).validateAuthenticated(null);
         verifyNoInteractions(workOrderDetailRepository);
     }
 
@@ -50,19 +60,17 @@ class WorkOrderDetailServiceTest {
                 () -> workOrderDetailService.getWorkOrderDetail(999, currentUser)
         );
 
+        verify(workOrderAuthorizationService).validateAuthenticated(currentUser);
+        verifyNoMoreInteractions(workOrderAuthorizationService);
         verify(workOrderDetailRepository).findDetailById(999);
     }
 
     @Test
-    void getWorkOrderDetail_returnsDetail_whenCurrentUserIsCreator() throws AccessDeniedException {
+    void getWorkOrderDetail_returnsDetail_whenAuthorized() {
         Integer workOrderId = 1;
         User currentUser = mock(User.class);
-        User creator = mock(User.class);
         WorkOrder workOrder = mock(WorkOrder.class);
 
-        when(currentUser.getUserId()).thenReturn(10);
-        when(creator.getUserId()).thenReturn(10);
-        when(workOrder.getCreator()).thenReturn(creator);
         when(workOrder.getWorkOrderId()).thenReturn(workOrderId);
         when(workOrder.getWorkOrderNo()).thenReturn("WO-2026-0001");
         when(workOrderDetailRepository.findDetailById(workOrderId))
@@ -73,6 +81,9 @@ class WorkOrderDetailServiceTest {
 
         assertEquals(workOrderId, result.getWorkOrderId());
         assertEquals("WO-2026-0001", result.getWorkOrderNo());
+        verify(workOrderAuthorizationService).validateAuthenticated(currentUser);
+        verify(workOrderAuthorizationService).validateViewPermission(workOrder, currentUser);
+        verifyNoMoreInteractions(workOrderAuthorizationService);
         verify(workOrderDetailRepository).findDetailById(workOrderId);
     }
 }
