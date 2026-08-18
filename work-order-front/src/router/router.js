@@ -15,7 +15,10 @@ import TicketAssign from "@/views/TicketAssign.vue";
 import HandlerWorkbench from "@/views/HandlerWorkbench.vue";
 import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
-import EquipmentCreate from "@/views/EquipmentCreate.vue";
+
+// 將原本的三個獨立組件換成一個整合設定頁
+import SystemSettings from "@/views/SystemSettings.vue";
+
 import Profile from "@/views/Profile.vue";
 import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
@@ -36,8 +39,6 @@ const routes = [
     path: "/",
     redirect: "/dashboard",
   },
-
-  // 登入頁面（使用 AuthLayout）
   {
     path: "/auth",
     component: AuthLayout,
@@ -57,7 +58,6 @@ const routes = [
       },
     ],
   },
-  // 登入後的系統頁面，全部走 MainLayout（頂端列 + 內容），都需要登入
   {
     path: "/",
     component: MainLayout,
@@ -133,11 +133,12 @@ const routes = [
           },
         ],
       },
+      // 合併為單一路由指向系統設定頁
       {
-        path: "equipment-create",
-        name: "equipment-create",
-        component: EquipmentCreate,
-        meta: { roles: rolesFor("equipment-create") },
+        path: "settings/system",
+        name: "system-settings",
+        component: SystemSettings,
+        meta: { roles: rolesFor("system-settings") },
       },
       { path: "profile", name: "profile", component: Profile },
       { path: "settings", name: "settings", component: Settings },
@@ -180,5 +181,5 @@ router.beforeEach((to) => {
   }
 });
 
-// 5. 匯出 router 實體，讓 main.js 匯入使用
+// 5. 匯出 router 實體
 export default router;
