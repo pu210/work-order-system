@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
@@ -105,18 +103,11 @@ public class ExceptionHandler {
                                                 "JSON 格式或欄位格式錯誤"));
         }
 
-        @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
-        public ResponseEntity<ApiResponse<Void>> handleUnexpectedError(
-                        Exception exception) {
+        // @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+        // public ResponseEntity<ApiResponse<Void>> handleUnexpectedError(
+        // Exception exception) {
 
-                log.error("未預期的伺服器錯誤", exception);
-
-                return ResponseEntity.status(
-                                HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(ApiResponse.error(
-                                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                                "伺服器發生未預期錯誤"));
-        }
+        // log.error("未預期的伺服器錯誤", exception);
 
         // 403 沒有權限 Forbidden
         @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
@@ -128,6 +119,7 @@ public class ExceptionHandler {
                                                 HttpStatus.FORBIDDEN.value(),
                                                 exception.getMessage()));
         }
+
         // 409 樂觀鎖發生衝突
         @org.springframework.web.bind.annotation.ExceptionHandler(OptimisticLockingFailureException.class)
         public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
