@@ -20,8 +20,4 @@ public record ReviewAcceptRequest(
         }
     }
 
-    public Integer userId() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'userId'");
-    }
 }

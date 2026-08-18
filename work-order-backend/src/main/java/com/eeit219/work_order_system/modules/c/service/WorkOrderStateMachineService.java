@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.c.repository.UserRepositoryC;
+import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
@@ -25,12 +25,12 @@ import reactor.core.publisher.Mono;
 @Service
 public class WorkOrderStateMachineService {
     private final RepairTicketHistoryRepository repairTicketHistoryRepository;
-    private final UserRepositoryC userRepository;
+    private final UserRepository userRepository;
     private final StateMachineFactory<WorkOrderState, WorkOrderEvent> stateMachineFactory;
 
     public WorkOrderStateMachineService(
             RepairTicketHistoryRepository repairTicketHistoryRepository,
-            UserRepositoryC userRepository,
+            UserRepository userRepository,
             StateMachineFactory<WorkOrderState, WorkOrderEvent> stateMachineFactory) {
         this.userRepository = userRepository;
         this.repairTicketHistoryRepository = repairTicketHistoryRepository;

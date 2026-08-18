@@ -3,6 +3,8 @@ package com.eeit219.work_order_system.modules.e.entity;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -19,8 +21,9 @@ public class Notification {
     @Column(name = "work_order_id")
     private Integer workOrderId; // 工單編號（外鍵）
 
-    @Column(name = "status", length = 20)
-    private String status; // 工單狀態
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 50)
+    private WorkOrderState status; // 工單狀態
 
     @Column(name = "title", length = 100)
     private String title; // 標題

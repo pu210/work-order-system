@@ -7,13 +7,14 @@ import org.springframework.stereotype.Service;
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.c.repository.UserRepositoryC;
+import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
-import com.eeit219.work_order_system.modules.c.repository.WorkOrderRepositoryC;
+import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.dto.ReviewAcceptRequest;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
+import com.eeit219.work_order_system.modules.e.service.NotificationService;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
 
@@ -21,19 +22,22 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ReviewService {
-        private final WorkOrderRepositoryC workOrderRepository;
+        private final WorkOrderRepository workOrderRepository;
         private final PriorityRepository priorityRepository;
-        private final UserRepositoryC userRepository;
+        private final UserRepository userRepository;
         private final WorkOrderStateMachineService workOrderStateMachineService;
+        private final NotificationService notificationService;
 
-        public ReviewService(WorkOrderRepositoryC workOrderRepository,
+        public ReviewService(WorkOrderRepository workOrderRepository,
                         PriorityRepository priorityRepository,
-                        UserRepositoryC userRepository,
-                        WorkOrderStateMachineService workOrderStateMachineService) {
+                        UserRepository userRepository,
+                        WorkOrderStateMachineService workOrderStateMachineService,
+                        NotificationService notificationService) {
                 this.workOrderRepository = workOrderRepository;
                 this.priorityRepository = priorityRepository;
                 this.userRepository = userRepository;
                 this.workOrderStateMachineService = workOrderStateMachineService;
+                this.notificationService = notificationService;
         }
 
         @Transactional
@@ -63,7 +67,7 @@ public class ReviewService {
 
                 User handler = userRepository.findActiveHandlerById(request.assignedHandlerId())
                                 .orElseThrow(() -> new IllegalArgumentException("指定的使用者不存在、已停用，或不是工程師"));
-
+                //設定優先及 負責工程師 到期時間
                 workOrder.setPriority(priority);
                 workOrder.setAssignedHandler(handler);
                 workOrder.setDueTime(newDueTime);
@@ -90,5 +94,4 @@ public class ReviewService {
                 workOrderRepository.save(workOrder);
 
         }
-
 }

@@ -78,5 +78,18 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                         @Param("creatorId") Integer creatorId,
                         Pageable pageable);
 
+        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Query("""
+                        UPDATE WorkOrder w
+                           SET w.isOverdue = true,
+                               w.version = w.version + 1
+                         WHERE w.dueTime IS NOT NULL
+                           AND w.dueTime < :now
+                           AND w.isOverdue = false
+                           AND w.status NOT IN :excludedStates
+                        """)
+        int markOverdue(
+                        @Param("now") LocalDateTime now,
+                        @Param("excludedStates") Collection<WorkOrderState> excludedStates);
 
 }

@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.eeit219.work_order_system.modules.c.repository.WorkOrderRepositoryC;
+import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
 import jakarta.transaction.Transactional;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WorkOrderExpirationScheduler {
 
-    private final WorkOrderRepositoryC workOrderRepository;
+    private final WorkOrderRepository workOrderRepository;
 
     @Scheduled(cron = "${scheduler.work-order-overdue.cron:0 */5 * * * *}", zone = "Asia/Taipei")
     @Transactional

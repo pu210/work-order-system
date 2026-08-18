@@ -25,10 +25,10 @@ public class NotificationController {
 
     // 測試用 API：直接新增一筆通知
     // POST http://localhost:8080/api/notifications/test
-    @PostMapping("/test")
-    public Notification createNotificationTest(@RequestBody Notification notification) {
-        return notificationService.createTestNotification(notification);
-    }
+    // @PostMapping("/test")
+    // public Notification createNotificationTest(@RequestBody Notification notification) {
+    //     return notificationService.createTestNotification(notification);
+    // }
     
     @GetMapping("/user/{receiverId}")
     public List<Notification> getNotificationsByUser(@PathVariable Integer receiverId) {

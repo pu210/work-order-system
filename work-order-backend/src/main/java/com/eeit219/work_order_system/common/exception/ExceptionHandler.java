@@ -2,6 +2,7 @@ package com.eeit219.work_order_system.common.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -116,7 +117,8 @@ public class ExceptionHandler {
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 "伺服器發生未預期錯誤"));
         }
-        //403 沒有權限 Forbidden
+
+        // 403 沒有權限 Forbidden
         @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
         public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
                         AccessDeniedException exception) {
@@ -125,5 +127,17 @@ public class ExceptionHandler {
                                 .body(ApiResponse.error(
                                                 HttpStatus.FORBIDDEN.value(),
                                                 exception.getMessage()));
+        }
+        // 409 樂觀鎖發生衝突
+        @org.springframework.web.bind.annotation.ExceptionHandler(OptimisticLockingFailureException.class)
+        public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
+                        OptimisticLockingFailureException exception) {
+
+                log.warn("工單發生樂觀鎖衝突", exception);
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error(
+                                                HttpStatus.CONFLICT.value(),
+                                                "工單已被其他人修改，請重新載入最新資料"));
         }
 }
