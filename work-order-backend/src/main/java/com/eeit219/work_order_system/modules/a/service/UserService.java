@@ -498,6 +498,7 @@ public class UserService {
 
         Page<User> users = userRepository.searchUsers(
                 normalizedKeyword,
+                normalizedKeyword,
                 status,
                 normalizedRoleCode,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "userId")));

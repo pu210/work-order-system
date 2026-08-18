@@ -41,10 +41,6 @@
           class="form-control border-start-0 ps-1"
           placeholder="搜尋姓名、帳號或信箱"
           aria-label="搜尋使用者"
-          @keyup.enter="
-            currentPage = 0;
-            loadUsers();
-          "
         />
       </div>
 
@@ -216,7 +212,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getUsers, updateUserStatus } from "@/api/user.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 import { notify } from "@/plugins/notify.js";
@@ -237,8 +233,16 @@ const statusLabels = {
   2: "待審核",
   3: "審核未通過",
 };
+let latestRequestId = 0;
 
 async function loadUsers() {
+  const requestId = ++latestRequestId;
+
+  console.log("送出搜尋：", {
+    page: currentPage.value,
+    keyword: searchQuery.value,
+  });
+
   loading.value = true;
   errorMessage.value = "";
 
@@ -248,16 +252,28 @@ async function loadUsers() {
       size: pageSize.value,
       keyword: searchQuery.value.trim() || undefined,
     });
+    console.log("搜尋結果：", data);
+
+    if (requestId !== latestRequestId) {
+      return;
+    }
 
     users.value = data.content;
     totalElements.value = data.totalElements;
     totalPages.value = data.totalPages;
   } catch (error) {
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
     errorMessage.value = getErrorMessage(error, "人員資料載入失敗");
   } finally {
-    loading.value = false;
+    if (requestId === latestRequestId) {
+      loading.value = false;
+    }
   }
 }
+
 async function changePage(page) {
   if (page < 0 || page >= totalPages.value) {
     return;
@@ -268,6 +284,21 @@ async function changePage(page) {
 }
 
 onMounted(loadUsers);
+
+let searchTimer = null;
+
+watch(searchQuery, () => {
+  clearTimeout(searchTimer);
+
+  searchTimer = setTimeout(() => {
+    currentPage.value = 0;
+    loadUsers();
+  }, 400);
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(searchTimer);
+});
 
 async function toggleStatus(user) {
   if (user.status !== 0 && user.status !== 1) {
