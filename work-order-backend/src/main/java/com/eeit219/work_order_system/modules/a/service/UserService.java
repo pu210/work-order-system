@@ -257,6 +257,11 @@ public class UserService {
 
         String account = request.account().trim();
         String email = request.email().trim().toLowerCase();
+
+        if (!account.matches("^[A-Za-z0-9]+$")) {
+            throw new IllegalArgumentException("帳號只能包含英文字母與數字");
+        }
+
         List<String> roleCodes = normalizeRoleCodes(request.roleCodes());
 
         if (userRepository.existsByAccount(account)) {

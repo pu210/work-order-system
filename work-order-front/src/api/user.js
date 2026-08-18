@@ -6,3 +6,7 @@ export function getUsers(params) {
 export function updateUserStatus(userId, status) {
   return api.patch(`/users/${userId}`, { status }).then((res) => res.data.data);
 }
+
+export function createUser(payload) {
+  return api.post("/users", payload).then((res) => res.data.data);
+}
