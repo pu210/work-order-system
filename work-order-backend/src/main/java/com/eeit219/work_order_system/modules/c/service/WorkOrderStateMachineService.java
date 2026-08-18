@@ -10,14 +10,13 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
-import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
+import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
-import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
@@ -25,18 +24,15 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class WorkOrderStateMachineService {
-    private final WorkOrderRepository workOrderRepository;
     private final RepairTicketHistoryRepository repairTicketHistoryRepository;
     private final UserRepository userRepository;
     private final StateMachineFactory<WorkOrderState, WorkOrderEvent> stateMachineFactory;
 
     public WorkOrderStateMachineService(
-            WorkOrderRepository workOrderRepository,
             RepairTicketHistoryRepository repairTicketHistoryRepository,
             UserRepository userRepository,
             StateMachineFactory<WorkOrderState, WorkOrderEvent> stateMachineFactory) {
-        this.userRepository = userRepository;       
-        this.workOrderRepository = workOrderRepository;
+        this.userRepository = userRepository;
         this.repairTicketHistoryRepository = repairTicketHistoryRepository;
         this.stateMachineFactory = stateMachineFactory;
     }
@@ -72,10 +68,12 @@ public class WorkOrderStateMachineService {
             WorkOrderState newState = stateMachine.getState().getId();
 
             // 改變資料庫status狀態
-            modifyWorkOrderStatus(workOrder, newState);
+            workOrder.setStatus(newState);
 
             // 創建一筆新的history
             createRepairTicketHistory(workOrder, userId, feedback, event);
+            // 發送通知
+
             return workOrder;
 
         } finally {
@@ -125,17 +123,11 @@ public class WorkOrderStateMachineService {
         // 回傳是否接受事件
         return result.getResultType() == StateMachineEventResult.ResultType.ACCEPTED;
     }
-
-    private WorkOrder modifyWorkOrderStatus(WorkOrder workOrder, WorkOrderState newState) {
-        workOrder.setStatus(newState);
-        return workOrderRepository.save(workOrder);
-    }
-
     private RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId, String feedback,
             WorkOrderEvent event) {
         RepairTicketHistory history = new RepairTicketHistory();
         User editor = userRepository.findById(editorId)
-            .orElseThrow(() -> new ResourceNotFoundException("找不到編輯人"));
+                .orElseThrow(() -> new ResourceNotFoundException("找不到編輯人"));
         history.setWorkOrder(workOrder);
         history.setStatus(workOrder.getStatus());
         history.setEditedTime(LocalDateTime.now());
@@ -144,4 +136,5 @@ public class WorkOrderStateMachineService {
         history.setEvent(event);
         return repairTicketHistoryRepository.save(history);
     }
+
 }

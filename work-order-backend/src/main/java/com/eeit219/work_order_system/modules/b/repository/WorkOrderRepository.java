@@ -91,4 +91,5 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
         int markOverdue(
                         @Param("now") LocalDateTime now,
                         @Param("excludedStates") Collection<WorkOrderState> excludedStates);
+
 }
