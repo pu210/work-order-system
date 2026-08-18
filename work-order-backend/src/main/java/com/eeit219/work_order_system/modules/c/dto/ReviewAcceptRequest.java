@@ -19,5 +19,4 @@ public record ReviewAcceptRequest(
             feedback = feedback.strip();
         }
     }
-
 }

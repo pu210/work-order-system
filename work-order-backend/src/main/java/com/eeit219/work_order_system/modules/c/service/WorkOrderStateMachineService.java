@@ -123,6 +123,7 @@ public class WorkOrderStateMachineService {
         // 回傳是否接受事件
         return result.getResultType() == StateMachineEventResult.ResultType.ACCEPTED;
     }
+
     private RepairTicketHistory createRepairTicketHistory(WorkOrder workOrder, Integer editorId, String feedback,
             WorkOrderEvent event) {
         RepairTicketHistory history = new RepairTicketHistory();
@@ -136,5 +137,4 @@ public class WorkOrderStateMachineService {
         history.setEvent(event);
         return repairTicketHistoryRepository.save(history);
     }
-
 }
