@@ -66,10 +66,30 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
                             .map(roleCode -> new SimpleGrantedAuthority("ROLE_" + roleCode))
                             .toList();
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    user.getAccount(), null, authorities);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            user.getAccount(), null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    String path = request.getServletPath();
+                    boolean isChangeInitialPasswordRequest = "/account/initial-password".equals(path)
+                            && "PATCH".equalsIgnoreCase(request.getMethod());
+
+                    if (Boolean.TRUE.equals(user.getMustChangePassword())
+                            && !isChangeInitialPasswordRequest) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        response.setCharacterEncoding("UTF-8");
+
+                        JSONObject body = new JSONObject()
+                                .put("success", false)
+                                .put("status", HttpServletResponse.SC_FORBIDDEN)
+                                .put("code", "PASSWORD_CHANGE_REQUIRED")
+                                .put("message", "首次登入必須先修改密碼")
+                                .put("data", JSONObject.NULL)
+                                .put("timestamp", LocalDateTime.now().toString());
+                        response.getWriter().write(body.toString());
+                        return;
+                    }
 
                     filterChain.doFilter(request, response); // 執行後續程式
                     return;
@@ -94,7 +114,12 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         // 回傳 true (不檢查 Filter)；回傳 false (檢查 Filter)
         return "/auth/login".equals(path) ||
-                "/auth/register".equals(path);
+                "/auth/register".equals(path) ||
+                "/auth/reset-password".equals(path) ||
+                "/auth/forgot-password".equals(path)
+                || "/auth/oauth2/session".equals(path)
+                || path.startsWith("/oauth2/")
+                || path.startsWith("/login/oauth2/");
     }
 
 }

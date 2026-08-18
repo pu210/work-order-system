@@ -25,6 +25,9 @@ import { NAV_ITEMS } from "@/router/navItems.js";
 import UserCreate from "@/views/UserCreate.vue";
 import UserEdit from "@/views/UserEdit.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
+import ResetPassword from "@/views/ResetPassword.vue";
+import InitialPassword from "@/views/InitialPassword.vue";
+import Register from "@/views/Register.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -50,9 +53,21 @@ const routes = [
         meta: { guestOnly: true },
       },
       {
+        path: "register",
+        name: "Register",
+        component: Register,
+        meta: { guestOnly: true },
+      },
+      {
         path: "forgot/password",
         name: "ForgotPassword",
         component: ForgotPassword,
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/reset-password",
+        name: "ResetPassword",
+        component: ResetPassword,
         meta: { guestOnly: true },
       },
     ],
@@ -63,6 +78,11 @@ const routes = [
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
+      {
+        path: "account/initial-password",
+        name: "initial-password",
+        component: InitialPassword,
+      },
       {
         path: "dashboard",
         name: "Dashboard",
