@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.e.entity.Notification;
@@ -35,5 +36,13 @@ public class NotificationService {
     // 你原本寫好的查詢方法
     public List<Notification> getNotificationsByReceiverId(Integer receiverId) {
         return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
+    }
+    @Transactional
+    public Notification markAsRead(Integer notificationId){
+        Notification notification = notificationRepository.findById(notificationId)
+        .orElseThrow
+        (() -> new RuntimeException("通知不存在"+notificationId));
+        notification.setIsRead(true);
+        return notificationRepository.save(notification);
     }
 }

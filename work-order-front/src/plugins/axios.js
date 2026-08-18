@@ -8,7 +8,8 @@ const instance = axios.create({
 });
 instance.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) {
+  // 只有在未提供自訂 Authorization 且為內部 API 請求時，才注入系統 JWT Token
+  if (token && !config.headers.Authorization && !config.url?.startsWith("http")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -21,7 +22,10 @@ instance.interceptors.response.use(
     const code = error.response?.data?.code;
     const config = error.config || {};
 
-    if (status === 401 && !config.skipAuthRedirect) {
+    // 對外部 API (例如 Google API) 的 401 錯誤不引發系統登出轉址
+    const isExternalUrl = config.url?.startsWith("http://") || config.url?.startsWith("https://");
+
+    if (status === 401 && !config.skipAuthRedirect && !isExternalUrl) {
       clearAuth();
 
       const returnUrl = `${window.location.pathname}${window.location.search}`;

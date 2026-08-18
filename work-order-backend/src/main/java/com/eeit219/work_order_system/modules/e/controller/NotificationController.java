@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,4 +46,10 @@ public class NotificationController {
     public List<Notification> getNotificationsByUser(@PathVariable Integer receiverId) {
         return notificationService.getNotificationsByReceiverId(receiverId);
     }
+
+    @PatchMapping("/read/{notificationId}")
+    public Notification setNotificationsByRead(@PathVariable Integer notificationId) {
+        return notificationService.markAsRead(notificationId);
+    }
+
 }
