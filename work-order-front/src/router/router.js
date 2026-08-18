@@ -20,8 +20,14 @@ import Profile from "@/views/Profile.vue";
 import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
 import Forbidden from "@/views/Forbidden.vue";
-import { getToken, getCurrentUser } from "@/utils/auth.js";
+import { hasValidToken, getCurrentUser } from "@/utils/auth.js";
 import { NAV_ITEMS } from "@/router/navItems.js";
+import UserCreate from "@/views/UserCreate.vue";
+import UserEdit from "@/views/UserEdit.vue";
+import ForgotPassword from "@/views/ForgotPassword.vue";
+import ResetPassword from "@/views/ResetPassword.vue";
+import InitialPassword from "@/views/InitialPassword.vue";
+import Register from "@/views/Register.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -33,14 +39,35 @@ const routes = [
     path: "/",
     redirect: "/dashboard",
   },
+
+  // 登入頁面（使用 AuthLayout）
   {
     path: "/auth",
     component: AuthLayout,
+    redirect: "/auth/login",
     children: [
       {
         path: "login",
-        name: "login",
+        name: "Login",
         component: Login,
+        meta: { guestOnly: true },
+      },
+      {
+        path: "register",
+        name: "Register",
+        component: Register,
+        meta: { guestOnly: true },
+      },
+      {
+        path: "forgot/password",
+        name: "ForgotPassword",
+        component: ForgotPassword,
+        meta: { guestOnly: true },
+      },
+      {
+        path: "/reset-password",
+        name: "ResetPassword",
+        component: ResetPassword,
         meta: { guestOnly: true },
       },
     ],
@@ -52,8 +79,13 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: "account/initial-password",
+        name: "initial-password",
+        component: InitialPassword,
+      },
+      {
         path: "dashboard",
-        name: "dashboard",
+        name: "Dashboard",
         component: Dashboard,
         meta: { roles: rolesFor("dashboard") },
       },
@@ -102,9 +134,24 @@ const routes = [
       },
       {
         path: "user-management",
-        name: "user-management",
-        component: UserManagement,
         meta: { roles: rolesFor("user-management") },
+        children: [
+          {
+            path: "",
+            name: "user-management",
+            component: UserManagement,
+          },
+          {
+            path: "new",
+            name: "user-create",
+            component: UserCreate,
+          },
+          {
+            path: ":id/edit",
+            name: "user-edit",
+            component: UserEdit,
+          },
+        ],
       },
       {
         path: "equipment-create",
@@ -128,20 +175,25 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // 預設不重置捲動位置：從內容較長的頁面切到較短的頁面（如新增工單）時，
+  // 舊的捲動位置會超出新頁面範圍被瀏覽器夾回底部，導致 sticky 導覽列看起來往上移
+  scrollBehavior() {
+    return { top: 0 };
+  },
 });
 
 router.beforeEach((to) => {
-  const isAuthenticated = Boolean(getToken());
+  const isAuthenticated = hasValidToken();
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return {
-      name: "login",
+      name: "Login",
       query: { returnUrl: to.fullPath },
     };
   }
 
   if (to.meta.guestOnly && isAuthenticated) {
-    return { name: "dashboard" };
+    return { name: "Dashboard" };
   }
 
   if (isAuthenticated && to.meta.roles) {

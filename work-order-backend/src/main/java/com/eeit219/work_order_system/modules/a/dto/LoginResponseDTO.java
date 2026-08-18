@@ -5,6 +5,9 @@ import java.util.List;
 public record LoginResponseDTO(
                 String token,
                 String account,
+                Integer userId,
+                String name,
                 String email,
-                List<String> roleCodes) {
+                List<String> roleCodes,
+                Boolean mustChangePassword) {
 }

@@ -18,4 +18,5 @@ public class WorkOrderAttachmentResponse {
     private Integer fileSize;
     private LocalDateTime createdTime;
     private String uploadedUserName;
+    private Integer uploadedUserId;
 }

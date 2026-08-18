@@ -9,8 +9,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./assets/styles/design-system.css";
 
 // 文字 ======================================================================
-import "@fontsource/inter";
-import "@fontsource/inter/700.css";
+// import "@fontsource/inter";
+// import "@fontsource/inter/700.css";
 // ===========================================================================
 const pinia = createPinia().use(piniaPluginPersistedstate);
 
