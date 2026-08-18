@@ -15,10 +15,7 @@ import TicketAssign from "@/views/TicketAssign.vue";
 import HandlerWorkbench from "@/views/HandlerWorkbench.vue";
 import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
-
-// 將原本的三個獨立組件換成一個整合設定頁
 import SystemSettings from "@/views/SystemSettings.vue";
-
 import Profile from "@/views/Profile.vue";
 import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
@@ -28,6 +25,9 @@ import { NAV_ITEMS } from "@/router/navItems.js";
 import UserCreate from "@/views/UserCreate.vue";
 import UserEdit from "@/views/UserEdit.vue";
 import ForgotPassword from "@/views/ForgotPassword.vue";
+import ResetPassword from "@/views/ResetPassword.vue";
+import InitialPassword from "@/views/InitialPassword.vue";
+import Register from "@/views/Register.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -39,6 +39,8 @@ const routes = [
     path: "/",
     redirect: "/dashboard",
   },
+
+  // 登入頁面（使用 AuthLayout）
   {
     path: "/auth",
     component: AuthLayout,
@@ -51,18 +53,36 @@ const routes = [
         meta: { guestOnly: true },
       },
       {
+        path: "register",
+        name: "Register",
+        component: Register,
+        meta: { guestOnly: true },
+      },
+      {
         path: "forgot/password",
         name: "ForgotPassword",
         component: ForgotPassword,
         meta: { guestOnly: true },
       },
+      {
+        path: "/reset-password",
+        name: "ResetPassword",
+        component: ResetPassword,
+        meta: { guestOnly: true },
+      },
     ],
   },
+  // 登入後的系統頁面，全部走 MainLayout（頂端列 + 內容），都需要登入
   {
     path: "/",
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
+      {
+        path: "account/initial-password",
+        name: "initial-password",
+        component: InitialPassword,
+      },
       {
         path: "dashboard",
         name: "Dashboard",
@@ -133,12 +153,11 @@ const routes = [
           },
         ],
       },
-      // 合併為單一路由指向系統設定頁
       {
-        path: "settings/system",
-        name: "system-settings",
+        path: "equipment-create",
+        name: "equipment-create",
         component: SystemSettings,
-        meta: { roles: rolesFor("system-settings") },
+        meta: { roles: rolesFor("equipment-create") },
       },
       { path: "profile", name: "profile", component: Profile },
       { path: "settings", name: "settings", component: Settings },
@@ -156,6 +175,11 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // 預設不重置捲動位置：從內容較長的頁面切到較短的頁面（如新增工單）時，
+  // 舊的捲動位置會超出新頁面範圍被瀏覽器夾回底部，導致 sticky 導覽列看起來往上移
+  scrollBehavior() {
+    return { top: 0 };
+  },
 });
 
 router.beforeEach((to) => {
@@ -181,5 +205,5 @@ router.beforeEach((to) => {
   }
 });
 
-// 5. 匯出 router 實體
+// 5. 匯出 router 實體，讓 main.js 匯入使用
 export default router;

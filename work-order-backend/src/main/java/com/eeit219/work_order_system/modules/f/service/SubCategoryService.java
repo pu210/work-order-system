@@ -1,71 +1,57 @@
-package com.eeit219.work_order_system.modules.f.service;
+package com.eeit219.work_order_system.modules.f.service; // ← 改成 service 包
 
-import java.time.LocalDateTime;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.eeit219.work_order_system.modules.f.dto.SubCategoryRequestDto;
 import com.eeit219.work_order_system.modules.f.dto.SubCategoryResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
-import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
-import com.eeit219.work_order_system.modules.f.repository.RepairCategoryRepository;
-import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 
 @Service
 public class SubCategoryService {
 
-    @Autowired
-    private SubCategoryRepository subCategoryRepository;
-    @Autowired
-    private RepairCategoryRepository repairCategoryRepository;
-    @Autowired
-    private PriorityRepository priorityRepository;
-
-    public SubCategoryResponseDto convertToResponseDto(SubCategory sub) {
-        if (sub == null) {
+    public SubCategoryResponseDto convertToResponseDto(SubCategory subCategory) {
+        if (subCategory == null) {
             return null;
         }
-
         SubCategoryResponseDto dto = new SubCategoryResponseDto();
-        dto.setSubCategoriesId(sub.getSubCategoriesId());
-        dto.setName(sub.getName());
-        dto.setStatus(sub.getStatus());
-        dto.setCreatedTime(sub.getCreatedTime());
-        dto.setUpdatedTime(sub.getUpdatedTime());
 
-        // 設定大類資訊
-        if (sub.getRepairCategory() != null) {
-            dto.setCategoryId(sub.getRepairCategory().getRepairCategoriesId());
-            dto.setCategoryName(sub.getRepairCategory().getName());
+        dto.setSubCategoriesId(subCategory.getSubCategoriesId());
+        dto.setName(subCategory.getName());
+        dto.setStatus(subCategory.getStatus());
+
+        // 大類資訊：categoryId 直接用 subCategory 自己的欄位
+        dto.setCategoryId(subCategory.getCategoryId());
+        if (subCategory.getRepairCategory() != null) {
+            dto.setCategoryName(subCategory.getRepairCategory().getName());
         }
 
-        // 設定特例與生效優先級
-        if (sub.getOverridePriority() != null) {
-            dto.setOverridePriorityId(sub.getOverridePriority().getPrioritiesId());
-            dto.setOverridePriorityName(sub.getOverridePriority().getName());
-            dto.setEffectivePriorityId(sub.getOverridePriority().getPrioritiesId());
-            dto.setEffectivePriorityName(sub.getOverridePriority().getName());
-        } else if (sub.getRepairCategory() != null && sub.getRepairCategory().getDefaultPriority() != null) {
-            dto.setEffectivePriorityId(sub.getRepairCategory().getDefaultPriority().getPrioritiesId());
-            dto.setEffectivePriorityName(sub.getRepairCategory().getDefaultPriority().getName());
+        // 特例優先級
+        if (subCategory.getOverridePriority() != null) {
+            dto.setOverridePriorityId(subCategory.getOverridePriority().getPrioritiesId());
+            dto.setOverridePriorityName(subCategory.getOverridePriority().getName());
         }
+
+        // 核心計算：effectivePriorityId
+        Integer effectiveId = subCategory.getOverridePriorityId() != null
+                ? subCategory.getOverridePriorityId()
+                : (subCategory.getRepairCategory() != null ? subCategory.getRepairCategory().getDefaultPriorityId()
+                        : null);
+        dto.setEffectivePriorityId(effectiveId);
+
+        // 2. 處理 overridePriorityId 與 overridePriorityName
+        // 如果子類有填，就用子類的；如果沒填，就讓它等於 effectiveId，並抓大類的預設名稱
+        if (subCategory.getOverridePriority() != null) {
+            dto.setOverridePriorityId(subCategory.getOverridePriority().getPrioritiesId());
+            dto.setOverridePriorityName(subCategory.getOverridePriority().getName());
+        } else if (subCategory.getRepairCategory() != null) {
+            // 如果子類沒填，這裡把大類的預設 ID 與名稱補上去，這樣模糊比對就不會是空值了
+            dto.setOverridePriorityId(subCategory.getRepairCategory().getDefaultPriorityId());
+            dto.setOverridePriorityName(subCategory.getRepairCategory().getDefaultPriorityName());
+        }
+
+        // 時間欄位
+        dto.setCreated_time(subCategory.getCreatedTime());
+        dto.setUpdated_time(subCategory.getUpdatedTime());
+
         return dto;
-    }
-
-    public SubCategory createSubCategory(SubCategoryRequestDto req) {
-        SubCategory sub = new SubCategory();
-        sub.setName(req.getName());
-        sub.setStatus(req.getStatus() != null ? req.getStatus() : true);
-        sub.setCreatedTime(LocalDateTime.now());
-        sub.setUpdatedTime(LocalDateTime.now());
-
-        if (req.getCategoryId() != null) {
-            sub.setRepairCategory(repairCategoryRepository.findById(req.getCategoryId()).orElse(null));
-        }
-        if (req.getOverridePriorityId() != null) {
-            sub.setOverridePriority(priorityRepository.findById(req.getOverridePriorityId()).orElse(null));
-        }
-        return subCategoryRepository.save(sub);
     }
 }

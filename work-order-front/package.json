@@ -9,15 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
     "@fullcalendar/core": "^6.1.21",
     "@fullcalendar/daygrid": "^6.1.21",
     "@fullcalendar/interaction": "^6.1.21",
     "@fullcalendar/timegrid": "^6.1.21",
     "@fullcalendar/vue3": "^6.1.21",
+    "@metamask/sdk": "^0.34.0",
     "axios": "^1.19.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
-    "pinia": "^4.0.2",
+    "pinia": "^4.0.3",
     "pinia-plugin-persistedstate": "^4.7.1",
     "sweetalert2": "^11.26.25",
     "vue": "^3.5.40",

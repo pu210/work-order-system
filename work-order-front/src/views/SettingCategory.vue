@@ -120,8 +120,8 @@ const currentEditId = ref(null);
 const form = ref({ name: "", defaultPriorityId: 1 });
 
 const fetchData = async () => {
-  try {
-    tableData.value = await getRepairCategories(keyword.value);
+  try {const res = await getRepairCategories(keyword.value); 
+    tableData.value = Array.isArray(res) ? res : [];
   } catch (error) {
     tableData.value = [];
   }

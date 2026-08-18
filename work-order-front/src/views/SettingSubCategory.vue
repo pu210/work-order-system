@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { getSubCategories, createSubCategory } from "@/api/category.js";
+import { getRepairCategories, createSubCategory } from "@/api/category.js";
 
 const keyword = ref("");
 const tableData = ref([]);
@@ -113,7 +113,8 @@ const form = ref({ name: "", categoryId: 1, overridePriorityId: null });
 
 const fetchData = async () => {
   try {
-    tableData.value = await getSubCategories(keyword.value);
+    const res = await getRepairCategories(keyword.value); 
+    tableData.value = Array.isArray(res) ? res : [];
   } catch (error) {
     tableData.value = [];
   }

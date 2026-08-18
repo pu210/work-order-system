@@ -1,6 +1,6 @@
 <template>
   <div
-    class="auth-layout d-flex align-items-center justify-content-center vh-100 position-relative overflow-hidden"
+    class="auth-layout d-flex align-items-center justify-content-center position-relative"
   >
     <!-- 中央登入卡片 -->
     <div class="auth-card p-4 p-sm-5 w-100 position-relative z-1">
@@ -21,15 +21,40 @@
 <style scoped>
 .auth-layout {
   width: 100%;
-  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   min-height: 100dvh;
-  height: 100dvh !important;
   padding: 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
   background-color: #f3f4f6;
 }
 
 .text-slate-400 {
   color: #090909;
+}
+
+.auth-card {
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(20, 33, 61, 0.08);
+}
+
+.extra-small {
+  font-size: 0.8rem;
+}
+
+.tracking-wide {
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 575.98px) {
+  .auth-layout {
+    padding: 16px;
+  }
 }
 
 .auth-card {
