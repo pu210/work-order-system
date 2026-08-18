@@ -62,6 +62,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
       @Param("roleCode") String roleCode,
       Pageable pageable);
 
+  // 查找帳號狀態是不是啟用
   @Query("""
       SELECT DISTINCT u
       FROM User u
