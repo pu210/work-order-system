@@ -31,7 +31,7 @@ public class Notification {
     @Column(name = "work_order_id")
     private Integer workOrderId; // 工單編號（外鍵）
 
-@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private WorkOrderState status; // 工單狀態
 
