@@ -11,7 +11,7 @@
             <i class="bi bi-person fs-6"></i>
           </span>
           <input
-            v-model.trim="account"
+            v-model="account"
             type="text"
             class="form-control border-start-0 ps-2"
             placeholder="請輸入帳號"
@@ -221,9 +221,9 @@ async function handleLogin() {
 /* 輸入框質感調校 */
 .custom-input-group .form-control,
 .custom-input-group .input-group-text {
-  border-color: #e2e8f0;
-  padding-top: 0.6rem;
-  padding-bottom: 0.6rem;
+  border-color: #dcdfe6;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
 }
 
 .custom-input-group .form-control:focus {
