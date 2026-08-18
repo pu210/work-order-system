@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eeit219.work_order_system.modules.a.dto.ChangePasswordRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.CreateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.CurrentUserDTO;
@@ -55,27 +56,127 @@ public class UserService {
 
     // 使用者登入
     public CurrentUserDTO loginUser(String account, String password) {
-        if (account != null && account.length() != 0 && password != null && password.length() != 0) {
-            User user = userRepository.findByAccount(account).orElse(null);
-            if (user != null
-                    && user.getStatus() == User.UserStatus.ACTIVE
-                    && user.getPasswordHash() != null
-                    && passwordEncoder.matches(password, user.getPasswordHash())) {
+        if (account == null || account.isBlank()
+                || password == null || password.isBlank()) {
+            return null;
+        }
+
+        User user = userRepository.findByAccount(account.trim()).orElse(null);
+
+        if (user == null
+                || user.getPasswordHash() == null
+                || !passwordEncoder.matches(password, user.getPasswordHash())) {
+            return null;
+        }
+
+        switch (user.getStatus()) {
+            case User.UserStatus.PENDING ->
+                throw new IllegalArgumentException(
+                        "帳號正在審核中，請等待管理員審核");
+
+            case User.UserStatus.DISABLED ->
+                throw new IllegalArgumentException(
+                        "帳號目前已停用，請聯絡管理員");
+
+            case User.UserStatus.REJECTED ->
+                throw new IllegalArgumentException(
+                        "帳號申請未通過，請聯絡管理員");
+
+            case User.UserStatus.ACTIVE -> {
                 return new CurrentUserDTO(
                         user.getUserId(),
                         user.getAccount(),
                         user.getName(),
                         user.getEmail(),
                         user.getMustChangePassword(),
-                        userRoleRepository.findRoleCodesByUserId(user.getUserId())
+                        userRoleRepository
+                                .findRoleCodesByUserId(user.getUserId())
                                 .stream()
                                 .map(roleCode -> roleCode.trim().toUpperCase())
                                 .distinct()
                                 .sorted()
                                 .toList());
             }
+
+            default ->
+                throw new IllegalArgumentException(
+                        "帳號目前無法登入，請聯絡管理員");
         }
-        return null;
+    }
+
+    // 首次登入修改密碼
+    public void changeInitialPassword(ChangePasswordRequestDTO request) {
+        validateChangePasswordRequest(request);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalArgumentException("尚未登入");
+        }
+
+        User user = userRepository.findByAccount(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
+
+        // 只允許尚未完成首次密碼修改的使用者呼叫
+        if (!Boolean.TRUE.equals(user.getMustChangePassword())) {
+            throw new IllegalArgumentException("此帳號不需要修改初始密碼");
+        }
+
+        // 驗證管理員提供的初始密碼
+        if (!passwordEncoder.matches(
+                request.currentPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException("目前密碼不正確");
+        }
+
+        // 新密碼不可與目前密碼相同
+        if (passwordEncoder.matches(
+                request.newPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException("新密碼不可與目前密碼相同");
+        }
+
+        user.setPasswordHash(
+                passwordEncoder.encode(request.newPassword()));
+
+        // 完成首次修改密碼
+        user.setMustChangePassword(false);
+
+        userRepository.save(user);
+    }
+
+    private void validateChangePasswordRequest(
+            ChangePasswordRequestDTO request) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("請提供修改密碼資料");
+        }
+
+        if (request.currentPassword() == null
+                || request.currentPassword().isBlank()) {
+            throw new IllegalArgumentException("目前密碼為必填");
+        }
+
+        if (request.newPassword() == null
+                || request.newPassword().isBlank()) {
+            throw new IllegalArgumentException("新密碼為必填");
+        }
+
+        if (request.confirmPassword() == null
+                || request.confirmPassword().isBlank()) {
+            throw new IllegalArgumentException("確認密碼為必填");
+        }
+
+        if (!request.newPassword().equals(
+                request.confirmPassword())) {
+            throw new IllegalArgumentException("兩次輸入的新密碼不一致");
+        }
+
+        if (request.newPassword().length() < 8) {
+            throw new IllegalArgumentException("新密碼至少需要 8 個字元");
+        }
     }
 
     // 註冊帳號
@@ -96,6 +197,10 @@ public class UserService {
         }
         if (request.confirmPassword() == null || request.confirmPassword().isBlank()) {
             throw new IllegalArgumentException("confirmPassword為必填");
+        }
+
+        if (request.password().length() < 8) {
+            throw new IllegalArgumentException("密碼至少需要 8 個字元");
         }
 
         String account = request.account().trim();
@@ -200,9 +305,19 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
 
+        if (user.getStatus() == User.UserStatus.PENDING
+                && request.roleCodes() != null) {
+            throw new IllegalArgumentException("待審核帳號不可直接指派角色");
+        }
+
         byte proposedStatus = request.status() != null
                 ? validateStatus(request.status())
                 : user.getStatus();
+
+        // 轉換帳號狀態
+        if (request.status() != null) {
+            validateStatusChange(user.getStatus(), proposedStatus);
+        }
         List<String> currentRoleCodes = userRoleRepository.findRoleCodesByUserId(userId)
                 .stream()
                 .map(roleCode -> roleCode.trim().toUpperCase())
@@ -500,11 +615,12 @@ public class UserService {
     }
 
     private void validateStatusChange(byte currentStatus, byte proposedStatus) {
+        // 狀態為待審核必須使用註冊審核 API
         if (currentStatus == User.UserStatus.PENDING
                 && proposedStatus != User.UserStatus.PENDING) {
             throw new IllegalArgumentException("待審核帳號請使用註冊審核 API");
         }
-
+        // 其他狀態不可改為待審核
         if (currentStatus != User.UserStatus.PENDING
                 && proposedStatus == User.UserStatus.PENDING) {
             throw new IllegalArgumentException("帳號不可改回待審核狀態");

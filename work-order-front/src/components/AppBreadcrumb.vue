@@ -1,10 +1,17 @@
 <!-- src/components/AppNavbar.vue -->
 <template>
-  <header class="navbar navbar-expand-lg navbar-dark bg-slate sticky-top px-3 py-2 border-bottom border-dark-subtle shadow-sm">
+  <header
+    class="navbar navbar-expand-lg navbar-dark bg-slate sticky-top px-3 py-2 border-bottom border-dark-subtle shadow-sm"
+  >
     <div class="container-fluid px-0">
       <!-- 左側 Logo -->
-      <router-link to="/dashboard" class="navbar-brand d-flex align-items-center me-4">
-        <div class="logo-icon me-2 rounded-2 d-flex align-items-center justify-content-center">
+      <router-link
+        to="/dashboard"
+        class="navbar-brand d-flex align-items-center me-4"
+      >
+        <div
+          class="logo-icon me-2 rounded-2 d-flex align-items-center justify-content-center"
+        >
           <i class="bi bi-tools text-white fs-5"></i>
         </div>
         <span class="fw-semibold text-white tracking-wide">WorkOrder Pro</span>
@@ -14,8 +21,8 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
           <li class="nav-item" v-for="item in navItems" :key="item.path">
-            <router-link 
-              :to="item.path" 
+            <router-link
+              :to="item.path"
               class="nav-link px-3 py-2 rounded-2 d-flex align-items-center gap-2"
               active-class="active"
             >
@@ -33,15 +40,17 @@
           <div class="vr bg-secondary opacity-50 my-1"></div>
 
           <!-- 開啟聊天室按鈕 -->
-          <button 
+          <button
             class="btn btn-outline-light btn-sm position-relative d-flex align-items-center gap-2 px-3 py-1-5 rounded-2"
-            :class="{ 'active': isChatOpen }"
+            :class="{ active: isChatOpen }"
             @click="$emit('toggle-chat')"
             title="開啟即時聊天室"
           >
             <i class="bi bi-chat-text-fill"></i>
             <span class="d-none d-xl-inline">訊息</span>
-            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+            <span
+              class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"
+            >
               <span class="visually-hidden">新訊息</span>
             </span>
           </button>
@@ -53,21 +62,21 @@
 
 <script setup>
 defineProps({
-  isChatOpen: Boolean
-})
+  isChatOpen: Boolean,
+});
 
-defineEmits(['toggle-chat'])
+defineEmits(["toggle-chat"]);
 
-import NotificationBell from './NotificationBell.vue'
-import UserDropdown from './UserDropdown.vue'
+import NotificationBell from "./NotificationBell.vue";
+import UserDropdown from "./UserDropdown.vue";
 
 const navItems = [
-  { title: '儀表板', path: '/dashboard', icon: 'bi bi-grid-1x2-fill' },
-  { title: '工單報修', path: '/repair', icon: 'bi bi-wrench-adjustable' },
-  { title: '設備管理', path: '/equipment', icon: 'bi bi-cpu-fill' },
-  { title: '人員管理', path: '/users', icon: 'bi bi-people-fill' },
-  { title: '統計報表', path: '/report', icon: 'bi bi-bar-chart-line-fill' },
-]
+  { title: "儀表板", path: "/dashboard", icon: "bi bi-grid-1x2-fill" },
+  { title: "工單報修", path: "/repair", icon: "bi bi-wrench-adjustable" },
+  { title: "設備管理", path: "/equipment", icon: "bi bi-cpu-fill" },
+  { title: "帳號管理", path: "/users", icon: "bi bi-people-fill" },
+  { title: "統計報表", path: "/report", icon: "bi bi-bar-chart-line-fill" },
+];
 </script>
 
 <style scoped>
@@ -104,7 +113,8 @@ const navItems = [
   color: #cbd5e1;
 }
 
-.btn-outline-light:hover, .btn-outline-light.active {
+.btn-outline-light:hover,
+.btn-outline-light.active {
   background-color: #334155;
   border-color: #64748b;
   color: #fff;

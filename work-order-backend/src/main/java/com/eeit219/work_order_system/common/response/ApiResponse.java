@@ -2,6 +2,16 @@ package com.eeit219.work_order_system.common.response;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({
+        "success",
+        "status",
+        "message",
+        "data",
+        "timestamp"
+})
+
 public class ApiResponse<T> {
 
     private boolean success;

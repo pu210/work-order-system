@@ -60,7 +60,11 @@
         </router-link>
       </div>
 
-      <div v-if="errorMessage" class="alert alert-danger py-2 small" role="alert">
+      <div
+        v-if="errorMessage"
+        class="alert alert-danger py-2 small"
+        role="alert"
+      >
         {{ errorMessage }}
       </div>
 
@@ -88,26 +92,26 @@
       <!-- 註冊與 Google 登入 (雙欄/次要按鈕風格) -->
       <div class="d-flex flex-column gap-2">
         <a
-          href="https://accounts.google.com/o/oauth2/v2/auth"
+          :href="googleLoginUrl"
           class="btn btn-white w-100 py-2 fw-medium d-flex align-items-center justify-content-center gap-2 text-decoration-none rounded-3 border extra-small"
         >
           <i class="bi bi-google text-danger"></i>
           <span>使用 Google 帳號登入</span>
         </a>
 
-        <button
-          type="button"
+        <router-link
+          to="/auth/register"
           class="btn btn-light w-100 py-2 fw-medium rounded-3 border extra-small text-secondary"
         >
           建立新帳號
-        </button>
+        </router-link>
       </div>
     </form>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "@/plugins/axios.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -120,6 +124,49 @@ const isSubmitting = ref(false);
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+
+const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+const googleLoginUrl = `${apiBaseUrl.replace(/\/$/, "")}/oauth2/authorization/google`;
+
+onMounted(async () => {
+  const oauthResult = route.query.oauth;
+
+  if (oauthResult === "failed") {
+    errorMessage.value =
+      "Google 登入失敗，請確認 Google Email 已建立系統帳號且帳號已啟用";
+    return;
+  }
+
+  if (oauthResult !== "success") {
+    return;
+  }
+
+  isSubmitting.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await axios.get("/auth/oauth2/session", {
+      withCredentials: true,
+      skipAuthRedirect: true,
+    });
+
+    const data = response.data?.data;
+
+    if (!data?.token) {
+      throw new Error("OAuth 登入回應缺少 Token");
+    }
+
+    authStore.login(data);
+
+    await router.replace("/dashboard");
+  } catch (error) {
+    errorMessage.value =
+      error.response?.data?.message || "無法取得 Google 登入結果，請重新登入";
+  } finally {
+    isSubmitting.value = false;
+  }
+});
 
 async function handleLogin() {
   errorMessage.value = "";
@@ -143,6 +190,10 @@ async function handleLogin() {
     }
 
     authStore.login(data);
+    if (data.mustChangePassword) {
+      await router.replace({ name: "initial-password" });
+      return;
+    }
     const returnUrl =
       typeof route.query.returnUrl === "string" &&
       route.query.returnUrl.startsWith("/")

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="auth-layout d-flex align-items-center justify-content-center vh-100 position-relative overflow-hidden"
+    class="auth-layout d-flex align-items-center justify-content-center position-relative"
   >
     <!-- 中央登入卡片 -->
     <div class="auth-card p-4 p-sm-5 w-100 position-relative z-1">
@@ -23,8 +23,8 @@
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  height: 100dvh !important;
   padding: 24px;
+  overflow-y: auto;
   background-color: #f3f4f6;
 }
 
