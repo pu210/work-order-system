@@ -62,4 +62,15 @@ public interface UserRepository extends JpaRepository<User, Integer> {
       @Param("roleCode") String roleCode,
       Pageable pageable);
 
+  @Query("""
+      SELECT DISTINCT u
+      FROM User u
+      JOIN FETCH u.userRoles ur
+      JOIN FETCH ur.role r
+      WHERE u.userId = :userId
+        AND u.status = 1
+        AND r.roleCode = 'HANDLER'
+      """)
+  Optional<User> findActiveHandlerById(@Param("userId") Integer userId);
+
 }
