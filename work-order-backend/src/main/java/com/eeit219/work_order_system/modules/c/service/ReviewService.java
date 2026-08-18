@@ -48,7 +48,7 @@ public class ReviewService {
                 if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
                         throw new InvalidWorkOrderStateException("目前不是待審查狀態");
                 }
-                
+
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime oldDueTime = workOrder.getDueTime();
                 LocalDateTime newDueTime = request.dueTime();
@@ -67,7 +67,7 @@ public class ReviewService {
 
                 User handler = userRepository.findActiveHandlerById(request.assignedHandlerId())
                                 .orElseThrow(() -> new IllegalArgumentException("指定的使用者不存在、已停用，或不是工程師"));
-                //設定優先及 負責工程師 到期時間
+
                 workOrder.setPriority(priority);
                 workOrder.setAssignedHandler(handler);
                 workOrder.setDueTime(newDueTime);
@@ -78,6 +78,24 @@ public class ReviewService {
                                 WorkOrderEvent.ACCEPT);
 
                 workOrderRepository.save(workOrder);
+                // 傳送訊息給指派工程師
+                notificationService.sendNotification(
+                                workOrder.getAssignedHandler().getUserId(),
+                                userId,
+                                workOrderId,
+                                "有新任務！",
+                                "工單：" + workOrder.getWorkOrderNo() + ",已指派給你，請確認",
+                                workOrder.getStatus());
+                // 傳送訊息給使用者
+                notificationService.sendNotification(
+                                workOrder.getCreator().getUserId(),
+                                userId,
+                                workOrderId,
+                                "您所建立的工單由管理員審查通過！",
+                                "工單：" + workOrder.getWorkOrderNo() + ",管理員審查通過，並已指派負責工程師："
+                                                + workOrder.getAssignedHandler().getName(),
+                                workOrder.getStatus());
+
         }
 
         @Transactional
@@ -92,6 +110,15 @@ public class ReviewService {
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.REJECT);
                 workOrderRepository.save(workOrder);
+                // 傳送訊息給使用者
+                notificationService.sendNotification(
+                                workOrder.getCreator().getUserId(),
+                                userId,
+                                workOrderId,
+                                "審查拒絕！",
+                                "工單：" + workOrder.getWorkOrderNo() + ",已被管理員拒絕,原因：" + request.feedback(),
+                                workOrder.getStatus());
 
         }
+
 }

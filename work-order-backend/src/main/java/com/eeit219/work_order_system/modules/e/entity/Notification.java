@@ -1,12 +1,22 @@
 package com.eeit219.work_order_system.modules.e.entity;
 
-import lombok.Data;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Data
 @Entity
@@ -21,7 +31,7 @@ public class Notification {
     @Column(name = "work_order_id")
     private Integer workOrderId; // 工單編號（外鍵）
 
-    @Enumerated(EnumType.STRING)
+@Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private WorkOrderState status; // 工單狀態
 
@@ -44,7 +54,7 @@ public class Notification {
     private Integer priorityId; // 優先程度（外鍵）
 
     @CreationTimestamp
-    @Column(name = "created_time", updatable = false)
+    @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime; // 建立時間
 
     // 手動補充 Getter / Setter，防止 IDE (Lombok) 對 isRead 欄位名稱產生判斷快取誤差

@@ -72,6 +72,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         AND u.status = 1
         AND r.roleCode = 'HANDLER'
       """)
-  Optional<User> findActiveHandlerById(
-      @Param("userId") Integer userId);
+  Optional<User> findActiveHandlerById(@Param("userId") Integer userId);
+
 }

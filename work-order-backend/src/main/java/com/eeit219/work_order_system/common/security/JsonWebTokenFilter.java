@@ -65,6 +65,7 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
                             .distinct()
                             .map(roleCode -> new SimpleGrantedAuthority("ROLE_" + roleCode))
                             .toList();
+
                     AuthenticatedUser principal = new AuthenticatedUser(
                             user.getUserId(),
                             user.getAccount());
