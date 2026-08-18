@@ -84,4 +84,11 @@ public class WorkOrder {
     @Version
     @Column(name = "version", nullable = false)
     private Integer version = 0;
+
+    @Column(name = "target_id")
+    private Integer targetId;
+
+    @Column(name = "admin_id")
+    private Integer adminId;
+
 }
