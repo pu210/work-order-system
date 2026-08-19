@@ -27,7 +27,7 @@
   --radius-sm: 6px;
   --radius: 8px;
   --radius-lg: 12px;
-  --shadow-pop: 0 6px 18px rgba(20,33,61,0.12);
+  --shadow-pop: 0 6px 18px rgba(20, 33, 61, 0.12);
   --nav-height: 56px;
 }
 
@@ -50,80 +50,239 @@ body {
 .wo-nav {
   background: var(--color-ink);
   height: var(--nav-height);
-  flex-shrink: 0; /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
-  display: flex; align-items: center;
+  flex-shrink: 0;
+  /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
+  display: flex;
+  align-items: center;
   padding: 0 32px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-.wo-nav-inner {
-  width: 100%; max-width: 1400px; margin: 0 auto;
-  display: flex; align-items: center; gap: 24px;
-}
-.wo-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; }
-.wo-logo-mark {
-  width: 32px; height: 32px; border-radius: 6px;
-  background: var(--color-primary);
-  color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 13px;
-  display: flex; align-items: center; justify-content: center;
-}
-.wo-logo-text { color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
-.wo-logo-text small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 10.5px; color: #93A2C6; letter-spacing: .04em; }
 
-.wo-nav-links { display: flex; align-items: center; gap: 4px; flex: 1; overflow-x: auto; }
+.wo-nav-inner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.wo-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.wo-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wo-logo-text {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.wo-logo-text small {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 10.5px;
+  color: #93A2C6;
+  letter-spacing: .04em;
+}
+
+.wo-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+}
+
 .wo-nav-links a {
-  color: #C4CDE3; font-size: 14.5px; font-weight: 500; padding: 8px 12px;
-  border-radius: var(--radius-sm); white-space: nowrap; text-decoration: none;
+  color: #C4CDE3;
+  font-size: 14.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  text-decoration: none;
   transition: background .15s, color .15s;
 }
-.wo-nav-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.wo-nav-links a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
 .wo-nav-links a.router-link-active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
   box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
-.wo-nav-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-.wo-bell { position: relative; color: #C4CDE3; cursor: pointer; padding: 6px; border-radius: 8px; text-decoration: none; display: flex; }
-.wo-bell:hover { background: rgba(255,255,255,0.08); }
-.wo-bell i { font-size: 20px; line-height: 1; }
+.wo-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.wo-bell {
+  position: relative;
+  color: #C4CDE3;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: flex;
+}
+
+.wo-bell:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wo-bell i {
+  font-size: 20px;
+  line-height: 1;
+}
+
 .wo-bell-dot {
-  position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--color-danger); border: 2px solid var(--color-ink);
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  border: 2px solid var(--color-ink);
 }
-.wo-role-switch { position: relative; }
+
+.wo-role-switch {
+  position: relative;
+}
+
 .wo-role-btn {
-  display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 5px 10px 5px 5px;
-  border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 5px 10px 5px 5px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12.5px;
 }
+
 .wo-avatar {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; font-family: var(--font-display); flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  flex-shrink: 0;
 }
-.wo-role-btn .role-tag { color: #A9B5D1; font-size: 11.5px; }
+
+.wo-role-btn .role-tag {
+  color: #A9B5D1;
+  font-size: 11.5px;
+}
+
 .wo-dropdown {
-  position: absolute; right: 0; top: calc(100% + 8px); background: #fff;
-  border-radius: var(--radius); box-shadow: var(--shadow-pop); min-width: 200px;
-  padding: 8px; display: none; z-index: 200; border: 1px solid var(--color-border);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  min-width: 200px;
+  padding: 8px;
+  display: none;
+  z-index: 200;
+  border: 1px solid var(--color-border);
 }
-.wo-dropdown.open { display: block; }
+
+.wo-dropdown.open {
+  display: block;
+}
+
 .wo-dropdown-item {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
-  cursor: pointer; font-size: 13px; color: var(--color-text); text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text);
+  text-decoration: none;
 }
-.wo-dropdown-item i { font-size: 15px; width: 16px; text-align: center; }
-.wo-dropdown-item:hover { background: var(--color-bg); }
-.wo-dropdown hr { border: none; border-top: 1px solid var(--color-border); margin: 6px 0; }
+
+.wo-dropdown-item i {
+  font-size: 15px;
+  width: 16px;
+  text-align: center;
+}
+
+.wo-dropdown-item:hover {
+  background: var(--color-bg);
+}
+
+.wo-dropdown hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 6px 0;
+}
 
 .badge {
-  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px;
-  font-size: 11.5px; font-weight: 700; line-height: 1.6;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.6;
 }
-.badge-primary { background: var(--color-primary-soft); color: var(--color-primary-dark); }
-.badge-danger { background: var(--color-danger-soft); color: var(--color-danger); }
-.badge-success { background: var(--color-success-soft); color: var(--color-success); }
+
+.badge-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.badge-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.badge-success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
 
 /* 後台介面維持平實的企業系統質感，避免過多浮起卡片與膠囊造型。 */
 .main-layout .card {
