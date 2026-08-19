@@ -1,5 +1,6 @@
 package com.eeit219.work_order_system.modules.c.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
@@ -41,6 +42,9 @@ public class AdminCheckService {
                 if (workOrder.getStatus() != WorkOrderState.PENDING_ADMIN_ACCEPTANCE) {
                         throw new InvalidWorkOrderStateException("目前不是管理員審核狀態");
                 }
+                if (!workOrder.getAdmin().getUserId().equals(userId)) {
+                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
+                }
 
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.ACCEPT);
@@ -55,7 +59,9 @@ public class AdminCheckService {
                 if (workOrder.getStatus() != WorkOrderState.PENDING_ADMIN_ACCEPTANCE) {
                         throw new InvalidWorkOrderStateException("目前不是管理員審核狀態");
                 }
-
+                if (!workOrder.getAdmin().getUserId().equals(userId)) {
+                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
+                }
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.REJECT);
                 workOrderRepository.save(workOrder);

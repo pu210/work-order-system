@@ -2,6 +2,7 @@ package com.eeit219.work_order_system.modules.c.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
@@ -48,6 +49,14 @@ public class ReviewService {
                 if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
                         throw new InvalidWorkOrderStateException("目前不是待審查狀態");
                 }
+                // 工單如果是第一次審核就填寫負責管理員,如果不是就驗證是否是負責工單的管理員
+                if (workOrder.getAdmin() == null) {
+                        User admin = userRepository.findById(userId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("找不到該管理員"));
+                        workOrder.setAdmin(admin);
+                } else if (!workOrder.getAdmin().getUserId().equals(userId)) {
+                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
+                }
 
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime oldDueTime = workOrder.getDueTime();
@@ -64,19 +73,19 @@ public class ReviewService {
 
                 Priority priority = priorityRepository.findById(request.priorityId())
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到優先級"));
-
                 User handler = userRepository.findActiveHandlerById(request.assignedHandlerId())
                                 .orElseThrow(() -> new IllegalArgumentException("指定的使用者不存在、已停用，或不是工程師"));
-
                 workOrder.setPriority(priority);
                 workOrder.setAssignedHandler(handler);
                 workOrder.setDueTime(newDueTime);
+
                 // 重新計算當下是否逾期
                 boolean overdue = newDueTime.isBefore(now);
                 workOrder.setIsOverdue(overdue);
+                // 執行狀態轉換
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.ACCEPT);
-
+                // 寫入WorkOrder table
                 workOrderRepository.save(workOrder);
                 // 傳送訊息給指派工程師
                 notificationService.sendNotification(
@@ -106,9 +115,18 @@ public class ReviewService {
                 if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
                         throw new InvalidWorkOrderStateException("目前不是待審查狀態");
                 }
-
+                // 工單如果是第一次審核就填寫負責管理員,如果不是就驗證是否是負責工單的管理員
+                if (workOrder.getAdmin() == null) {
+                        User admin = userRepository.findById(userId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("找不到該管理員"));
+                        workOrder.setAdmin(admin);
+                } else if (!workOrder.getAdmin().getUserId().equals(userId)) {
+                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
+                }
+                // 執行狀態轉換
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.REJECT);
+                // 寫入WorkOrder table
                 workOrderRepository.save(workOrder);
                 // 傳送訊息給使用者
                 notificationService.sendNotification(

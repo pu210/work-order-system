@@ -2,19 +2,20 @@ package com.eeit219.work_order_system.modules.c.service;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.access.AccessDeniedException;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
-import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.ProgressAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.e.service.NotificationService;
+import com.eeit219.work_order_system.modules.f.entity.RepairTargets;
+import com.eeit219.work_order_system.modules.f.repository.RepairTargetsRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -24,20 +25,23 @@ public class ProgressService {
         private final WorkOrderStateMachineService workOrderStateMachineService;
         private final NotificationService notificationService;
         private final RepairTicketHistoryRepository repairTicketHistoryRepository;
+        private final RepairTargetsRepository repairTargetsRepository;
 
         public ProgressService(WorkOrderRepository workOrderRepository,
                         WorkOrderStateMachineService workOrderStateMachineService,
                         NotificationService notificationService,
-                        RepairTicketHistoryRepository repairTicketHistoryRepository) {
+                        RepairTicketHistoryRepository repairTicketHistoryRepository,
+                        RepairTargetsRepository repairTargetsRepository) {
                 this.workOrderRepository = workOrderRepository;
                 this.workOrderStateMachineService = workOrderStateMachineService;
                 this.notificationService = notificationService;
                 this.repairTicketHistoryRepository = repairTicketHistoryRepository;
+                this.repairTargetsRepository = repairTargetsRepository;
         }
 
         // 工程師回報完成維修（進行中 IN_PROGRESS -> 待使用者驗收 PENDING_USER_ACCEPTANCE）
         @Transactional
-        public void progressAccept(AcceptWorkOrderRequest request, Integer workOrderId, Integer userId) {
+        public void progressAccept(ProgressAcceptRequest request, Integer workOrderId, Integer userId) {
                 WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
                 if (!workOrder.getAssignedHandler().getUserId().equals(userId)) {
@@ -47,7 +51,11 @@ public class ProgressService {
                 if (workOrder.getStatus() != WorkOrderState.IN_PROGRESS) {
                         throw new InvalidWorkOrderStateException("目前不是進行中狀態");
                 }
-
+                //查找維修標的
+                RepairTargets repairTargets = repairTargetsRepository.findByTargetNo(request.targetNo())
+                                .orElseThrow(() -> new ResourceNotFoundException("輸入的編號找不到對應的維修標的"));
+                
+                workOrder.setRepairTargets(repairTargets);
                 // 1. 切換狀態機狀態 (IN_PROGRESS -> PENDING_USER_ACCEPTANCE)
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.ACCEPT);
