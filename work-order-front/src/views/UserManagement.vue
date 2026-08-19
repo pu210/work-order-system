@@ -98,7 +98,17 @@
                 <div
                   class="d-inline-flex align-items-center justify-content-center gap-2"
                 >
+                  <button
+                    v-if="user.status === 2"
+                    type="button"
+                    class="btn btn-sm btn-primary d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2"
+                    @click="openReview(user)"
+                  >
+                    <i class="bi bi-person-check-fill"></i>
+                    <span>審核</span>
+                  </button>
                   <router-link
+                    v-else
                     :to="{
                       name: 'user-edit',
                       params: { id: user.userId },
@@ -208,12 +218,125 @@
         </nav>
       </div>
     </div>
+    <!-- 註冊帳號審核視窗 -->
+    <div
+      v-if="reviewingUser"
+      class="modal fade show d-block"
+      tabindex="-1"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="review-modal-title"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+          <div class="modal-header">
+            <div>
+              <h5 id="review-modal-title" class="modal-title fw-bold">
+                審核註冊帳號
+              </h5>
+              <p class="text-muted extra-small mb-0">
+                請確認帳號資料並進行審核
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="關閉"
+              :disabled="reviewSubmitting"
+              @click="closeReview"
+            ></button>
+          </div>
+
+          <div class="modal-body">
+            <dl class="row extra-small mb-4">
+              <dt class="col-3 text-secondary">姓名</dt>
+              <dd class="col-9">{{ reviewingUser.name }}</dd>
+
+              <dt class="col-3 text-secondary">帳號</dt>
+              <dd class="col-9">{{ reviewingUser.account }}</dd>
+
+              <dt class="col-3 text-secondary">Email</dt>
+              <dd class="col-9">{{ reviewingUser.email }}</dd>
+            </dl>
+
+            <div>
+              <p class="form-label fw-semibold extra-small">指派角色</p>
+              <p class="form-text">核准帳號時至少需要指派一個角色。</p>
+
+              <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                  <input
+                    v-model="selectedRoleCodes"
+                    class="form-check-input"
+                    type="checkbox"
+                    value="EMPLOYEE"
+                  />
+                  <span class="form-check-label">一般員工</span>
+                </label>
+
+                <label class="form-check">
+                  <input
+                    v-model="selectedRoleCodes"
+                    class="form-check-input"
+                    type="checkbox"
+                    value="HANDLER"
+                  />
+                  <span class="form-check-label">工程師</span>
+                </label>
+
+                <label class="form-check">
+                  <input
+                    v-model="selectedRoleCodes"
+                    class="form-check-input"
+                    type="checkbox"
+                    value="ADMIN"
+                  />
+                  <span class="form-check-label">系統管理員</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              :disabled="reviewSubmitting"
+              @click="submitReview(false)"
+            >
+              拒絕
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="reviewSubmitting || selectedRoleCodes.length === 0"
+              @click="submitReview(true)"
+            >
+              <span
+                v-if="reviewSubmitting"
+                class="spinner-border spinner-border-sm me-1"
+              ></span>
+              核准
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 背景遮罩 -->
+    <div v-if="reviewingUser" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { getUsers, updateUserStatus } from "@/api/user.js";
+import {
+  getUsers,
+  updateUserStatus,
+  reviewUserRegistration,
+} from "@/api/user.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 import { notify } from "@/plugins/notify.js";
 
@@ -226,6 +349,25 @@ const totalPages = ref(0);
 const loading = ref(false);
 const errorMessage = ref("");
 const updatingUserId = ref(null);
+
+const reviewingUser = ref(null);
+const selectedRoleCodes = ref([]);
+const reviewSubmitting = ref(false);
+
+// 管理員於待審核帳號按下審核後載入該使用者
+function openReview(user) {
+  reviewingUser.value = user;
+  selectedRoleCodes.value = [];
+}
+
+function closeReview() {
+  if (reviewSubmitting.value) {
+    return;
+  }
+
+  reviewingUser.value = null;
+  selectedRoleCodes.value = [];
+}
 
 const statusLabels = {
   0: "已停用",
@@ -271,6 +413,54 @@ async function loadUsers() {
     if (requestId === latestRequestId) {
       loading.value = false;
     }
+  }
+}
+
+async function submitReview(approved) {
+  if (!reviewingUser.value) {
+    return;
+  }
+
+  if (approved && selectedRoleCodes.value.length === 0) {
+    notify.warning("核准帳號時至少需要選擇一個角色");
+    return;
+  }
+
+  if (!approved) {
+    const result = await notify.confirm({
+      title: "確定拒絕此註冊申請？",
+      text: `使用者：${reviewingUser.value.name}`,
+      confirmButtonText: "確定拒絕",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+  }
+
+  const userId = reviewingUser.value.userId;
+  reviewSubmitting.value = true;
+  errorMessage.value = "";
+
+  try {
+    await reviewUserRegistration(userId, {
+      approved,
+      roleCodes: approved ? selectedRoleCodes.value : [],
+    });
+
+    reviewingUser.value = null;
+    selectedRoleCodes.value = [];
+
+    await loadUsers();
+
+    notify.success(approved ? "帳號已核准" : "註冊申請已拒絕");
+  } catch (error) {
+    errorMessage.value = getErrorMessage(
+      error,
+      approved ? "核准帳號失敗" : "拒絕註冊申請失敗",
+    );
+  } finally {
+    reviewSubmitting.value = false;
   }
 }
 

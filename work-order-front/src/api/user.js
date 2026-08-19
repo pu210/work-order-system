@@ -10,3 +10,9 @@ export function updateUserStatus(userId, status) {
 export function createUser(payload) {
   return api.post("/users", payload).then((res) => res.data.data);
 }
+
+export function reviewUserRegistration(userId, payload) {
+  return api
+    .patch(`/users/${userId}/approval`, payload)
+    .then((res) => res.data.data);
+}
