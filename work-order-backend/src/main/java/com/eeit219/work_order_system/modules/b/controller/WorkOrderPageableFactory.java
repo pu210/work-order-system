@@ -7,7 +7,7 @@ import org.springframework.data.domain.Sort;
 final class WorkOrderPageableFactory {
 
     // 暫時
-    static final int DEFAULT_PAGE_SIZE = 10;
+    static final int DEFAULT_PAGE_SIZE = 15;
     private static final int MAX_PAGE_SIZE = 100;
 
     // 預設排序：建立時間新到舊，符合使用者直覺，未指定或指定無效的 sort 值時皆套用

@@ -44,14 +44,8 @@
 
           <div class="tc-field">
             <label class="tc-label">聯絡電話</label>
-            <input
-              v-model.trim="form.contactPhone"
-              type="text"
-              class="tc-input"
-              maxlength="10"
-              pattern="\d{10}"
-              title="請輸入 10 碼數字"
-            />
+            <input v-model.trim="form.contactPhone" type="text" class="tc-input" maxlength="10" pattern="\d{10}"
+              title="請輸入 10 碼數字" />
             <div class="tc-hint">{{ form.contactPhone.length }} / 10（選填，若填寫須為 10 碼數字）</div>
           </div>
 
@@ -63,23 +57,13 @@
 
           <div class="tc-field">
             <label class="tc-label">附件（限圖片，單檔 10MB 以內）</label>
-            <input
-              ref="fileInputRef"
-              type="file"
-              accept="image/*"
-              multiple
-              class="d-none"
-              @change="handleFilesSelected"
-            />
+            <input ref="fileInputRef" type="file" accept="image/*" multiple class="d-none"
+              @change="handleFilesSelected" />
             <div class="attachment-grid">
               <div v-for="(item, index) in selectedFiles" :key="item.id" class="attachment-tile">
                 <img :src="item.previewUrl" :alt="item.file.name" class="attachment-thumb" />
-                <button
-                  type="button"
-                  class="attachment-remove"
-                  :title="`移除 ${item.file.name}`"
-                  @click="removeFile(index)"
-                >
+                <button type="button" class="attachment-remove" :title="`移除 ${item.file.name}`"
+                  @click="removeFile(index)">
                   ✕
                 </button>
               </div>
@@ -249,6 +233,7 @@ async function handleSubmit() {
 .tc-page-header {
   margin-bottom: 22px;
 }
+
 .tc-eyebrow {
   display: block;
   font-size: 12px;
@@ -258,6 +243,7 @@ async function handleSubmit() {
   text-transform: uppercase;
   margin-bottom: 6px;
 }
+
 .tc-title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -265,6 +251,7 @@ async function handleSubmit() {
   color: var(--color-ink);
   margin: 0;
 }
+
 .tc-subtitle {
   margin: 6px 0 0;
   color: var(--color-text-muted);
@@ -280,6 +267,7 @@ async function handleSubmit() {
   gap: 16px;
   align-items: flex-start;
 }
+
 @media (max-width: 900px) {
   .tc-grid {
     grid-template-columns: 1fr;
@@ -289,8 +277,8 @@ async function handleSubmit() {
 .tc-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
   padding: 20px 22px;
 }
 
@@ -300,13 +288,16 @@ async function handleSubmit() {
 .tc-field {
   margin-bottom: 16px;
 }
+
 .tc-field-row {
   display: flex;
   gap: 14px;
 }
+
 .tc-field-row .tc-field {
   flex: 1;
 }
+
 .tc-label {
   display: block;
   font-size: 12.5px;
@@ -314,10 +305,12 @@ async function handleSubmit() {
   color: var(--color-text);
   margin-bottom: 6px;
 }
+
 .tc-required::after {
   content: ' *';
   color: var(--color-danger);
 }
+
 .tc-hint {
   font-size: 11.5px;
   color: var(--color-text-faint);
@@ -334,11 +327,13 @@ async function handleSubmit() {
   background: #fff;
   color: var(--color-text);
 }
+
 .tc-input:focus {
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
+
 .tc-textarea {
   resize: vertical;
   min-height: 90px;
@@ -349,6 +344,7 @@ async function handleSubmit() {
   color: var(--color-danger);
   margin-top: 4px;
 }
+
 .tc-alert-danger {
   background: var(--color-danger-soft);
   color: var(--color-danger);
@@ -363,6 +359,7 @@ async function handleSubmit() {
   gap: 10px;
   margin-top: 20px;
 }
+
 .tc-btn {
   display: inline-flex;
   align-items: center;
@@ -377,22 +374,27 @@ async function handleSubmit() {
   transition: all 0.15s;
   font-family: var(--font-body);
 }
+
 .tc-btn-primary {
   background: var(--color-primary);
   color: #fff;
 }
+
 .tc-btn-primary:hover:not(:disabled) {
   background: var(--color-primary-dark);
 }
+
 .tc-btn-secondary {
   background: #fff;
   color: var(--color-text);
   border-color: var(--color-border);
 }
+
 .tc-btn-secondary:hover:not(:disabled) {
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
+
 .tc-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -474,6 +476,7 @@ async function handleSubmit() {
   margin: 0 0 12px;
   font-family: var(--font-display);
 }
+
 .tc-tips-list {
   padding-left: 18px;
   margin: 0;
