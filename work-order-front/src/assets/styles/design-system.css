@@ -31,6 +31,12 @@
   --nav-height: 56px;
 }
 
+html {
+  /* 內容較短的頁面（如新增工單）不需要垂直捲軸時，仍預留同寬度空間，
+     避免捲軸出現/消失造成可視寬度改變、連動 sticky 導覽列跳動 */
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);
@@ -44,6 +50,7 @@ body {
 .wo-nav {
   background: var(--color-ink);
   height: var(--nav-height);
+  flex-shrink: 0; /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
   display: flex; align-items: center;
   padding: 0 32px;
   position: sticky; top: 0; z-index: 100;

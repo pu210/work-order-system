@@ -32,6 +32,10 @@ public class ContactRecord {
     @Column(name = "content", nullable = false, length = 500)
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "record_type", nullable = false, length = 30)
+    private ContactRecordType recordType = ContactRecordType.COMMENT;
+
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime;
 

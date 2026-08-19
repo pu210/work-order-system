@@ -175,6 +175,11 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // 預設不重置捲動位置：從內容較長的頁面切到較短的頁面（如新增工單）時，
+  // 舊的捲動位置會超出新頁面範圍被瀏覽器夾回底部，導致 sticky 導覽列看起來往上移
+  scrollBehavior() {
+    return { top: 0 };
+  },
 });
 
 router.beforeEach((to) => {
