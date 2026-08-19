@@ -1,9 +1,9 @@
-import { defineStore } from 'pinia'
-import { getToken, getCurrentUser, saveAuth, clearAuth } from '@/utils/auth.js'
+import { defineStore } from "pinia";
+import { getToken, getCurrentUser, saveAuth, clearAuth } from "@/utils/auth.js";
 
-export const useAuthStore = defineStore('auth', {
+export const useAuthStore = defineStore("auth", {
   state: () => {
-    const user = getCurrentUser()
+    const user = getCurrentUser();
     return {
       token: getToken(),
       userId: user?.userId ?? null,
@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
       name: user?.name ?? null,
       email: user?.email ?? null,
       roleCodes: user?.roleCodes ?? [],
-    }
+    };
   },
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -19,22 +19,38 @@ export const useAuthStore = defineStore('auth', {
   },
   actions: {
     login(data) {
-      saveAuth(data)
-      this.token = data.token
-      this.userId = data.userId
-      this.account = data.account
-      this.name = data.name
-      this.email = data.email
-      this.roleCodes = data.roleCodes || []
+      saveAuth(data);
+      this.token = data.token;
+      this.userId = data.userId;
+      this.account = data.account;
+      this.name = data.name;
+      this.email = data.email;
+      this.roleCodes = data.roleCodes || [];
     },
+    syncProfile(data) {
+      this.name = data.name;
+      this.email = data.email;
+
+      const currentUser = getCurrentUser();
+
+      if (currentUser) {
+        saveAuth({
+          ...currentUser,
+          token: this.token,
+          name: data.name,
+          email: data.email,
+        });
+      }
+    },
+
     logout() {
-      clearAuth()
-      this.token = null
-      this.userId = null
-      this.account = null
-      this.name = null
-      this.email = null
-      this.roleCodes = []
+      clearAuth();
+      this.token = null;
+      this.userId = null;
+      this.account = null;
+      this.name = null;
+      this.email = null;
+      this.roleCodes = [];
     },
   },
-})
+});

@@ -16,3 +16,10 @@ export function reviewUserRegistration(userId, payload) {
     .patch(`/users/${userId}/approval`, payload)
     .then((res) => res.data.data);
 }
+export function getUser(userId) {
+  return api.get(`/users/${userId}`).then((res) => res.data.data);
+}
+
+export function updateUser(userId, payload) {
+  return api.patch(`/users/${userId}`, payload).then((res) => res.data.data);
+}
