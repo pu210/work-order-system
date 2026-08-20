@@ -28,36 +28,57 @@ public class ReviewService {
         private final UserRepository userRepository;
         private final WorkOrderStateMachineService workOrderStateMachineService;
         private final NotificationService notificationService;
+        private final EditSessionService editSessionService;
 
         public ReviewService(WorkOrderRepository workOrderRepository,
                         PriorityRepository priorityRepository,
                         UserRepository userRepository,
                         WorkOrderStateMachineService workOrderStateMachineService,
-                        NotificationService notificationService) {
+                        NotificationService notificationService,
+                        EditSessionService editSessionService) {
                 this.workOrderRepository = workOrderRepository;
                 this.priorityRepository = priorityRepository;
                 this.userRepository = userRepository;
                 this.workOrderStateMachineService = workOrderStateMachineService;
                 this.notificationService = notificationService;
+                this.editSessionService = editSessionService;
         }
 
         @Transactional
-        public void reviewAccept(ReviewAcceptRequest request, Integer workOrderId, Integer userId) {
+        public void reviewAccept(ReviewAcceptRequest request, Integer workOrderId, Integer userId,
+                        String sessionToken) {
                 WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
-
                 if (workOrder.getStatus() != WorkOrderState.PENDING_REVIEW) {
                         throw new InvalidWorkOrderStateException("目前不是待審查狀態");
                 }
-                // 工單如果是第一次審核就填寫負責管理員,如果不是就驗證是否是負責工單的管理員
-                if (workOrder.getAdmin() == null) {
-                        User admin = userRepository.findById(userId)
-                                        .orElseThrow(() -> new ResourceNotFoundException("找不到該管理員"));
-                        workOrder.setAdmin(admin);
-                } else if (!workOrder.getAdmin().getUserId().equals(userId)) {
-                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
-                }
+                // 判斷是否有指定的負責管理員
+                boolean firstReview = workOrder.getAdmin() == null;
 
+                if (firstReview) {
+                        // 第一次審查，必須驗證 Edit Session。
+                        editSessionService.validate(
+                                        workOrderId,
+                                        userId,
+                                        sessionToken);
+                } else {
+                        // 不是第一次審查，只允許原本的管理員操作。
+                        if (!workOrder.getAdmin()
+                                        .getUserId()
+                                        .equals(userId)) {
+
+                                throw new AccessDeniedException(
+                                                "只有原審核管理員可以操作此工單");
+                        }
+                }
+                // 第一次審查才設定負責管理員。
+                if (firstReview) {
+                        User admin = userRepository.findById(userId)
+                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                                        "找不到該管理員"));
+
+                        workOrder.setAdmin(admin);
+                }
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime oldDueTime = workOrder.getDueTime();
                 LocalDateTime newDueTime = request.dueTime();
@@ -87,6 +108,13 @@ public class ReviewService {
                                 WorkOrderEvent.ACCEPT);
                 // 寫入WorkOrder table
                 workOrderRepository.save(workOrder);
+                // 第一次審核才需要釋放編輯鎖
+                if (firstReview) {
+                        editSessionService.release(
+                                        workOrderId,
+                                        userId,
+                                        sessionToken);
+                }
                 // 傳送訊息給指派工程師
                 notificationService.sendNotification(
                                 workOrder.getAssignedHandler().getUserId(),
@@ -108,7 +136,8 @@ public class ReviewService {
         }
 
         @Transactional
-        public void reviewReject(RejectWorkOrderRequest request, Integer workOrderId, Integer userId) {
+        public void reviewReject(RejectWorkOrderRequest request, Integer workOrderId, Integer userId,
+                        String sessionToken) {
                 WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
 
@@ -116,18 +145,47 @@ public class ReviewService {
                         throw new InvalidWorkOrderStateException("目前不是待審查狀態");
                 }
                 // 工單如果是第一次審核就填寫負責管理員,如果不是就驗證是否是負責工單的管理員
-                if (workOrder.getAdmin() == null) {
+                // 判斷是否有指定的負責管理員
+                boolean firstReview = workOrder.getAdmin() == null;
+
+                if (firstReview) {
+                        // 第一次審查，必須驗證 Edit Session。
+                        editSessionService.validate(
+                                        workOrderId,
+                                        userId,
+                                        sessionToken);
+                } else {
+                        // 不是第一次審查，只允許原本的管理員操作。
+                        if (!workOrder.getAdmin()
+                                        .getUserId()
+                                        .equals(userId)) {
+
+                                throw new AccessDeniedException(
+                                                "只有原審核管理員可以操作此工單");
+                        }
+                }
+
+                // 第一次審查才設定負責管理員。
+                if (firstReview) {
                         User admin = userRepository.findById(userId)
-                                        .orElseThrow(() -> new ResourceNotFoundException("找不到該管理員"));
+                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                                        "找不到該管理員"));
+
                         workOrder.setAdmin(admin);
-                } else if (!workOrder.getAdmin().getUserId().equals(userId)) {
-                        throw new AccessDeniedException("只有原審核管理員可以操作此工單");
                 }
                 // 執行狀態轉換
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.REJECT);
                 // 寫入WorkOrder table
                 workOrderRepository.save(workOrder);
+
+                // 第一次審核才需要釋放編輯鎖
+                if (firstReview) {
+                        editSessionService.release(
+                                        workOrderId,
+                                        userId,
+                                        sessionToken);
+                }
                 // 傳送訊息給使用者
                 notificationService.sendNotification(
                                 workOrder.getCreator().getUserId(),

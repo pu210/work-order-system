@@ -51,10 +51,10 @@ public class ProgressService {
                 if (workOrder.getStatus() != WorkOrderState.IN_PROGRESS) {
                         throw new InvalidWorkOrderStateException("目前不是進行中狀態");
                 }
-                //查找維修標的
+                // 查找維修標的
                 RepairTargets repairTargets = repairTargetsRepository.findByTargetNo(request.targetNo())
                                 .orElseThrow(() -> new ResourceNotFoundException("輸入的編號找不到對應的維修標的"));
-                
+
                 workOrder.setRepairTargets(repairTargets);
                 // 1. 切換狀態機狀態 (IN_PROGRESS -> PENDING_USER_ACCEPTANCE)
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
