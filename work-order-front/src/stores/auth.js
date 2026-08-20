@@ -30,6 +30,9 @@ export const useAuthStore = defineStore("auth", {
     syncProfile(data) {
       this.name = data.name;
       this.email = data.email;
+      if (data.roleCodes) {
+        this.roleCodes = [...data.roleCodes];
+      }
 
       const currentUser = getCurrentUser();
 
@@ -39,6 +42,7 @@ export const useAuthStore = defineStore("auth", {
           token: this.token,
           name: data.name,
           email: data.email,
+          roleCodes: data.roleCodes ?? this.roleCodes,
         });
       }
     },

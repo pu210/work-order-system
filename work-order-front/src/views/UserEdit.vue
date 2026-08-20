@@ -107,6 +107,48 @@
               title="聯絡電話需為 10 碼數字"
             />
           </div>
+
+          <!-- 使用者角色 -->
+          <div class="col-md-6">
+            <label
+              class="form-label extra-small fw-semibold text-secondary mb-1"
+            >
+              使用者角色 <span class="text-danger">*</span>
+            </label>
+
+            <div class="role-options border rounded-2 px-3 py-2">
+              <label
+                v-for="role in roleOptions"
+                :key="role.value"
+                class="form-check mb-2 last-option"
+              >
+                <input
+                  v-model="form.roleCodes"
+                  class="form-check-input"
+                  type="checkbox"
+                  :value="role.value"
+                  :disabled="
+                    role.value === 'ADMIN' &&
+                    isLastActiveAdmin &&
+                    form.roleCodes.includes('ADMIN')
+                  "
+                />
+
+                <span class="form-check-label extra-small">
+                  {{ role.label }}
+                </span>
+              </label>
+            </div>
+            <div
+              v-if="isLastActiveAdmin"
+              class="form-text text-warning extra-small"
+            >
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              此帳號是目前最後一位啟用中的管理員，無法移除管理員角色。
+            </div>
+
+            <div v-else class="form-text extra-small">可選擇一個或多個角色</div>
+          </div>
         </div>
 
         <!-- 按鈕動作區 -->
@@ -153,6 +195,13 @@ const userId = route.params.id;
 const isLoading = ref(false);
 const errorMessage = ref("");
 const isSubmitting = ref(false);
+const isLastActiveAdmin = ref(false);
+
+const roleOptions = [
+  { value: "EMPLOYEE", label: "一般員工" },
+  { value: "HANDLER", label: "處理人員" },
+  { value: "ADMIN", label: "系統管理員" },
+];
 
 const goBack = () => {
   if (window.history.state?.back) {
@@ -169,9 +218,9 @@ const form = ref({
   name: "",
   email: "",
   phone: "",
-  password: "User1234!", // 預設密碼
   status: 1, // Default 啟用
   must_change_password: true, // Default true
+  roleCodes: [],
 });
 
 const loadUser = async () => {
@@ -187,6 +236,8 @@ const loadUser = async () => {
     form.value.phone = user.phone ?? "";
     form.value.status = user.status;
     form.value.must_change_password = user.mustChangePassword;
+    form.value.roleCodes = [...(user.roleCodes ?? [])];
+    isLastActiveAdmin.value = user.lastActiveAdmin === true;
   } catch (error) {
     errorMessage.value = getErrorMessage(error, "使用者資料載入失敗");
   } finally {
@@ -195,17 +246,6 @@ const loadUser = async () => {
 };
 
 onMounted(loadUser);
-
-// 產生隨機密碼小工具
-const generateRandomPassword = () => {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#";
-  let pass = "";
-  for (let i = 0; i < 10; i++) {
-    pass += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  form.value.password = pass;
-};
 
 // 送出表單處理
 const handleSubmit = async () => {
@@ -230,6 +270,12 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (form.value.roleCodes.length === 0) {
+    errorMessage.value = "請至少選擇一個使用者角色";
+    notify.error(errorMessage.value);
+    return;
+  }
+
   isSubmitting.value = true;
 
   try {
@@ -238,19 +284,28 @@ const handleSubmit = async () => {
       email,
       phone,
       status: form.value.status,
+      roleCodes: form.value.roleCodes,
     };
 
     const updatedUser = await updateUser(userId, payload);
 
-    if (updatedUser.userId === authStore.userId) {
+    const isEditingSelf = updatedUser.userId === authStore.userId;
+
+    if (isEditingSelf) {
       authStore.syncProfile({
         name: updatedUser.name,
         email: updatedUser.email,
+        roleCodes: updatedUser.roleCodes,
       });
     }
 
     notify.success("使用者資料更新成功！");
-    router.push({ name: "user-management" });
+
+    if (isEditingSelf && !updatedUser.roleCodes.includes("ADMIN")) {
+      router.replace({ name: "Dashboard" });
+    } else {
+      router.push({ name: "user-management" });
+    }
   } catch (error) {
     errorMessage.value = getErrorMessage(error, "使用者資料更新失敗");
     notify.error(errorMessage.value);

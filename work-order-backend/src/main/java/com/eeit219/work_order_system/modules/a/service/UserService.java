@@ -397,6 +397,19 @@ public class UserService {
         return status;
     }
 
+    private boolean isLastActiveAdmin(User user, List<String> roleCodes) {
+        if (user.getStatus() != User.UserStatus.ACTIVE
+                || !roleCodes.contains(Role.ADMIN)) {
+            return false;
+        }
+
+        long activeAdminCount = userRoleRepository.countUsersByRoleCodeAndStatus(
+                Role.ADMIN,
+                User.UserStatus.ACTIVE);
+
+        return activeAdminCount <= 1;
+    }
+
     private void validateAdminProtection(
             User targetUser,
             byte proposedStatus,
@@ -551,6 +564,7 @@ public class UserService {
     }
 
     private UserResponseDTO toUserResponseDTO(User user, List<String> roleCodes) {
+        boolean lastActiveAdmin = isLastActiveAdmin(user, roleCodes);
         return new UserResponseDTO(
                 user.getUserId(),
                 user.getAccount(),
@@ -560,6 +574,7 @@ public class UserService {
                 user.getStatus(),
                 user.getMustChangePassword(),
                 roleCodes,
+                lastActiveAdmin,
                 user.getCreatedTime(),
                 user.getUpdatedTime());
     }
