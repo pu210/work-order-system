@@ -6,7 +6,6 @@
     >
       <div>
         <h3 class="fw-bold text-slate-800 mb-1">帳號管理</h3>
-        <p class="text-muted extra-small mb-0">管理系統使用者帳號設定</p>
       </div>
 
       <router-link
@@ -49,12 +48,12 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light extra-small text-secondary">
             <tr>
-              <th class="ps-4 py-3" style="width: 20%">姓名</th>
-              <th class="py-3" style="width: 30%">電子郵件信箱</th>
-              <th class="py-3" style="width: 15%">狀態</th>
-              <th class="py-3" style="width: 15%">角色</th>
+              <th class="ps-4 py-2" style="width: 20%">姓名</th>
+              <th class="py-2" style="width: 30%">電子郵件信箱</th>
+              <th class="py-2" style="width: 15%">狀態</th>
+              <th class="py-2" style="width: 15%">角色</th>
               <!-- 🎯 修正重點：操作標題與底下欄位統一對齊風格 -->
-              <th class="pe-4 py-3 text-center" style="width: 20%">操作</th>
+              <th class="pe-4 py-2 text-center" style="width: 20%">操作</th>
             </tr>
           </thead>
           <tbody class="extra-small text-dark">
@@ -66,7 +65,7 @@
               }"
             >
               <!-- 1. 姓名 (🎯 移除小圈圈，回歸乾淨純文字) -->
-              <td class="ps-4 py-3 fw-semibold text-dark">
+              <td class="ps-4 py-2 fw-semibold text-dark">
                 {{ user.name }}
               </td>
 
@@ -94,7 +93,7 @@
               </td>
 
               <!-- 5. 操作 (🎯 修正對齊與間距問題) -->
-              <td class="pe-4 py-3 text-center">
+              <td class="pe-4 py-2 text-center">
                 <div
                   class="d-inline-flex align-items-center justify-content-center gap-2"
                 >
@@ -524,6 +523,21 @@ async function toggleStatus(user) {
 </script>
 
 <style scoped>
+.users-page {
+  padding: 0.75rem 1rem;
+}
+
+.users-page th,
+.users-page td {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .users-page {
+    padding: 0.5rem;
+  }
+}
 .extra-small {
   font-size: 0.82rem;
 }
