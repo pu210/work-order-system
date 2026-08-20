@@ -1,18 +1,18 @@
 <template>
   <div class="settings-container">
-    <h2 class="page-title">報修子類管理</h2>
+    <h2 class="page-title">報修設備目標管理</h2>
 
     <div class="action-bar">
       <div class="search-box">
         <input
           v-model="keyword"
-          placeholder="請輸入子類名稱搜尋..."
+          placeholder="請輸入設備名稱、編號或型號搜尋..."
           @keyup.enter="fetchData"
         />
         <button class="btn-search" @click="fetchData">搜尋</button>
       </div>
       <button class="btn-create" @click="openCreateModal">
-        + 新增報修子類
+        + 新增報修設備
       </button>
     </div>
 
@@ -21,23 +21,23 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>子類名稱</th>
-            <th>所屬大類</th>
-            <th>有效優先級</th>
+            <th>設備名稱</th>
+            <th>設備編號</th>
+            <th>型號</th>
             <th>狀態</th>
-            <th>建立時間</th>
-            <th>更新時間</th>
-            <th>操作</th> <!-- 補回操作欄位 -->
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in tableData" :key="item.subCategoriesId">
-            <td>{{ item.subCategoriesId }}</td>
+          <tr v-for="item in tableData" :key="item.targetId">
+            <td>{{ item.targetId }}</td>
             <td>
               <span class="badge-name">{{ item.name }}</span>
             </td>
-            <td>{{ item.categoryName || "無" }} </td>
-            <td>{{ getEffectivePriorityText(item) }}</td>
+            <td>
+              <span class="badge-code">{{ item.targetNo }}</span>
+            </td>
+            <td>{{ item.model || "-" }}</td>
             <td>
               <label class="switch">
                 <input
@@ -48,17 +48,14 @@
                 <span class="slider"></span>
               </label>
             </td>
-            <td class="time-text">{{ item.createdTime || "-" }}</td>
-            <td class="time-text">{{ item.updatedTime || "-" }}</td>
             <td>
-              <!-- 補回編輯按鈕 -->
               <button class="btn-edit" @click="openEditModal(item)">
                 編輯
               </button>
             </td>
           </tr>
           <tr v-if="tableData.length === 0">
-            <td colspan="8" class="empty-row">目前沒有符合的資料</td>
+            <td colspan="6" class="empty-row">目前沒有符合的資料</td>
           </tr>
         </tbody>
       </table>
@@ -72,35 +69,25 @@
     >
       <div class="modal-card">
         <div class="modal-header">
-          <h3>{{ isEditMode ? "編輯報修子類" : "新增報修子類" }}</h3>
+          <h3>{{ isEditMode ? "編輯報修設備" : "新增報修設備" }}</h3>
           <button class="close-btn" @click="isModalOpen = false">
             &times;
           </button>
         </div>
         <form @submit.prevent="handleSubmit" class="modal-form">
           <div class="form-group">
-            <label>名稱：</label>
-            <input v-model="form.name" required placeholder="請輸入名稱" />
+            <label>設備名稱：</label>
+            <input v-model="form.name" required placeholder="請輸入設備名稱 (例如: 蘋果手機)" />
           </div>
 
           <div class="form-group">
-            <label>所屬大類：</label>
-            <select v-model.number="form.categoryId" required class="form-select">
-              <option disabled value="">請選擇所屬大類</option>
-              <option v-for="cat in categoryList" :key="cat.repairCategoriesId" :value="cat.repairCategoriesId">
-                {{ cat.name }}
-              </option>
-            </select>
+            <label>設備編號：</label>
+            <input v-model="form.targetNo" required placeholder="請輸入設備編號 (例如: phone 1)" />
           </div>
 
           <div class="form-group">
-            <label>覆寫優先級 (選填)：</label>
-            <select v-model.number="form.overridePriorityId" class="form-select">
-              <option :value="null">-- 不覆寫（使用大類預設） --</option>
-              <option v-for="p in priorityList" :key="p.prioritiesId" :value="p.prioritiesId">
-                {{ p.name }} ({{ p.hours }}小時)
-              </option>
-            </select>
+            <label>型號：</label>
+            <input v-model="form.model" placeholder="請輸入型號 (例如: 17 pro)" />
           </div>
 
           <div class="modal-footer">
@@ -121,93 +108,59 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { 
-  getSubCategories, 
-  createSubCategory, 
-  updateSubCategory, /* 確保 API 有匯入更新方法 */
-  getRepairCategories,
-  updateSubCategoryStatus 
-} from "@/api/category.js";
-import { getPriorities } from "@/api/priority.js";
+import {
+  getRepairTargets,
+  createRepairTarget,
+  updateRepairTarget,
+  updateRepairTargetStatus,
+} from "@/api/repairTarget.js";
 
 const keyword = ref("");
 const tableData = ref([]);
-const categoryList = ref([]); 
-const priorityList = ref([]); 
 
 const isModalOpen = ref(false);
-const isEditMode = ref(false); // 判斷是否為編輯模式
-const currentEditId = ref(null); // 記錄當前編輯的 ID
-const form = ref({ name: "", categoryId: "", overridePriorityId: null });
+const isEditMode = ref(false);
+const currentEditId = ref(null);
+const form = ref({ 
+  name: "", 
+  targetNo: "", 
+  model: "" 
+});
 
 const fetchData = async () => {
   try {
-    const res = await getSubCategories(keyword.value); 
+    const res = await getRepairTargets(keyword.value); 
     tableData.value = Array.isArray(res) ? res : (res.data || []);
   } catch (error) {
+    console.error("載入設備資料失敗", error);
     tableData.value = [];
   }
-};
-
-// 畫面動態對應實際生效的優先級文字
-const getEffectivePriorityText = (item) => {
-  if (item.overridePriorityId) {
-    const foundPriority = priorityList.value.find(p => p.prioritiesId === item.overridePriorityId);
-    return foundPriority ? `${foundPriority.name} ` : "自訂優先級";
-  }
-
-  const foundCategory = categoryList.value.find(c => c.repairCategoriesId === item.categoryId);
-  if (foundCategory && foundCategory.defaultPriorityId) {
-    const defaultPriority = priorityList.value.find(p => p.prioritiesId === foundCategory.defaultPriorityId);
-    return defaultPriority ? `${defaultPriority.name} (大類預設)` : "大類預設";
-  }
-
-  return item.effectivePriorityName || "無";
 };
 
 const handleStatusChange = async (item) => {
   const newStatus = !item.status;
   try {
-    await updateSubCategoryStatus(item.subCategoriesId, newStatus);
+    await updateRepairTargetStatus(item.targetId, newStatus);
     item.status = newStatus;
   } catch (error) {
     alert("狀態更新失敗");
   }
 };
 
-const fetchCategories = async () => {
-  try {
-    const res = await getRepairCategories();
-    categoryList.value = Array.isArray(res) ? res : (res.data || []);
-  } catch (error) {
-    categoryList.value = [];
-  }
-};
-
-const fetchPriorities = async () => {
-  try {
-    const res = await getPriorities();
-    priorityList.value = Array.isArray(res) ? res : (res.data || []);
-  } catch (error) {
-    priorityList.value = [];
-  }
-};
-
 const openCreateModal = () => {
   isEditMode.value = false;
   currentEditId.value = null;
-  form.value = { name: "", categoryId: "", overridePriorityId: null };
+  form.value = { name: "", targetNo: "", model: "" };
   isModalOpen.value = true;
 };
 
-// 開啟編輯視窗
 const openEditModal = (item) => {
   isEditMode.value = true;
-  currentEditId.value = item.subCategoriesId;
+  currentEditId.value = item.targetId;
   form.value = { 
     name: item.name, 
-    categoryId: item.categoryId, 
-    overridePriorityId: item.overridePriorityId ?? null 
+    targetNo: item.targetNo, 
+    model: item.model 
   };
   isModalOpen.value = true;
 };
@@ -215,10 +168,10 @@ const openEditModal = (item) => {
 const handleSubmit = async () => {
   try {
     if (isEditMode.value) {
-      await updateSubCategory(currentEditId.value, form.value);
+      await updateRepairTarget(currentEditId.value, form.value);
       alert("更新成功！");
     } else {
-      await createSubCategory(form.value);
+      await createRepairTarget(form.value);
       alert("新增成功！");
     }
     isModalOpen.value = false;
@@ -230,8 +183,6 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   fetchData();
-  fetchCategories();
-  fetchPriorities();
 });
 </script>
 
@@ -251,7 +202,7 @@ onMounted(() => {
 .modern-table tbody tr:hover { background-color: #f8fafc; }
 .empty-row { text-align: center; color: #94a3b8; padding: 32px !important; }
 .badge-name { font-weight: 600; color: #1e293b; }
-.time-text { color: #64748b; font-size: 13px; }
+.badge-code { background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
 
 /* Switch 開關 */
 .switch { position: relative; display: inline-block; width: 40px; height: 22px; }

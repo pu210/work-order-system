@@ -26,3 +26,9 @@ export function getSubCategories(keyword) {
 export function createSubCategory(payload) {
   return api.post('/api/sub-categories', payload).then((res) => res.data)
 }
+export function updateSubCategoryStatus(id, status) {
+  return api.patch(`/api/sub-categories/${id}/status`, null, { params: { status } }).then((res) => res.data)
+}
+export function updateSubCategory(id, payload) {
+  return api.put(`/api/sub-categories/${id}`, payload).then((res) => res.data)
+}
