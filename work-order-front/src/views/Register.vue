@@ -49,8 +49,15 @@
             v-model.trim="form.phone"
             type="tel"
             class="form-control"
+            :class="{ 'is-invalid': phoneError }"
+            placeholder="例如：0912345678"
+            maxlength="10"
+            inputmode="numeric"
             autocomplete="tel"
+            @input="phoneError = ''"
           />
+          <div v-if="phoneError" class="invalid-feedback">{{ phoneError }}</div>
+          <div v-else class="form-text">請輸入 10 碼數字，例如：0912345678</div>
         </div>
 
         <div class="col-sm-6">
@@ -122,11 +129,20 @@ const form = reactive({
   confirmPassword: "",
 });
 const errorMessage = ref("");
+const phoneError = ref("");
 const successMessage = ref("");
 const isSubmitting = ref(false);
 
 async function handleSubmit() {
   errorMessage.value = "";
+  phoneError.value = "";
+
+  const phone = form.phone.trim();
+
+  if (phone && !/^\d{10}$/.test(phone)) {
+    phoneError.value = "電話需為 10 碼數字";
+    return;
+  }
 
   if (form.password.length < 8) {
     errorMessage.value = "密碼至少需要 8 個字元";
@@ -140,7 +156,10 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   try {
-    const response = await axios.post("/auth/register", form, {
+    const response = await axios.post("/auth/register", {
+      ...form,
+      phone: phone || null,
+    }, {
       skipAuthRedirect: true,
     });
     successMessage.value =

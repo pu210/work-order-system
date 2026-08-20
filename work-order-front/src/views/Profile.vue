@@ -1,12 +1,7 @@
 <template>
-    <h3>個人資料</h3>
-
+  <h3>個人設定</h3>
 </template>
 
-<script setup>
+<script setup></script>
 
-</script>
-
-<style>
-
-</style>
+<style></style>

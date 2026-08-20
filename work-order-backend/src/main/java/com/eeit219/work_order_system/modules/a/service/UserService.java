@@ -205,6 +205,10 @@ public class UserService {
 
         String account = request.account().trim();
         String email = request.email().trim().toLowerCase();
+        String phone = request.phone() == null ? null : request.phone().trim();
+        if (phone != null && phone.isEmpty()) {
+            phone = null;
+        }
 
         if (userRepository.existsByAccount(account)) {
             throw new IllegalArgumentException("帳號已被使用");
@@ -224,7 +228,7 @@ public class UserService {
         user.setMustChangePassword(false);
         user.setName(request.name().trim());
         user.setEmail(email);
-        user.setPhone(request.phone());
+        user.setPhone(phone);
         user.setStatus(User.UserStatus.PENDING);
 
         User savedUser = userRepository.save(user);

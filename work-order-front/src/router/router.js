@@ -17,7 +17,6 @@ import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
 import EquipmentCreate from "@/views/EquipmentCreate.vue";
 import Profile from "@/views/Profile.vue";
-import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
 import Forbidden from "@/views/Forbidden.vue";
 import { hasValidToken, getCurrentUser } from "@/utils/auth.js";
@@ -160,7 +159,6 @@ const routes = [
         meta: { roles: rolesFor("equipment-create") },
       },
       { path: "profile", name: "profile", component: Profile },
-      { path: "settings", name: "settings", component: Settings },
       {
         path: "notifications",
         name: "notifications",
