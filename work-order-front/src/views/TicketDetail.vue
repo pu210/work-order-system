@@ -43,17 +43,28 @@
         </div>
       </div>
 
-      <dl class="row">
-        <dt class="col-sm-3">位置</dt>
-        <dd class="col-sm-9">{{ ticket.locationDetail }}</dd>
+      <section class="border-top border-bottom py-3 mb-3">
+        <!-- 報修地點 -->
+        <div class="mb-3">
+          <div class="small text-muted mb-1">報修地點</div>
+          <div class="fw-semibold">{{ ticket.locationDetail || "未提供" }}</div>
+        </div>
 
+        <!-- 問題描述 -->
+        <div
+          class="bg-body-secondary rounded p-3"
+          style="white-space: pre-wrap"
+        >
+          <div class="small text-muted mb-1">問題描述</div>
+          <div>
+            {{ ticket.description || "無" }}
+          </div>
+        </div>
+      </section>
+
+      <dl class="row">
         <dt class="col-sm-3">聯絡電話</dt>
         <dd class="col-sm-9">{{ ticket.contactPhone || "—" }}</dd>
-
-        <dt class="col-sm-3">描述</dt>
-        <dd class="col-sm-9" style="white-space: pre-wrap">
-          {{ ticket.description || "—" }}
-        </dd>
 
         <dt class="col-sm-3">報修人</dt>
         <dd class="col-sm-9">{{ ticket.creatorName }}</dd>
