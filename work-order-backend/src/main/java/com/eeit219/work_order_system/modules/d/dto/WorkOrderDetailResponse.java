@@ -35,4 +35,6 @@ public class WorkOrderDetailResponse {
     private LocalDateTime updatedTime;
 
     private Boolean isOverDue;
+
+    private Integer version;
 }
