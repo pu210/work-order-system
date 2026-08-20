@@ -17,6 +17,7 @@ import com.eeit219.work_order_system.common.security.JsonWebTokenFilter;
 import com.eeit219.work_order_system.common.security.OAuth2LoginSuccessHandler;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 @EnableWebSecurity
@@ -24,10 +25,13 @@ public class SecurityConfig {
 
         private final JsonWebTokenFilter jwtFilter;
         private final OAuth2LoginSuccessHandler oauth2SuccessHandler;
+        private final String frontendUrl;
 
-        public SecurityConfig(JsonWebTokenFilter jwtFilter, OAuth2LoginSuccessHandler oauth2SuccessHandler) {
+        public SecurityConfig(JsonWebTokenFilter jwtFilter, OAuth2LoginSuccessHandler oauth2SuccessHandler,
+                        @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
                 this.jwtFilter = jwtFilter;
                 this.oauth2SuccessHandler = oauth2SuccessHandler;
+                this.frontendUrl = frontendUrl.replaceAll("/+$", "");
         }
 
         @Bean
@@ -64,7 +68,7 @@ public class SecurityConfig {
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oauth2SuccessHandler)
                                                 .failureHandler((request, response, exception) -> response.sendRedirect(
-                                                                "http://localhost:5173/auth/login?oauth=failed")))
+                                                                frontendUrl + "/auth/login?oauth=failed")))
                                 .exceptionHandling(exception -> exception
                                                 .authenticationEntryPoint(authenticationEntryPoint())
                                                 .accessDeniedHandler(accessDeniedHandler()))

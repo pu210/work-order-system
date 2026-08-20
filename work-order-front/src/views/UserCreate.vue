@@ -90,20 +90,24 @@
               使用者角色 <span class="text-danger">*</span>
             </label>
 
-            <select
-              v-model="form.roleCodes"
-              class="form-select extra-small"
-              multiple
-              required
-            >
-              <option value="EMPLOYEE">一般員工</option>
-              <option value="HANDLER">處理人員</option>
-              <option value="ADMIN">系統管理員</option>
-            </select>
-
-            <div class="form-text extra-small">
-              可按住 Ctrl／Command 選擇多個角色
+            <div class="role-options border rounded-2 px-3 py-2">
+              <label
+                v-for="role in roleOptions"
+                :key="role.value"
+                class="form-check mb-2 last-option"
+              >
+                <input
+                  v-model="form.roleCodes"
+                  class="form-check-input"
+                  type="checkbox"
+                  :value="role.value"
+                />
+                <span class="form-check-label extra-small">
+                  {{ role.label }}
+                </span>
+              </label>
             </div>
+            <div class="form-text extra-small">可選擇一個或多個角色</div>
           </div>
           <!-- 預設密碼 -->
           <div class="col-md-6">
@@ -159,6 +163,12 @@ import { createUser } from "@/api/user.js";
 
 const router = useRouter();
 
+const roleOptions = [
+  { value: "EMPLOYEE", label: "一般員工" },
+  { value: "HANDLER", label: "處理人員" },
+  { value: "ADMIN", label: "系統管理員" },
+];
+
 const goBack = () => {
   if (window.history.state?.back) {
     router.back();
@@ -194,6 +204,11 @@ const handleSubmit = async () => {
 
   if (!accountPattern.test(form.value.account)) {
     alert("帳號只能輸入英文字母與數字");
+    return;
+  }
+
+  if (form.value.roleCodes.length === 0) {
+    alert("請至少選擇一個使用者角色");
     return;
   }
 
@@ -236,5 +251,13 @@ const handleSubmit = async () => {
 
 .shadow-2xs {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.role-options {
+  background-color: #fff;
+}
+
+.role-options .last-option:last-child {
+  margin-bottom: 0 !important;
 }
 </style>

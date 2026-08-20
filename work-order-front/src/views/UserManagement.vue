@@ -108,7 +108,7 @@
                     <span>審核</span>
                   </button>
                   <router-link
-                    v-else
+                    v-else-if="user.status === 0 || user.status === 1"
                     :to="{
                       name: 'user-edit',
                       params: { id: user.userId },
