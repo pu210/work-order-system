@@ -10,131 +10,214 @@
     </div>
 
     <div v-else-if="ticket">
-      <div class="mb-3">
-        <div>
-          <div
-            class="d-flex justify-content-between align-items-center gap-3 mb-2"
-          >
-            <div class="font-monospace text-muted small">
-              {{ ticket.workOrderNo }}
-            </div>
-            <div class="small text-muted text-md-end">
-              建立於：{{ formatTime(ticket.createdTime) }}
+      <div class="row g-4 gx-5">
+        <!-- 左側主要內容 -->
+        <div class="col-12 ticket-main-column">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <div class="mb-3">
+                <div>
+                  <div
+                    class="d-flex justify-content-between align-items-center gap-3 mb-2"
+                  >
+                    <div class="font-monospace text-muted small">
+                      {{ ticket.workOrderNo }}
+                    </div>
+                    <div class="small text-muted text-md-end">
+                      建立於：{{ formatTime(ticket.createdTime) }}
+                    </div>
+                  </div>
+
+                  <h3 class="mb-2">{{ ticket.title }}</h3>
+
+                  <span
+                    :class="[
+                      'badge',
+                      'ticket-chip',
+                      statusBadgeClass(ticket.status),
+                    ]"
+                  >
+                    <i class="bi bi-circle-fill me-1 ticket-chip-dot"></i>
+                    {{ statusLabel(ticket.status) }}
+                  </span>
+
+                  <div class="d-flex flex-wrap gap-2 mt-2 small text-muted">
+                    <span>{{ ticket.categoryName || "未分類" }}</span>
+
+                    <span v-if="canViewPriority">
+                      <span aria-hidden="true">｜</span>
+                      優先級：{{ ticket.priorityName || "未設定" }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <section class="border-top border-bottom py-3 mb-3">
+                <!-- 報修地點 -->
+                <div class="mb-3">
+                  <div class="small text-muted mb-1">報修地點</div>
+                  <div class="fw-semibold">
+                    {{ ticket.locationDetail || "未提供" }}
+                  </div>
+                </div>
+
+                <!-- 問題描述 -->
+                <div
+                  class="bg-body-secondary rounded p-3 mb-2"
+                  style="white-space: pre-wrap"
+                >
+                  <div class="small text-muted mb-1">問題描述</div>
+                  <div>
+                    {{ ticket.description || "無" }}
+                  </div>
+                </div>
+
+                <div
+                  v-if="progressNotice"
+                  :class="[
+                    'alert',
+                    'd-flex',
+                    'align-items-start',
+                    'gap-3',
+                    'mb-3',
+                    progressNotice.alertClass,
+                  ]"
+                  role="status"
+                >
+                  <i
+                    :class="['bi', progressNotice.iconClass, 'fs-5']"
+                    aria-hidden="true"
+                  ></i>
+                  <div>
+                    <div class="fw-semibold">
+                      {{ progressNotice.title }}
+                    </div>
+                    <div class="small mt-1">{{ progressNotice.message }}</div>
+                  </div>
+                </div>
+              </section>
+
+              <div class="mb-3">
+                <h5>附件</h5>
+                <div v-if="attachmentsLoading" class="text-muted small">
+                  載入附件中…
+                </div>
+                <div v-else-if="!attachments.length" class="text-muted small">
+                  無附件
+                </div>
+                <div v-else class="d-flex flex-wrap gap-3">
+                  <div
+                    v-for="att in attachments"
+                    :key="att.attachmentId"
+                    class="text-center"
+                    style="width: 120px"
+                  >
+                    <img
+                      v-if="previewUrls[att.attachmentId]"
+                      :src="previewUrls[att.attachmentId]"
+                      :alt="att.originalFileName"
+                      class="img-thumbnail"
+                      style="width: 120px; height: 120px; object-fit: cover"
+                    />
+                    <div
+                      v-else
+                      class="border rounded d-flex align-items-center justify-content-center text-muted small"
+                      style="width: 120px; height: 120px"
+                    >
+                      載入中…
+                    </div>
+                    <div
+                      class="small text-truncate mt-1"
+                      :title="att.originalFileName"
+                    >
+                      {{ att.originalFileName }}
+                    </div>
+                    <button
+                      v-if="att.uploadedUserId === authStore.userId"
+                      type="button"
+                      class="btn btn-sm btn-link text-danger p-0"
+                      @click="handleDeleteAttachment(att.attachmentId)"
+                    >
+                      刪除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="actionMessage" class="alert alert-success py-2">
+                {{ actionMessage }}
+              </div>
+              <div v-if="actionError" class="alert alert-danger py-2">
+                {{ actionError }}
+              </div>
             </div>
           </div>
-
-          <h3 class="mb-2">{{ ticket.title }}</h3>
-
-          <span
-            :class="['badge', 'ticket-chip', statusBadgeClass(ticket.status)]"
-          >
-            <i class="bi bi-circle-fill me-1 ticket-chip-dot"></i>
-            {{ statusLabel(ticket.status) }}
-          </span>
-
-          <div class="d-flex flex-wrap gap-2 mt-2 small text-muted">
-            <span>{{ ticket.categoryName || "未分類" }}</span>
-
-            <span v-if="canViewPriority">
-              <span aria-hidden="true">｜</span>
-              優先級：{{ ticket.priorityName || "未設定" }}
-            </span>
-          </div>
         </div>
-      </div>
+        <!-- 右側案件資訊 -->
+        <aside class="col-12 ticket-info-column">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="card-title mb-3">案件資訊</h6>
 
-      <section class="border-top border-bottom py-3 mb-3">
-        <!-- 報修地點 -->
-        <div class="mb-3">
-          <div class="small text-muted mb-1">報修地點</div>
-          <div class="fw-semibold">{{ ticket.locationDetail || "未提供" }}</div>
-        </div>
-
-        <!-- 問題描述 -->
-        <div
-          class="bg-body-secondary rounded p-3"
-          style="white-space: pre-wrap"
-        >
-          <div class="small text-muted mb-1">問題描述</div>
-          <div>
-            {{ ticket.description || "無" }}
-          </div>
-        </div>
-      </section>
-
-      <dl class="row">
-        <dt class="col-sm-3">聯絡電話</dt>
-        <dd class="col-sm-9">{{ ticket.contactPhone || "—" }}</dd>
-
-        <dt class="col-sm-3">報修人</dt>
-        <dd class="col-sm-9">{{ ticket.creatorName }}</dd>
-
-        <dt class="col-sm-3">負責工程師</dt>
-        <dd class="col-sm-9">{{ ticket.assignedHandlerName || "尚未指派" }}</dd>
-
-        <dt class="col-sm-3">預計完成時間</dt>
-        <dd class="col-sm-9">{{ formatTime(ticket.dueTime) }}</dd>
-      </dl>
-
-      <div class="mb-3">
-        <h5>附件</h5>
-        <div v-if="attachmentsLoading" class="text-muted small">
-          載入附件中…
-        </div>
-        <div v-else-if="!attachments.length" class="text-muted small">
-          無附件
-        </div>
-        <div v-else class="d-flex flex-wrap gap-3">
-          <div
-            v-for="att in attachments"
-            :key="att.attachmentId"
-            class="text-center"
-            style="width: 120px"
-          >
-            <img
-              v-if="previewUrls[att.attachmentId]"
-              :src="previewUrls[att.attachmentId]"
-              :alt="att.originalFileName"
-              class="img-thumbnail"
-              style="width: 120px; height: 120px; object-fit: cover"
-            />
-            <div
-              v-else
-              class="border rounded d-flex align-items-center justify-content-center text-muted small"
-              style="width: 120px; height: 120px"
-            >
-              載入中…
+              <div>
+                <!-- 負責工程師 -->
+                <div
+                  class="d-flex justify-content-between align-items-center gap-3 py-3 border-top small"
+                >
+                  <div class="text-muted">負責工程師</div>
+                  <div class="fw-semibold">
+                    {{ ticket.assignedHandlerName || "尚未指派" }}
+                  </div>
+                  <div
+                    v-if="ticket.assignedHandlerDepartment"
+                    class="small text-muted mt-1"
+                  >
+                    {{ ticket.assignedHandlerDepartment }}
+                  </div>
+                </div>
+                <!-- 預計完成時間 -->
+                <div
+                  class="d-flex justify-content-between align-items-center gap-3 py-3 border-top small"
+                >
+                  <div class="text-muted text-nowrap">預計完成時間</div>
+                  <div class="fw-semibold text-end text-nowrap">
+                    {{ progressNoticeFormatTime(ticket.dueTime) }}
+                  </div>
+                </div>
+                <!-- 報修人 -->
+                <div
+                  class="d-flex justify-content-between align-items-center gap-3 py-3 border-top small"
+                >
+                  <div class="text-muted">報修人</div>
+                  <div class="fw-semibold">
+                    {{ ticket.creatorName }}
+                  </div>
+                </div>
+                <!-- 報修人電話 -->
+                <div
+                  class="d-flex justify-content-between align-items-center gap-3 py-3 border-top small"
+                >
+                  <div class="text-muted">聯絡電話</div>
+                  <div class="fw-semibold">
+                    {{ ticket.contactPhone || "—" }}
+                  </div>
+                </div>
+                <!-- 驗收按鈕 -->
+                <div v-if="canAccept" class="border-top pt-3">
+                  <button
+                    type="button"
+                    class="btn btn-primary w-100 fw-semibold"
+                    :disabled="accepting"
+                    @click="handleAccept"
+                  >
+                    {{ accepting ? "處理中…" : "確認驗收" }}
+                  </button>
+                </div>
+              </div>
             </div>
-            <div class="small text-truncate mt-1" :title="att.originalFileName">
-              {{ att.originalFileName }}
-            </div>
-            <button
-              v-if="att.uploadedUserId === authStore.userId"
-              type="button"
-              class="btn btn-sm btn-link text-danger p-0"
-              @click="handleDeleteAttachment(att.attachmentId)"
-            >
-              刪除
-            </button>
           </div>
-        </div>
+        </aside>
       </div>
-
-      <div v-if="actionMessage" class="alert alert-success py-2">
-        {{ actionMessage }}
-      </div>
-      <div v-if="actionError" class="alert alert-danger py-2">
-        {{ actionError }}
-      </div>
-
-      <button
-        v-if="canAccept"
-        class="btn btn-primary"
-        :disabled="accepting"
-        @click="handleAccept"
-      >
-        {{ accepting ? "處理中…" : "驗收工單" }}
-      </button>
     </div>
   </div>
 </template>
@@ -188,6 +271,30 @@ const STATUS_BADGE_MAP = {
   CANCELLED: "text-bg-light",
 };
 
+// 狀態提示訊息
+const STATUS_NOTICE_MAP = {
+  // 待審核
+  PENDING_REVIEW: {
+    title: "工單已送出，等待審核",
+    message: "管理員審核後，將安排負責工程師。",
+    alertClass: "alert-secondary",
+    iconClass: "bi-hourglass-split",
+  },
+  // 工程師處理中
+  IN_PROGRESS: {
+    title: "工程師處理中",
+    message: "案件目前正在維修中，請留意後續進度。",
+    alertClass: "alert-primary",
+    iconClass: "bi-tools",
+  },
+};
+
+const progressNotice = computed(() => {
+  if (!ticket.value) return null;
+
+  return STATUS_NOTICE_MAP[ticket.value.status] || null;
+});
+
 function statusLabel(status) {
   return STATUS_LABEL_MAP[status] || status;
 }
@@ -199,6 +306,11 @@ function statusBadgeClass(status) {
 function formatTime(value) {
   if (!value) return "—";
   return value.replace("T", " ").slice(0, 19);
+}
+
+function progressNoticeFormatTime(value) {
+  if (!value) return "—";
+  return value.replace("T", " ").slice(0, 16);
 }
 
 const canAccept = computed(
@@ -281,3 +393,17 @@ async function handleAccept() {
   }
 }
 </script>
+<style scoped>
+@media (min-width: 1200px) {
+  .ticket-main-column {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  .ticket-info-column {
+    flex: 0 0 380px;
+    width: 380px;
+  }
+}
+</style>
