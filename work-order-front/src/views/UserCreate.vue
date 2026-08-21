@@ -17,10 +17,6 @@
     <!-- 表單卡片 -->
     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden p-4">
       <form @submit.prevent="handleSubmit">
-        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
-          <i class="bi bi-person-vcard me-1"></i> 基本資料
-        </h6>
-
         <div class="row g-3 mb-4">
           <!-- 帳號 -->
           <div class="col-md-6">
@@ -30,10 +26,14 @@
               帳號 <span class="text-danger">*</span>
             </label>
             <input
+              v-model.trim="form.account"
               type="text"
-              v-model="form.account"
               class="form-control extra-small"
               placeholder="請輸入英文或數字帳號"
+              pattern="[A-Za-z0-9]+"
+              maxlength="50"
+              title="帳號只能輸入英文字母與數字"
+              autocomplete="username"
               required
             />
           </div>
@@ -83,13 +83,32 @@
               placeholder="例如：0912345678"
             />
           </div>
-        </div>
+          <div class="col-md-6">
+            <label
+              class="form-label extra-small fw-semibold text-secondary mb-1"
+            >
+              使用者角色 <span class="text-danger">*</span>
+            </label>
 
-        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
-          <i class="bi bi-shield-lock me-1"></i> 安全性與權限設定
-        </h6>
-
-        <div class="row g-3 mb-4">
+            <div class="role-options border rounded-2 px-3 py-2">
+              <label
+                v-for="role in roleOptions"
+                :key="role.value"
+                class="form-check mb-2 last-option"
+              >
+                <input
+                  v-model="form.roleCodes"
+                  class="form-check-input"
+                  type="checkbox"
+                  :value="role.value"
+                />
+                <span class="form-check-label extra-small">
+                  {{ role.label }}
+                </span>
+              </label>
+            </div>
+            <div class="form-text extra-small">可選擇一個或多個角色</div>
+          </div>
           <!-- 預設密碼 -->
           <div class="col-md-6">
             <label
@@ -114,37 +133,6 @@
               </button>
             </div>
           </div>
-
-          <!-- 帳號狀態 -->
-          <div class="col-md-6">
-            <label
-              class="form-label extra-small fw-semibold text-secondary mb-1"
-              >帳號初始狀態</label
-            >
-            <select v-model="form.status" class="form-select extra-small">
-              <option :value="1">啟用 (直接可登入)</option>
-              <option :value="0">停用</option>
-              <option :value="2">待審核</option>
-            </select>
-          </div>
-
-          <!-- 強制修改密碼 Checkbox -->
-          <div class="col-12 mt-3">
-            <div class="form-check">
-              <input
-                type="checkbox"
-                v-model="form.must_change_password"
-                class="form-check-input"
-                id="mustChangePassword"
-              />
-              <label
-                class="form-check-label extra-small text-dark"
-                for="mustChangePassword"
-              >
-                強制使用者於首次登入時修改密碼 (建議勾選)
-              </label>
-            </div>
-          </div>
         </div>
 
         <!-- 按鈕動作區 -->
@@ -160,7 +148,7 @@
             type="submit"
             class="btn btn-primary extra-small px-4 py-2 rounded-3 shadow-2xs fw-semibold"
           >
-            <i class="bi bi-check-lg me-1"></i> 儲存建立
+            <i class="bi bi-check-lg me-1"></i> 建立
           </button>
         </div>
       </form>
@@ -171,8 +159,15 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { createUser } from "@/api/user.js";
 
 const router = useRouter();
+
+const roleOptions = [
+  { value: "EMPLOYEE", label: "一般員工" },
+  { value: "HANDLER", label: "處理人員" },
+  { value: "ADMIN", label: "系統管理員" },
+];
 
 const goBack = () => {
   if (window.history.state?.back) {
@@ -190,8 +185,7 @@ const form = ref({
   email: "",
   phone: "",
   password: "User1234!", // 預設密碼
-  status: 1, // Default 啟用
-  must_change_password: true, // Default true
+  roleCodes: [],
 });
 
 // 產生隨機密碼小工具
@@ -204,20 +198,40 @@ const generateRandomPassword = () => {
   }
   form.value.password = pass;
 };
-
 // 送出表單處理
 const handleSubmit = async () => {
+  const accountPattern = /^[A-Za-z0-9]+$/;
+
+  if (!accountPattern.test(form.value.account)) {
+    alert("帳號只能輸入英文字母與數字");
+    return;
+  }
+
+  if (form.value.roleCodes.length === 0) {
+    alert("請至少選擇一個使用者角色");
+    return;
+  }
+
   try {
-    // 串接 API 範例：await axios.post('/api/users', form.value)
-    console.log("新增使用者資料：", form.value);
+    const payload = {
+      account: form.value.account.trim(),
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone: form.value.phone.trim() || null,
+      password: form.value.password,
+      roleCodes: form.value.roleCodes,
+    };
+
+    await createUser(payload);
 
     alert("使用者新增成功！");
-
-    //  按下確定後，自動導回使用者管理頁面
     router.push({ name: "user-management" });
   } catch (error) {
     console.error("新增失敗：", error);
-    alert("建立失敗，請確認欄位是否填寫正確！");
+
+    alert(
+      error.response?.data?.message || "建立失敗，請確認欄位是否填寫正確！",
+    );
   }
 };
 </script>
@@ -237,5 +251,13 @@ const handleSubmit = async () => {
 
 .shadow-2xs {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.role-options {
+  background-color: #fff;
+}
+
+.role-options .last-option:last-child {
+  margin-bottom: 0 !important;
 }
 </style>

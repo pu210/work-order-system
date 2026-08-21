@@ -16,7 +16,27 @@
 
     <!-- 表單卡片 -->
     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden p-4">
-      <form @submit.prevent="handleSubmit">
+      <div
+        v-if="errorMessage"
+        class="alert alert-danger extra-small mb-3"
+        role="alert"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <div
+        v-if="isLoading"
+        class="d-flex justify-content-center align-items-center py-5"
+      >
+        <div class="text-center text-muted">
+          <div class="spinner-border text-primary mb-2" role="status">
+            <span class="visually-hidden">載入中</span>
+          </div>
+          <div class="extra-small">正在載入使用者資料...</div>
+        </div>
+      </div>
+
+      <form v-else @submit.prevent="handleSubmit">
         <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
           <i class="bi bi-person-vcard me-1"></i> 基本資料
         </h6>
@@ -62,9 +82,10 @@
             </label>
             <input
               type="email"
-              v-model="form.email"
+              v-model.trim="form.email"
               class="form-control extra-small"
               placeholder="name@example.com"
+              title="請輸入正確的電子郵件格式"
               required
             />
           </div>
@@ -77,93 +98,56 @@
             >
             <input
               type="tel"
-              v-model="form.phone"
+              v-model.trim="form.phone"
               class="form-control extra-small"
               placeholder="例如：0912345678"
+              pattern="[0-9]{10}"
+              maxlength="10"
+              inputmode="numeric"
+              title="聯絡電話需為 10 碼數字"
             />
           </div>
-        </div>
 
-        <div class="row g-3 mb-4">
-          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
-            <i class="bi bi-shield-lock me-1"></i> 安全性與權限設定
-          </h6>
+          <!-- 使用者角色 -->
+          <div class="col-md-6">
+            <label
+              class="form-label extra-small fw-semibold text-secondary mb-1"
+            >
+              使用者角色 <span class="text-danger">*</span>
+            </label>
 
-          <div class="row g-3 mb-4">
-            <!-- 1. 帳號狀態 -->
-            <div class="col-md-6">
+            <div class="role-options border rounded-2 px-3 py-2">
               <label
-                class="form-label extra-small fw-semibold text-secondary mb-1"
-                >帳號狀態</label
+                v-for="role in roleOptions"
+                :key="role.value"
+                class="form-check mb-2 last-option"
               >
-              <select v-model="form.status" class="form-select extra-small">
-                <option :value="1">啟用 (正常使用)</option>
-                <option :value="0">停用</option>
-                <option :value="2">待審核</option>
-              </select>
-            </div>
-
-            <!-- 2. 重設密碼：改為寄送信件按鈕 (🎯 核心修改) -->
-            <div class="col-md-6">
-              <label
-                class="form-label extra-small fw-semibold text-secondary mb-1"
-                >重設密碼</label
-              >
-              <div>
-                <!-- 尚未寄信 / 冷卻結束時顯示 -->
-                <button
-                  v-if="cooldown === 0"
-                  type="button"
-                  class="btn btn-outline-primary extra-small w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3"
-                  :disabled="isSendingMail"
-                  @click="sendResetPasswordEmail"
-                >
-                  <span
-                    v-if="isSendingMail"
-                    class="spinner-border spinner-border-sm"
-                    role="status"
-                  ></span>
-                  <i v-else class="bi bi-envelope-at-fill"></i>
-                  <span>{{
-                    isSendingMail ? "信件寄送中..." : "寄發密碼重設信件"
-                  }}</span>
-                </button>
-
-                <!-- 寄信成功後的提示與倒數 -->
-                <div
-                  v-else
-                  class="alert alert-success extra-small m-0 py-1.5 px-3 d-flex align-items-center justify-content-between rounded-3"
-                >
-                  <span class="d-flex align-items-center gap-1.5">
-                    <i class="bi bi-check-circle-fill text-success"></i>
-                    <span>已寄出重設信至 {{ form.email }}</span>
-                  </span>
-                  <span
-                    class="badge bg-success-subtle text-success border border-success-subtle"
-                  >
-                    {{ cooldown }}s 後可重發
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 3. 強制修改密碼 Checkbox -->
-            <div class="col-12 mt-2">
-              <div class="form-check">
                 <input
-                  type="checkbox"
-                  v-model="form.must_change_password"
+                  v-model="form.roleCodes"
                   class="form-check-input"
-                  id="mustChangePassword"
+                  type="checkbox"
+                  :value="role.value"
+                  :disabled="
+                    role.value === 'ADMIN' &&
+                    isLastActiveAdmin &&
+                    form.roleCodes.includes('ADMIN')
+                  "
                 />
-                <label
-                  class="form-check-label extra-small text-dark"
-                  for="mustChangePassword"
-                >
-                  要求使用者下次登入時必須強制修改密碼
-                </label>
-              </div>
+
+                <span class="form-check-label extra-small">
+                  {{ role.label }}
+                </span>
+              </label>
             </div>
+            <div
+              v-if="isLastActiveAdmin"
+              class="form-text text-warning extra-small"
+            >
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              此帳號是目前最後一位啟用中的管理員，無法移除管理員角色。
+            </div>
+
+            <div v-else class="form-text extra-small">可選擇一個或多個角色</div>
           </div>
         </div>
 
@@ -179,8 +163,16 @@
           <button
             type="submit"
             class="btn btn-primary extra-small px-4 py-2 rounded-3 shadow-2xs fw-semibold"
+            :disabled="isSubmitting || isLoading"
           >
-            <i class="bi bi-check-lg me-1"></i> 儲存變更
+            <span
+              v-if="isSubmitting"
+              class="spinner-border spinner-border-sm me-1"
+              role="status"
+            ></span>
+            <i v-else class="bi bi-check-lg me-1"></i>
+
+            {{ isSubmitting ? "儲存中..." : "儲存變更" }}
           </button>
         </div>
       </form>
@@ -189,12 +181,27 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { getUser, updateUser } from "@/api/user.js";
+import { getErrorMessage } from "@/utils/apiError.js";
+import { useAuthStore } from "@/stores/auth.js";
+import { notify } from "@/plugins/notify.js";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const userId = route.params.id;
+const isLoading = ref(false);
+const errorMessage = ref("");
+const isSubmitting = ref(false);
+const isLastActiveAdmin = ref(false);
+
+const roleOptions = [
+  { value: "EMPLOYEE", label: "一般員工" },
+  { value: "HANDLER", label: "處理人員" },
+  { value: "ADMIN", label: "系統管理員" },
+];
 
 const goBack = () => {
   if (window.history.state?.back) {
@@ -211,28 +218,100 @@ const form = ref({
   name: "",
   email: "",
   phone: "",
-  password: "User1234!", // 預設密碼
   status: 1, // Default 啟用
   must_change_password: true, // Default true
+  roleCodes: [],
 });
 
-// 產生隨機密碼小工具
-const generateRandomPassword = () => {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#";
-  let pass = "";
-  for (let i = 0; i < 10; i++) {
-    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+const loadUser = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const user = await getUser(userId);
+
+    form.value.account = user.account;
+    form.value.name = user.name;
+    form.value.email = user.email;
+    form.value.phone = user.phone ?? "";
+    form.value.status = user.status;
+    form.value.must_change_password = user.mustChangePassword;
+    form.value.roleCodes = [...(user.roleCodes ?? [])];
+    isLastActiveAdmin.value = user.lastActiveAdmin === true;
+  } catch (error) {
+    errorMessage.value = getErrorMessage(error, "使用者資料載入失敗");
+  } finally {
+    isLoading.value = false;
   }
-  form.value.password = pass;
 };
 
+onMounted(loadUser);
+
 // 送出表單處理
-const handleSubmit = () => {
-  // 這裡之後串接 API 打到後端 POST /api/users
-  console.log("送出的 User 資料：", form.value);
-  alert("使用者編輯功！");
-  router.push({ name: "user-management" });
+const handleSubmit = async () => {
+  if (isSubmitting.value) return;
+
+  errorMessage.value = "";
+
+  const email = form.value.email.trim();
+  const phone = form.value.phone.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phonePattern = /^\d{10}$/;
+
+  if (!emailPattern.test(email)) {
+    errorMessage.value = "請輸入正確的電子郵件格式";
+    notify.error(errorMessage.value);
+    return;
+  }
+
+  if (phone && !phonePattern.test(phone)) {
+    errorMessage.value = "聯絡電話需為 10 碼數字";
+    notify.error(errorMessage.value);
+    return;
+  }
+
+  if (form.value.roleCodes.length === 0) {
+    errorMessage.value = "請至少選擇一個使用者角色";
+    notify.error(errorMessage.value);
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    const payload = {
+      name: form.value.name.trim(),
+      email,
+      phone,
+      status: form.value.status,
+      roleCodes: form.value.roleCodes,
+    };
+
+    const updatedUser = await updateUser(userId, payload);
+
+    const isEditingSelf = updatedUser.userId === authStore.userId;
+
+    if (isEditingSelf) {
+      authStore.syncProfile({
+        name: updatedUser.name,
+        email: updatedUser.email,
+        roleCodes: updatedUser.roleCodes,
+      });
+    }
+
+    notify.success("使用者資料更新成功！");
+
+    if (isEditingSelf && !updatedUser.roleCodes.includes("ADMIN")) {
+      router.replace({ name: "Dashboard" });
+    } else {
+      router.push({ name: "user-management" });
+    }
+  } catch (error) {
+    errorMessage.value = getErrorMessage(error, "使用者資料更新失敗");
+    notify.error(errorMessage.value);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 

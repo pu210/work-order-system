@@ -1,10 +1,12 @@
 package com.eeit219.work_order_system.modules.b.entity;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
+import com.eeit219.work_order_system.modules.f.entity.RepairTargets;
 import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
 import jakarta.persistence.Column;
@@ -75,8 +77,16 @@ public class WorkOrder {
     private User creator;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private User admin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_handler")
     private User assignedHandler;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_id")
+    private RepairTargets repairTargets;
 
     @Column(name = "is_overdue", nullable = false)
     private Boolean isOverdue = false;

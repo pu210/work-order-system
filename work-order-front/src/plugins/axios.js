@@ -1,16 +1,63 @@
 import axios from "axios";
-import { getToken, clearAuth } from "@/utils/auth.js";
+import { getToken, saveAuth, clearAuth } from "@/utils/auth.js";
 import { notify } from "@/plugins/notify.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  baseURL,
+  withCredentials: true,
 });
+
+let refreshPromise = null;
+
+export async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${baseURL}/auth/refresh`, null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const data = response.data?.data;
+
+        if (!data?.token) {
+          throw new Error("刷新回應缺少 Access Token");
+        }
+
+        saveAuth(data);
+
+        return data.token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+function redirectToLogin() {
+  clearAuth();
+
+  const returnUrl = `${window.location.pathname}${window.location.search}`;
+
+  window.location.assign(
+    `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
+  );
+}
+
 instance.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) {
+  // 只有在未提供自訂 Authorization 且為內部 API 請求時，才注入系統 JWT Token
+  if (
+    token &&
+    !config.headers.Authorization &&
+    !config.url?.startsWith("http")
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -21,23 +68,43 @@ instance.interceptors.response.use(
     const code = error.response?.data?.code;
     const config = error.config || {};
 
-    if (status === 401 && !config.skipAuthRedirect) {
-      clearAuth();
+    // 對外部 API (例如 Google API) 的 401 錯誤不引發系統登出轉址
+    const isExternalUrl =
+      config.url?.startsWith("http://") || config.url?.startsWith("https://");
 
-      const returnUrl = `${window.location.pathname}${window.location.search}`;
+    if (status === 401 && !config.skipAuthRedirect && !isExternalUrl) {
+      // 判定是否嘗試重刷 Token (未重試過才嘗試)
+      const shouldTryRefresh = !config._retry;
 
-      window.location.assign(
-        `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
-      );
+      if (shouldTryRefresh) {
+        config._retry = true;
 
-      return Promise.reject(error);
+        try {
+          const newAccessToken = await refreshAccessToken();
+
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${newAccessToken}`;
+
+          return instance(config);
+        } catch (refreshError) {
+          redirectToLogin();
+          return Promise.reject(refreshError);
+        }
+      } else {
+        redirectToLogin();
+        return Promise.reject(error);
+      }
     }
 
     if (status === 403) {
       if (code === "PASSWORD_CHANGE_REQUIRED") {
-        window.location.assign("/account/initial-password");
+        if (window.location.pathname !== "/account/initial-password") {
+          window.location.assign("/account/initial-password");
+        }
       } else if (!config.skipForbiddenRedirect) {
-        window.location.assign("/forbidden");
+        if (window.location.pathname !== "/forbidden") {
+          window.location.assign("/forbidden");
+        }
       }
 
       return Promise.reject(error);

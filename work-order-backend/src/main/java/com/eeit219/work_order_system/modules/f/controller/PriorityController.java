@@ -34,6 +34,9 @@ public class PriorityController {
 
     @PostMapping
     public Priority createPriority(@RequestBody Priority priority) {
+        if (priority.getStatus() == null) {
+            priority.setStatus(true);
+        }
         return priorityRepository.save(priority);
     }
 

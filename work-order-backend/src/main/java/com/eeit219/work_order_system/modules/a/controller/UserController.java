@@ -91,6 +91,7 @@ public class UserController {
                                                 HttpStatus.OK.value(),
                                                 "使用者分頁查詢成功",
                                                 data));
+
         }
 
         // 管理員審核使用者自行註冊

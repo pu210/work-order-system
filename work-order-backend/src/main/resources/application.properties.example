@@ -21,3 +21,11 @@ spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 spring.datasource.url=jdbc:sqlserver://localhost:1433;encrypt=true;trustServerCertificate=true;database=workorderDB;
 spring.datasource.username=YOUR_USERNAME
 spring.datasource.password=YOUR_PASSWORD
+
+# JWT access token expire time (minutes)
+jwt.token.expire=10
+
+# Refresh token expire time (days)
+refresh.token.expire-days=7
+# Local development uses HTTP
+refresh.cookie.secure=false
