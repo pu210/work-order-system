@@ -18,15 +18,10 @@ public class RepairTargetController {
     @Autowired
     private RepairTargetService repairTargetService;
 
-    // 取得全部維修目標 (回傳 DTO 列表)
+    // 取得全部或透過關鍵字搜尋維修目標 (支援 keyword 參數)
     @GetMapping
-    public ResponseEntity<List<RepairTargetResponseDto>> getAllRepairTargets() {
-        return ResponseEntity.ok(repairTargetService.getAllRepairTargets());
-    }
-
-    // 關鍵字搜尋 (支援安全的模糊比對，回傳 DTO 列表)
-    @GetMapping("/search")
-    public ResponseEntity<List<RepairTargetResponseDto>> searchRepairTargets(@RequestParam("keyword") String keyword) {
+    public ResponseEntity<List<RepairTargetResponseDto>> getAllOrSearchRepairTargets(
+            @RequestParam(required = false) String keyword) {
         return ResponseEntity.ok(repairTargetService.searchRepairTargets(keyword));
     }
 
@@ -44,7 +39,7 @@ public class RepairTargetController {
         return ResponseEntity.ok(repairTargetService.updateRepairTarget(id, requestDto));
     }
 
-    // 狀態開關切換 (軟刪除 / 啟用停用切換)
+    // 狀態開關切換 (啟用/停用)
     @PatchMapping("/{id}/status")
     public ResponseEntity<RepairTarget> updateStatus(
             @PathVariable("id") Integer id,

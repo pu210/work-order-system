@@ -19,7 +19,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>優先級名稱</th>
+            <th>優先級別</th>
             <th>處理時數</th>
             <th>狀態</th>
             <th>操作</th>

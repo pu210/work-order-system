@@ -2,9 +2,23 @@
   <div class="settings-container">
     <h2 class="page-title">系統基礎設定</h2>
 
-    <!-- 頁籤切換按鈕 -->
+    <!-- 頁籤切換按鈕 (順序已調整) -->
     <div class="action-bar" style="margin-bottom: 24px;">
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button 
+          class="btn-search" 
+          :style="activeTab === 'target' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
+          @click="activeTab = 'target'"
+        >
+          報修設備管理
+        </button>
+        <button 
+          class="btn-search" 
+          :style="activeTab === 'priority' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
+          @click="activeTab = 'priority'"
+        >
+          優先級管理
+        </button>
         <button 
           class="btn-search" 
           :style="activeTab === 'category' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
@@ -19,41 +33,27 @@
         >
           報修子類管理
         </button>
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'priority' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'priority'"
-        >
-          優先級管理
-        </button>
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'target' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'target'"
-        >
-          報修設備管理
-        </button>
       </div>
     </div>
 
-    <!-- 1. 報修大類管理內容 -->
-    <div v-if="activeTab === 'category'">
-      <SettingCategory />
+    <!-- 1. 報修設備管理內容 -->
+    <div v-if="activeTab === 'target'">
+      <SettingTarget />
     </div>
 
-    <!-- 2. 報修子類管理內容 -->
-    <div v-if="activeTab === 'subCategory'">
-      <SettingSubCategory />
-    </div>
-
-    <!-- 3. 優先級管理內容 -->
+    <!-- 2. 優先級管理內容 -->
     <div v-if="activeTab === 'priority'">
       <SettingPriority />
     </div>
 
-    <!-- 4. 報修設備管理內容 -->
-    <div v-if="activeTab === 'target'">
-      <SettingTarget />
+    <!-- 3. 報修大類管理內容 -->
+    <div v-if="activeTab === 'category'">
+      <SettingCategory />
+    </div>
+
+    <!-- 4. 報修子類管理內容 -->
+    <div v-if="activeTab === 'subCategory'">
+      <SettingSubCategory />
     </div>
   </div>
 </template>
@@ -65,7 +65,8 @@ import SettingSubCategory from "@/views/SettingSubCategory.vue";
 import SettingPriority from "@/views/SettingPriority.vue";
 import SettingTarget from "@/views/SettingTarget.vue";
 
-const activeTab = ref("category");
+// 預設開啟報修設備管理
+const activeTab = ref("target");
 </script>
 
 <style scoped>
