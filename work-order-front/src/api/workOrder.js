@@ -1,48 +1,140 @@
-import api from '@/plugins/axios.js'
+import api from "@/plugins/axios.js";
 
 // WorkOrderController 回應包在 ApiResponse { code, message, data } 裡，這裡直接解出 data 方便呼叫端使用
 export function createWorkOrder(payload) {
-  return api.post('/api/work-orders', payload).then((res) => res.data.data)
+  return api.post("/api/work-orders", payload).then((res) => res.data.data);
 }
 
 export function getWorkOrderById(id) {
-  return api.get(`/api/work-orders/${id}`).then((res) => res.data.data)
+  return api.get(`/api/work-orders/${id}`).then((res) => res.data.data);
 }
 
 export function getWorkOrderList(params) {
-  return api.get('/api/work-orders', { params }).then((res) => res.data.data)
+  return api.get("/api/work-orders", { params }).then((res) => res.data.data);
 }
 
 export function getMySubmissions(params) {
-  return api.get('/api/work-orders/my-submissions', { params }).then((res) => res.data.data)
+  return api
+    .get("/api/work-orders/my-submissions", { params })
+    .then((res) => res.data.data);
 }
 
-export function acceptWorkOrder(id, userId, feedback) {
+// 管理員審核編輯鎖
+
+export function startEditSession(workOrderId) {
   return api
-    .post(`/api/work-orders/${id}/usercheck/accept`, { userId, feedback })
-    .then((res) => res.data.data)
+    .post(`/api/work-orders/${workOrderId}/review/edit-session`)
+    .then((res) => res.data.data);
+}
+
+export function editSessionHeartbeat(workOrderId, sessionToken) {
+  return api
+    .patch(
+      `/api/work-orders/${workOrderId}/review/edit-session/heartbeat`,
+      null,
+      {
+        headers: {
+          "X-Edit-Session-Token": sessionToken,
+        },
+      },
+    )
+    .then((res) => res.data.data);
+}
+
+export function releaseEditSession(workOrderId, sessionToken) {
+  return api
+    .delete(`/api/work-orders/${workOrderId}/review/edit-session`, {
+      headers: {
+        "X-Edit-Session-Token": sessionToken,
+      },
+    })
+    .then((res) => res.data.data);
+}
+
+// 管理員初審／派工
+
+export function reviewAccept(workOrderId, payload, sessionToken) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, {
+      headers: {
+        "X-Edit-Session-Token": sessionToken,
+      },
+    })
+    .then((res) => res.data.data);
+}
+
+export function reviewReject(workOrderId, payload, sessionToken) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, {
+      headers: {
+        "X-Edit-Session-Token": sessionToken,
+      },
+    })
+    .then((res) => res.data.data);
+}
+
+// 工程師處理
+
+export function progressAccept(workOrderId, payload) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/progress/accept`, payload)
+    .then((res) => res.data.data);
+}
+
+export function progressReject(workOrderId, payload) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/progress/reject`, payload)
+    .then((res) => res.data.data);
+}
+
+// 申請人驗收
+
+export function userCheckAccept(workOrderId, payload) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/user-check/accept`, payload)
+    .then((res) => res.data.data);
+}
+
+// 管理員最終驗收
+
+export function adminCheckAccept(workOrderId, payload) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload)
+    .then((res) => res.data.data);
+}
+
+export function adminCheckReject(workOrderId, payload) {
+  return api
+    .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload)
+    .then((res) => res.data.data);
 }
 
 // 圖片限定、單檔 10MB，後端欄位名固定叫 files；不手動設 Content-Type，讓瀏覽器自動帶 boundary
 export function uploadAttachments(workOrderId, files) {
-  const formData = new FormData()
-  files.forEach((file) => formData.append('files', file))
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
   return api
     .post(`/api/work-orders/${workOrderId}/attachments`, formData)
-    .then((res) => res.data.data)
+    .then((res) => res.data.data);
 }
 
 export function getAttachments(workOrderId) {
-  return api.get(`/api/work-orders/${workOrderId}/attachments`).then((res) => res.data.data)
+  return api
+    .get(`/api/work-orders/${workOrderId}/attachments`)
+    .then((res) => res.data.data);
 }
 
 // 預覽 API 不包 ApiResponse，直接回檔案 binary；<img> 原生無法帶 Authorization header，改用 blob + object URL
 export function getAttachmentPreview(attachmentId) {
   return api
-    .get(`/api/work-orders/attachments/${attachmentId}/view`, { responseType: 'blob' })
-    .then((res) => res.data)
+    .get(`/api/work-orders/attachments/${attachmentId}/view`, {
+      responseType: "blob",
+    })
+    .then((res) => res.data);
 }
 
 export function deleteAttachment(attachmentId) {
-  return api.delete(`/api/work-orders/attachments/${attachmentId}`).then((res) => res.data.data)
+  return api
+    .delete(`/api/work-orders/attachments/${attachmentId}`)
+    .then((res) => res.data.data);
 }
