@@ -6,12 +6,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.common.security.AuthenticatedUser;
 import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.ProgressAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.dto.ReviewAcceptRequest;
 import com.eeit219.work_order_system.modules.c.service.AdminCheckService;
@@ -45,9 +47,10 @@ public class WorkOrderStateMachineController {
         public ResponseEntity<ApiResponse<Object>> reviewAccept(
                         @PathVariable Integer workOrderId,
                         @Valid @RequestBody ReviewAcceptRequest request,
+                        @RequestHeader(value = "X-Edit-Session-Token", required = false) String sessionToken,
                         @AuthenticationPrincipal AuthenticatedUser loginUser) {
 
-                reviewService.reviewAccept(request, workOrderId, loginUser.userId());
+                reviewService.reviewAccept(request, workOrderId, loginUser.userId(), sessionToken);
                 return ResponseEntity.ok(
                                 ApiResponse.success(
                                                 HttpStatus.OK.value(),
@@ -59,9 +62,10 @@ public class WorkOrderStateMachineController {
         public ResponseEntity<ApiResponse<Object>> reviewReject(
                         @PathVariable Integer workOrderId,
                         @Valid @RequestBody RejectWorkOrderRequest request,
+                        @RequestHeader(value = "X-Edit-Session-Token", required = false) String sessionToken,
                         @AuthenticationPrincipal AuthenticatedUser loginUser) {
 
-                reviewService.reviewReject(request, workOrderId, loginUser.userId());
+                reviewService.reviewReject(request, workOrderId, loginUser.userId(), sessionToken);
                 return ResponseEntity.ok(
                                 ApiResponse.success(
                                                 HttpStatus.OK.value(),
@@ -72,7 +76,7 @@ public class WorkOrderStateMachineController {
         @PostMapping("/{workOrderId}/progress/accept")
         public ResponseEntity<ApiResponse<Object>> progressAccept(
                         @PathVariable Integer workOrderId,
-                        @Valid @RequestBody AcceptWorkOrderRequest request,
+                        @Valid @RequestBody ProgressAcceptRequest request,
                         @AuthenticationPrincipal AuthenticatedUser loginUser) {
 
                 progressService.progressAccept(request, workOrderId, loginUser.userId());

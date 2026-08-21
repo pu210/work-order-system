@@ -83,7 +83,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   getWorkOrderById,
-  acceptWorkOrder,
+  userCheckAccept,
   getAttachments,
   getAttachmentPreview,
   deleteAttachment,
@@ -201,7 +201,7 @@ async function handleAccept() {
   actionMessage.value = ''
   actionError.value = ''
   try {
-    await acceptWorkOrder(route.params.id, authStore.userId)
+    await userCheckAccept(route.params.id, { feedback: '' })
     await loadTicket()
     actionMessage.value = '工單已驗收完成'
   } catch (error) {

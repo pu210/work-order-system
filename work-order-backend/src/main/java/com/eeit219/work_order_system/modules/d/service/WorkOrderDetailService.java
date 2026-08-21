@@ -102,6 +102,7 @@ public class WorkOrderDetailService {
                                                 assignedHandlerName)
                                 .isOverDue(
                                                 workOrder.getIsOverdue())
+                                .version(workOrder.getVersion())
                                 .build();
         }
 

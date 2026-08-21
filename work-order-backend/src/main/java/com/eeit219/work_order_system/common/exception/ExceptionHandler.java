@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 @RestControllerAdvice
 public class ExceptionHandler {
@@ -107,5 +109,71 @@ public class ExceptionHandler {
                                 .body(ApiResponse.error(
                                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                                 "伺服器發生未預期錯誤"));
+        }
+
+        // 409 樂觀鎖發生衝突
+        @org.springframework.web.bind.annotation.ExceptionHandler(OptimisticLockingFailureException.class)
+        public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(
+                        OptimisticLockingFailureException exception) {
+
+                log.warn("工單發生樂觀鎖衝突", exception);
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error(
+                                                HttpStatus.CONFLICT.value(),
+                                                "工單已被其他人修改，請重新載入最新資料"));
+        }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(EditSessionLockedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleEditSessionLocked(
+                        EditSessionLockedException exception) {
+
+                return ResponseEntity.status(HttpStatus.LOCKED)
+                                .body(ApiResponse.error(
+                                                HttpStatus.LOCKED.value(),
+                                                exception.getMessage()));
+        }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(InvalidEditSessionException.class)
+        public ResponseEntity<ApiResponse<Void>> handleInvalidEditSession(
+                        InvalidEditSessionException exception) {
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error(
+                                                HttpStatus.CONFLICT.value(),
+                                                exception.getMessage()));
+        }
+        // return ResponseEntity.status(
+        // HttpStatus.INTERNAL_SERVER_ERROR)
+        // .body(ApiResponse.error(
+        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        // "伺服器發生未預期錯誤"));
+        // }
+        // return ResponseEntity.status(
+        // HttpStatus.INTERNAL_SERVER_ERROR)
+        // .body(ApiResponse.error(
+        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        // "伺服器發生未預期錯誤"));
+        // }
+
+        // D Module 無權查看403
+        // @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
+        // public ResponseEntity<ApiResponse<Void>>
+        // handleAccessDenied(AccessDeniedException e) {
+
+        // return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        // .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(),
+        // e.getMessage()));
+
+        // }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(EntityNotFoundException.class)
+        public ResponseEntity<ApiResponse<Void>> EntityNotFound(EntityNotFoundException e) {
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(ApiResponse.error(
+                                                HttpStatus.NOT_FOUND.value(),
+                                                e.getMessage()));
+
         }
 }

@@ -6,8 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
