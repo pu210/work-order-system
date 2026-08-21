@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eeit219.work_order_system.common.websocket.NotificationWebSocketHandler;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.e.entity.Notification;
 import com.eeit219.work_order_system.modules.e.repository.NotificationRepository;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationWebSocketHandler webSocketHandler;
 
     @Transactional
     public Notification sendNotification(Integer receiverId, Integer senderId, Integer workOrderId, String title,
@@ -28,11 +30,24 @@ public class NotificationService {
         notification.setMessage(message); // 通知詳細內容
         notification.setStatus(status); // 當時的工單狀態
         notification.setIsRead(false); // 預設為未讀
-        return notificationRepository.save(notification); // 存入資料庫
+        // 1. 先存入資料庫，拿到包含流水號 ID 的成果 saved
+Notification saved = notificationRepository.save(notification);
+// 2. 拿這筆 saved 資料去發送 WebSocket 實時推播
+webSocketHandler.sendNotificationToUser(receiverId, saved);
+// 3. 最後把 saved 成果 return 交出去！
+return saved;
     }
 
     // 你原本寫好的查詢方法
     public List<Notification> getNotificationsByReceiverId(Integer receiverId) {
         return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
     }
-}
+    @Transactional
+    public Notification markAsRead(Integer notificationId){
+        Notification notification = notificationRepository.findById(notificationId)
+        .orElseThrow
+        (() -> new RuntimeException("通知不存在"+notificationId));
+        notification.setIsRead(true);
+        return notificationRepository.save(notification);
+    }
+}                                                                                                                                                                                                                                             
