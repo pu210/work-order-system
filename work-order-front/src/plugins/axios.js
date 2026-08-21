@@ -50,7 +50,11 @@ function redirectToLogin() {
 instance.interceptors.request.use((config) => {
   const token = getToken();
   // 只有在未提供自訂 Authorization 且為內部 API 請求時，才注入系統 JWT Token
-  if (token && !config.headers.Authorization && !config.url?.startsWith("http")) {
+  if (
+    token &&
+    !config.headers.Authorization &&
+    !config.url?.startsWith("http")
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -65,30 +69,31 @@ instance.interceptors.response.use(
     const config = error.config || {};
 
     // 對外部 API (例如 Google API) 的 401 錯誤不引發系統登出轉址
-    const isExternalUrl = config.url?.startsWith("http://") || config.url?.startsWith("https://");
+    const isExternalUrl =
+      config.url?.startsWith("http://") || config.url?.startsWith("https://");
 
     if (status === 401 && !config.skipAuthRedirect && !isExternalUrl) {
-      clearAuth();
+      // 判定是否嘗試重刷 Token (未重試過才嘗試)
+      const shouldTryRefresh = !config._retry;
 
-    if (shouldTryRefresh) {
-      config._retry = true;
+      if (shouldTryRefresh) {
+        config._retry = true;
 
-      try {
-        const newAccessToken = await refreshAccessToken();
+        try {
+          const newAccessToken = await refreshAccessToken();
 
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${newAccessToken}`;
+          config.headers = config.headers || {};
+          config.headers.Authorization = `Bearer ${newAccessToken}`;
 
-        return instance(config);
-      } catch (refreshError) {
+          return instance(config);
+        } catch (refreshError) {
+          redirectToLogin();
+          return Promise.reject(refreshError);
+        }
+      } else {
         redirectToLogin();
-        return Promise.reject(refreshError);
+        return Promise.reject(error);
       }
-    }
-
-    if (status === 401 && !config.skipAuthRedirect) {
-      redirectToLogin();
-      return Promise.reject(error);
     }
 
     if (status === 403) {
