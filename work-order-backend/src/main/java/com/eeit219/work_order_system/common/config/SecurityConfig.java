@@ -5,11 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -36,6 +37,11 @@ public class SecurityConfig {
         }
 
         @Bean
+        public WebSecurityCustomizer webSecurityCustomizer() {
+                return (web) -> web.ignoring().requestMatchers("/ws/**", "/ws/notifications");
+        }
+
+        @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .cors(cors -> {
@@ -48,7 +54,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/auth/login", "/auth/register",
                                                                 "/auth/forgot-password", "/auth/reset-password",
                                                                 "/oauth2/**",
-                                                                "/login/oauth2/**")
+                                                                "/login/oauth2/**",
+                                                                "/ws/**",
+                                                                "/ws/notifications")
                                                 .permitAll()
                                                 // 首次登入修改密碼：只需要登入，不限制角色
                                                 .requestMatchers(

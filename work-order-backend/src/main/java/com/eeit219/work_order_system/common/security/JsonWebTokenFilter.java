@@ -49,8 +49,14 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
         }
 
         String auth = request.getHeader("Authorization");
+        String token = null;
         if (auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7); // 去掉前面的"Bearer "
+            token = auth.substring(7); // 去掉前面的"Bearer "
+        } else if (request.getParameter("token") != null) {
+            token = request.getParameter("token"); // 支援 WebSocket 從 URL 帶入 ?token=xxx
+        }
+
+        if (token != null) {
             String subject = jwtUtil.validateToken(token); // 驗證token
             if (subject != null) {
                 JSONObject userData = new JSONObject(subject);

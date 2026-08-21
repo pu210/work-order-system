@@ -155,17 +155,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from '@/plugins/axios.js'
-import { notify } from '@/plugins/notify.js'
+import { useNotificationStore } from '@/stores/notification.js'
 
-// 狀態定義
-const notifications = ref([])
+const notificationStore = useNotificationStore()
 const loading = ref(false)
 const errorMessage = ref('')
 const currentTab = ref('all') // 'all' | 'unread' | 'read'
 
-// 計算屬性
-const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
+// 直接使用 Store 的響應式資料與狀態
+const notifications = computed(() => notificationStore.notifications)
+const unreadCount = computed(() => notificationStore.unreadCount)
 const readCount = computed(() => notifications.value.filter(n => n.isRead).length)
 
 const filteredNotifications = computed(() => {
@@ -178,19 +177,15 @@ const filteredNotifications = computed(() => {
   return notifications.value
 })
 
-// ---- 1. 從後端載入通知清單 API ----
-// GET /api/notifications/my
+// ---- 1. 從後端 API 重新載入通知 ----
 const loadNotifications = async () => {
   loading.value = true
   errorMessage.value = ''
   try {
-    const response = await axios.get('/api/notifications/my')
-    // 後端 ApiResponse 格式為 { success: true, status: 200, message: "...", data: [...] }
-    const list = response.data?.data || []
-    notifications.value = list
+    await notificationStore.fetchNotifications()
   } catch (error) {
     console.error('載入通知失敗：', error)
-    errorMessage.value = error.response?.data?.message || '無法取得通知清單，請稍後再試。'
+    errorMessage.value = '無法取得通知清單，請稍後再試。'
   } finally {
     loading.value = false
   }
@@ -198,21 +193,12 @@ const loadNotifications = async () => {
 
 // ---- 2. 標記單筆已讀 ----
 const toggleReadStatus = async (item) => {
-  try {
-    // 1. 打後端 API 真正修改資料庫
-    await axios.patch(`/api/notifications/read/${item.notificationId}`)
-    // 2. 成功後更新前端狀態
-    item.isRead = true
-    notify.success('已標記為已讀')
-  } catch (error) {
-    console.error('標記已讀失敗：', error)
-  }
+  await notificationStore.markAsRead(item)
 }
 
 // ---- 3. 全部標為已讀 ----
-const markAllAsRead = () => {
-  notifications.value.forEach(n => { n.isRead = true })
-  notify.success('已將所有通知標記為已讀')
+const markAllAsRead = async () => {
+  await notificationStore.markAllAsRead()
 }
 
 // ---- 4. 工具與樣式選取 ----
@@ -223,12 +209,14 @@ const formatTime = (timeStr) => {
 
 const formatStatus = (status) => {
   const map = {
+    PENDING_REVIEW: '待審核',
     DRAFT: '草稿',
     SUBMITTED: '已送出',
     ASSIGNED: '已派單',
     IN_PROGRESS: '處理中',
     PENDING_USER_ACCEPTANCE: '待使用者驗收',
-    PENDING_ADMIN_ACCEPTANCE: '待管理員審核',
+    PENDING_ADMIN_ACCEPTANCE: '待管理員驗收',
+    COMPLETED: '已完成',
     CLOSED: '已結案',
     CANCELLED: '已撤回',
     REJECTED: '已退單'
@@ -250,7 +238,7 @@ const getIconBgClass = (item) => {
   return 'bg-secondary-subtle text-secondary'
 }
 
-// 組件掛載後自動呼叫 API
+// 組件掛載後自動載入歷史通知
 onMounted(() => {
   loadNotifications()
 })
