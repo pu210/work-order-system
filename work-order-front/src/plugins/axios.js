@@ -12,7 +12,7 @@ const instance = axios.create({
 
 let refreshPromise = null;
 
-async function refreshAccessToken() {
+export async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = axios
       .post(`${baseURL}/auth/refresh`, null, {
