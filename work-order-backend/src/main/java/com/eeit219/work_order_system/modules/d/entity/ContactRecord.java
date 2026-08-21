@@ -33,7 +33,7 @@ public class ContactRecord {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "record_type", nullable = false, length = 30)
+    @Column(name = "record_type", nullable = true, length = 30)
     private ContactRecordType recordType = ContactRecordType.COMMENT;
 
     @Column(name = "created_time", nullable = false, updatable = false)
