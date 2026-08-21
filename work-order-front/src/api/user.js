@@ -6,3 +6,20 @@ export function getUsers(params) {
 export function updateUserStatus(userId, status) {
   return api.patch(`/users/${userId}`, { status }).then((res) => res.data.data);
 }
+
+export function createUser(payload) {
+  return api.post("/users", payload).then((res) => res.data.data);
+}
+
+export function reviewUserRegistration(userId, payload) {
+  return api
+    .patch(`/users/${userId}/approval`, payload)
+    .then((res) => res.data.data);
+}
+export function getUser(userId) {
+  return api.get(`/users/${userId}`).then((res) => res.data.data);
+}
+
+export function updateUser(userId, payload) {
+  return api.patch(`/users/${userId}`, payload).then((res) => res.data.data);
+}

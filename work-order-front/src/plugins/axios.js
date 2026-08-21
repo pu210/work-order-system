@@ -1,17 +1,59 @@
 import axios from "axios";
-import { getToken, clearAuth } from "@/utils/auth.js";
+import { getToken, saveAuth, clearAuth } from "@/utils/auth.js";
 import { notify } from "@/plugins/notify.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  baseURL,
+  withCredentials: true,
 });
+
+let refreshPromise = null;
+
+export async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${baseURL}/auth/refresh`, null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const data = response.data?.data;
+
+        if (!data?.token) {
+          throw new Error("刷新回應缺少 Access Token");
+        }
+
+        saveAuth(data);
+
+        return data.token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+function redirectToLogin() {
+  clearAuth();
+
+  const returnUrl = `${window.location.pathname}${window.location.search}`;
+
+  window.location.assign(
+    `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
+  );
+}
+
 instance.interceptors.request.use((config) => {
   const token = getToken();
   // 只有在未提供自訂 Authorization 且為內部 API 請求時，才注入系統 JWT Token
   if (token && !config.headers.Authorization && !config.url?.startsWith("http")) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
@@ -28,12 +70,24 @@ instance.interceptors.response.use(
     if (status === 401 && !config.skipAuthRedirect && !isExternalUrl) {
       clearAuth();
 
-      const returnUrl = `${window.location.pathname}${window.location.search}`;
+    if (shouldTryRefresh) {
+      config._retry = true;
 
-      window.location.assign(
-        `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`,
-      );
+      try {
+        const newAccessToken = await refreshAccessToken();
 
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${newAccessToken}`;
+
+        return instance(config);
+      } catch (refreshError) {
+        redirectToLogin();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    if (status === 401 && !config.skipAuthRedirect) {
+      redirectToLogin();
       return Promise.reject(error);
     }
 
