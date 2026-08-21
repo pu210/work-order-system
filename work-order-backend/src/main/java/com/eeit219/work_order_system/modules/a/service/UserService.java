@@ -56,6 +56,34 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private CurrentUserDTO toCurrentUserDTO(User user) {
+        return new CurrentUserDTO(
+                user.getUserId(),
+                user.getAccount(),
+                user.getName(),
+                user.getEmail(),
+                user.getMustChangePassword(),
+                userRoleRepository
+                        .findRoleCodesByUserId(user.getUserId())
+                        .stream()
+                        .map(roleCode -> roleCode.trim().toUpperCase())
+                        .distinct()
+                        .sorted()
+                        .toList());
+    }
+
+    public CurrentUserDTO getCurrentUserForRefresh(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("使用者不存在"));
+
+        if (user.getStatus() == null
+                || user.getStatus() != User.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("帳號目前無法登入");
+        }
+
+        return toCurrentUserDTO(user);
+    }
+
     // 使用者登入
     public CurrentUserDTO loginUser(String account, String password) {
         if (account == null || account.isBlank()
@@ -85,19 +113,7 @@ public class UserService {
                         "帳號申請未通過，請聯絡管理員");
 
             case User.UserStatus.ACTIVE -> {
-                return new CurrentUserDTO(
-                        user.getUserId(),
-                        user.getAccount(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getMustChangePassword(),
-                        userRoleRepository
-                                .findRoleCodesByUserId(user.getUserId())
-                                .stream()
-                                .map(roleCode -> roleCode.trim().toUpperCase())
-                                .distinct()
-                                .sorted()
-                                .toList());
+                return toCurrentUserDTO(user);
             }
 
             default ->

@@ -72,7 +72,7 @@ const initials = computed(() => {
 });
 
 async function handleLogout() {
-  authStore.logout();
+  await authStore.logout();
   await router.replace({ name: "Login" });
 }
 </script>

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { getToken, getCurrentUser, saveAuth, clearAuth } from "@/utils/auth.js";
+import api from "@/plugins/axios.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => {
@@ -47,14 +48,22 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    logout() {
-      clearAuth();
-      this.token = null;
-      this.userId = null;
-      this.account = null;
-      this.name = null;
-      this.email = null;
-      this.roleCodes = [];
+    async logout() {
+      try {
+        await api.post("/auth/logout", null, {
+          skipAuthRedirect: true,
+          skipGlobalError: true,
+        });
+      } finally {
+        clearAuth();
+
+        this.token = null;
+        this.userId = null;
+        this.account = null;
+        this.name = null;
+        this.email = null;
+        this.roleCodes = [];
+      }
     },
   },
 });
