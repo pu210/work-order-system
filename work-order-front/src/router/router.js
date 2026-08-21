@@ -17,10 +17,10 @@ import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
 import EquipmentCreate from "@/views/EquipmentCreate.vue";
 import Profile from "@/views/Profile.vue";
-import Settings from "@/views/Settings.vue";
 import Notifications from "@/views/Notifications.vue";
 import Forbidden from "@/views/Forbidden.vue";
-import { hasValidToken, getCurrentUser } from "@/utils/auth.js";
+import { hasValidToken, getCurrentUser, clearAuth } from "@/utils/auth.js";
+import { refreshAccessToken } from "@/plugins/axios.js";
 import { NAV_ITEMS } from "@/router/navItems.js";
 import UserCreate from "@/views/UserCreate.vue";
 import UserEdit from "@/views/UserEdit.vue";
@@ -65,7 +65,7 @@ const routes = [
         meta: { guestOnly: true },
       },
       {
-        path: "/reset-password",
+        path: "reset-password",
         name: "ResetPassword",
         component: ResetPassword,
         meta: { guestOnly: true },
@@ -160,7 +160,6 @@ const routes = [
         meta: { roles: rolesFor("equipment-create") },
       },
       { path: "profile", name: "profile", component: Profile },
-      { path: "settings", name: "settings", component: Settings },
       {
         path: "notifications",
         name: "notifications",
@@ -182,25 +181,40 @@ const router = createRouter({
   },
 });
 
-router.beforeEach((to) => {
-  const isAuthenticated = hasValidToken();
+router.beforeEach(async (to) => {
+  let isAuthenticated = hasValidToken();
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return {
-      name: "Login",
-      query: { returnUrl: to.fullPath },
-    };
+    try {
+      await refreshAccessToken();
+      isAuthenticated = true;
+    } catch {
+      clearAuth();
+
+      return {
+        name: "Login",
+        query: {
+          returnUrl: to.fullPath,
+        },
+      };
+    }
   }
 
   if (to.meta.guestOnly && isAuthenticated) {
-    return { name: "Dashboard" };
+    return {
+      name: "Dashboard",
+    };
   }
 
   if (isAuthenticated && to.meta.roles) {
     const roleCodes = getCurrentUser()?.roleCodes ?? [];
+
     const allowed = to.meta.roles.some((role) => roleCodes.includes(role));
+
     if (!allowed) {
-      return { name: "forbidden" };
+      return {
+        name: "forbidden",
+      };
     }
   }
 });

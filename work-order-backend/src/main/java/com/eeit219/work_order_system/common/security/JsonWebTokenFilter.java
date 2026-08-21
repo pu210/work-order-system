@@ -123,6 +123,8 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         // 回傳 true (不檢查 Filter)；回傳 false (檢查 Filter)
         return "/auth/login".equals(path) ||
+                "/auth/refresh".equals(path) ||
+                "/auth/logout".equals(path) ||
                 "/auth/register".equals(path) ||
                 "/auth/reset-password".equals(path) ||
                 "/auth/forgot-password".equals(path)

@@ -91,31 +91,59 @@ body {
   position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
   background: var(--color-danger); border: 2px solid var(--color-ink);
 }
-.wo-role-switch { position: relative; }
-.wo-role-btn {
-  display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 5px 10px 5px 5px;
-  border-radius: var(--radius-sm); cursor: pointer; font-size: 12.5px;
-}
+
 .wo-avatar {
   width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary);
   color: #fff; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; font-family: var(--font-display); flex-shrink: 0;
 }
 .wo-role-btn .role-tag { color: #A9B5D1; font-size: 11.5px; }
-.wo-dropdown {
-  position: absolute; right: 0; top: calc(100% + 8px); background: #fff;
-  border-radius: var(--radius); box-shadow: var(--shadow-pop); min-width: 200px;
-  padding: 8px; display: none; z-index: 200; border: 1px solid var(--color-border);
+.wo-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px 5px 5px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.15s;
 }
-.wo-dropdown.open { display: block; }
-.wo-dropdown-item {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
-  cursor: pointer; font-size: 13px; color: var(--color-text); text-decoration: none;
+.wo-user-info:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
-.wo-dropdown-item i { font-size: 15px; width: 16px; text-align: center; }
-.wo-dropdown-item:hover { background: var(--color-bg); }
-.wo-dropdown hr { border: none; border-top: 1px solid var(--color-border); margin: 6px 0; }
+
+.wo-user-text {
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+
+.wo-user-text .role-tag {
+  color: #a9b5d1;
+  font-size: 11.5px;
+}
+
+.wo-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #c4cde3;
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+
+.wo-logout-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
 
 .badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px;

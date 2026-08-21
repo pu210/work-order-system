@@ -10,11 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import com.eeit219.work_order_system.common.response.ApiResponse;
 
 @RestControllerAdvice
 public class ExceptionHandler {
@@ -142,6 +138,26 @@ public class ExceptionHandler {
                                 .body(ApiResponse.error(
                                                 HttpStatus.CONFLICT.value(),
                                                 "工單已被其他人修改，請重新載入最新資料"));
+        }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(EditSessionLockedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleEditSessionLocked(
+                        EditSessionLockedException exception) {
+
+                return ResponseEntity.status(HttpStatus.LOCKED)
+                                .body(ApiResponse.error(
+                                                HttpStatus.LOCKED.value(),
+                                                exception.getMessage()));
+        }
+
+        @org.springframework.web.bind.annotation.ExceptionHandler(InvalidEditSessionException.class)
+        public ResponseEntity<ApiResponse<Void>> handleInvalidEditSession(
+                        InvalidEditSessionException exception) {
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(ApiResponse.error(
+                                                HttpStatus.CONFLICT.value(),
+                                                exception.getMessage()));
         }
         // return ResponseEntity.status(
         // HttpStatus.INTERNAL_SERVER_ERROR)

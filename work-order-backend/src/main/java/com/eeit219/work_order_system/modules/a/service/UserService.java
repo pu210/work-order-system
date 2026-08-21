@@ -34,6 +34,8 @@ import com.eeit219.work_order_system.modules.a.entity.UserRoleId;
 import com.eeit219.work_order_system.modules.a.repository.RoleRepository;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
+import com.eeit219.work_order_system.modules.a.dto.ProfileResponseDTO;
+import com.eeit219.work_order_system.modules.a.dto.UpdateProfileRequestDTO;
 
 @Service
 @Transactional
@@ -52,6 +54,34 @@ public class UserService {
         this.roleRepository = roleRepository;
         this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    private CurrentUserDTO toCurrentUserDTO(User user) {
+        return new CurrentUserDTO(
+                user.getUserId(),
+                user.getAccount(),
+                user.getName(),
+                user.getEmail(),
+                user.getMustChangePassword(),
+                userRoleRepository
+                        .findRoleCodesByUserId(user.getUserId())
+                        .stream()
+                        .map(roleCode -> roleCode.trim().toUpperCase())
+                        .distinct()
+                        .sorted()
+                        .toList());
+    }
+
+    public CurrentUserDTO getCurrentUserForRefresh(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("使用者不存在"));
+
+        if (user.getStatus() == null
+                || user.getStatus() != User.UserStatus.ACTIVE) {
+            throw new IllegalArgumentException("帳號目前無法登入");
+        }
+
+        return toCurrentUserDTO(user);
     }
 
     // 使用者登入
@@ -83,19 +113,7 @@ public class UserService {
                         "帳號申請未通過，請聯絡管理員");
 
             case User.UserStatus.ACTIVE -> {
-                return new CurrentUserDTO(
-                        user.getUserId(),
-                        user.getAccount(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getMustChangePassword(),
-                        userRoleRepository
-                                .findRoleCodesByUserId(user.getUserId())
-                                .stream()
-                                .map(roleCode -> roleCode.trim().toUpperCase())
-                                .distinct()
-                                .sorted()
-                                .toList());
+                return toCurrentUserDTO(user);
             }
 
             default ->
@@ -205,6 +223,10 @@ public class UserService {
 
         String account = request.account().trim();
         String email = request.email().trim().toLowerCase();
+        String phone = request.phone() == null ? null : request.phone().trim();
+        if (phone != null && phone.isEmpty()) {
+            phone = null;
+        }
 
         if (userRepository.existsByAccount(account)) {
             throw new IllegalArgumentException("帳號已被使用");
@@ -224,7 +246,7 @@ public class UserService {
         user.setMustChangePassword(false);
         user.setName(request.name().trim());
         user.setEmail(email);
-        user.setPhone(request.phone());
+        user.setPhone(phone);
         user.setStatus(User.UserStatus.PENDING);
 
         User savedUser = userRepository.save(user);
@@ -257,6 +279,11 @@ public class UserService {
 
         String account = request.account().trim();
         String email = request.email().trim().toLowerCase();
+
+        if (!account.matches("^[A-Za-z0-9]+$")) {
+            throw new IllegalArgumentException("帳號只能包含英文字母與數字");
+        }
+
         List<String> roleCodes = normalizeRoleCodes(request.roleCodes());
 
         if (userRepository.existsByAccount(account)) {
@@ -392,6 +419,19 @@ public class UserService {
         return status;
     }
 
+    private boolean isLastActiveAdmin(User user, List<String> roleCodes) {
+        if (user.getStatus() != User.UserStatus.ACTIVE
+                || !roleCodes.contains(Role.ADMIN)) {
+            return false;
+        }
+
+        long activeAdminCount = userRoleRepository.countUsersByRoleCodeAndStatus(
+                Role.ADMIN,
+                User.UserStatus.ACTIVE);
+
+        return activeAdminCount <= 1;
+    }
+
     private void validateAdminProtection(
             User targetUser,
             byte proposedStatus,
@@ -498,6 +538,7 @@ public class UserService {
 
         Page<User> users = userRepository.searchUsers(
                 normalizedKeyword,
+                normalizedKeyword,
                 status,
                 normalizedRoleCode,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "userId")));
@@ -545,6 +586,7 @@ public class UserService {
     }
 
     private UserResponseDTO toUserResponseDTO(User user, List<String> roleCodes) {
+        boolean lastActiveAdmin = isLastActiveAdmin(user, roleCodes);
         return new UserResponseDTO(
                 user.getUserId(),
                 user.getAccount(),
@@ -554,6 +596,7 @@ public class UserService {
                 user.getStatus(),
                 user.getMustChangePassword(),
                 roleCodes,
+                lastActiveAdmin,
                 user.getCreatedTime(),
                 user.getUpdatedTime());
     }
@@ -625,6 +668,136 @@ public class UserService {
                 && proposedStatus == User.UserStatus.PENDING) {
             throw new IllegalArgumentException("帳號不可改回待審核狀態");
         }
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalArgumentException("尚未登入");
+        }
+
+        return userRepository.findByAccount(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("使用者不存在"));
+    }
+
+    private ProfileResponseDTO toProfileResponse(User user) {
+        List<String> roleCodes = userRoleRepository.findRoleCodesByUserId(user.getUserId())
+                .stream()
+                .map(roleCode -> roleCode.trim().toUpperCase())
+                .distinct()
+                .sorted()
+                .toList();
+
+        return new ProfileResponseDTO(
+                user.getUserId(),
+                user.getAccount(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getStatus(),
+                roleCodes);
+    }
+
+    // 使用者查詢自己的個人資料
+    @Transactional(readOnly = true)
+    public ProfileResponseDTO getCurrentUserProfile() {
+        User user = getAuthenticatedUser();
+        return toProfileResponse(user);
+    }
+
+    // 使用者更新自己的個人資料
+    public ProfileResponseDTO updateCurrentUserProfile(
+            UpdateProfileRequestDTO request) {
+
+        if (request == null
+                || (request.name() == null
+                        && request.email() == null
+                        && request.phone() == null)) {
+            throw new IllegalArgumentException("至少提供一個要修改的欄位");
+        }
+
+        User user = getAuthenticatedUser();
+
+        if (request.name() != null) {
+            String name = request.name().trim();
+
+            if (name.isEmpty()) {
+                throw new IllegalArgumentException("姓名為必填");
+            }
+
+            if (name.length() > 50) {
+                throw new IllegalArgumentException("姓名不可超過 50 個字元");
+            }
+
+            user.setName(name);
+        }
+
+        if (request.email() != null) {
+            String email = request.email().trim().toLowerCase();
+
+            if (email.isEmpty()) {
+                throw new IllegalArgumentException("Email 為必填");
+            }
+
+            if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                throw new IllegalArgumentException("Email 格式不正確");
+            }
+
+            if (userRepository.existsByEmailAndUserIdNot(
+                    email,
+                    user.getUserId())) {
+                throw new IllegalArgumentException("Email 已被使用");
+            }
+
+            user.setEmail(email);
+        }
+
+        if (request.phone() != null) {
+            String phone = request.phone().trim();
+
+            if (!phone.isEmpty() && !phone.matches("\\d{10}")) {
+                throw new IllegalArgumentException(
+                        "聯絡電話需為 10 碼數字");
+            }
+
+            user.setPhone(phone.isEmpty() ? null : phone);
+        }
+
+        User savedUser = userRepository.save(user);
+        return toProfileResponse(savedUser);
+    }
+
+    // 使用者修改自己密碼
+    public void changePassword(ChangePasswordRequestDTO request) {
+        validateChangePasswordRequest(request);
+
+        User user = getAuthenticatedUser();
+
+        if (user.getPasswordHash() == null) {
+            throw new IllegalArgumentException("此帳號未設定密碼");
+        }
+
+        if (!passwordEncoder.matches(
+                request.currentPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException("目前密碼不正確");
+        }
+
+        if (passwordEncoder.matches(
+                request.newPassword(),
+                user.getPasswordHash())) {
+            throw new IllegalArgumentException(
+                    "新密碼不可與目前密碼相同");
+        }
+
+        user.setPasswordHash(
+                passwordEncoder.encode(request.newPassword()));
+
+        user.setMustChangePassword(false);
+        userRepository.save(user);
     }
 
 }

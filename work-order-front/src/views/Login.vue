@@ -181,7 +181,10 @@ async function handleLogin() {
     const response = await axios.post(
       "/auth/login",
       { account: account.value, password: password.value },
-      { skipAuthRedirect: true },
+      {
+        skipAuthRedirect: true,
+        withCredentials: true,
+      },
     );
     const data = response.data?.data;
 
