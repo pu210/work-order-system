@@ -21,34 +21,53 @@
       </button>
     </div>
 
-    <!-- 4 大 KPI 卡片區塊 -->
+    <!-- 4 大 KPI 卡片區塊 (真實 SQL Server 資料庫數據) -->
     <div class="row g-3 mb-4">
+      <!-- 卡片 1：待審核工單 (PENDING_REVIEW) -->
       <div class="col-md-3">
         <div class="card card-pad shadow-sm border-0 bg-white">
-          <div class="text-muted small fw-bold mb-1">待處理工單</div>
-          <div class="h2 fw-bold text-dark mb-0">4 筆</div>
-          <div class="small text-danger mt-1">需儘速指派工程師</div>
+          <div class="text-muted small fw-bold mb-1">待審核工單</div>
+          <div class="h2 fw-bold text-dark mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
+            <span v-else>{{ kpiStats.pendingReviewCount }}</span> 筆
+          </div>
+          <div class="small text-danger mt-1">需儘速審核與指派工程師</div>
         </div>
       </div>
+
+      <!-- 卡片 2：處理中工單 (IN_PROGRESS) -->
       <div class="col-md-3">
         <div class="card card-pad shadow-sm border-0 bg-white">
           <div class="text-muted small fw-bold mb-1">處理中工單</div>
-          <div class="h2 fw-bold text-primary mb-0">3 筆</div>
-          <div class="small text-muted mt-1">工程師維修中</div>
+          <div class="h2 fw-bold text-primary mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-primary me-1"></span>
+            <span v-else>{{ kpiStats.inProgressCount }}</span> 筆
+          </div>
+          <div class="small text-muted mt-1">工程師積極維修中</div>
         </div>
       </div>
+
+      <!-- 卡片 3：待驗收工單 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE) -->
+      <div class="col-md-3">
+        <div class="card card-pad shadow-sm border-0 bg-white">
+          <div class="text-muted small fw-bold mb-1">待驗收工單</div>
+          <div class="h2 fw-bold text-warning mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-warning me-1"></span>
+            <span v-else>{{ kpiStats.pendingAcceptanceCount }}</span> 筆
+          </div>
+          <div class="small text-warning mt-1">等待使用者/管理員確認驗收</div>
+        </div>
+      </div>
+
+      <!-- 卡片 4：本月完成結案工單 (COMPLETED) -->
       <div class="col-md-3">
         <div class="card card-pad shadow-sm border-0 bg-white">
           <div class="text-muted small fw-bold mb-1">本月完成結案</div>
-          <div class="h2 fw-bold text-success mb-0">12 筆</div>
-          <div class="small text-success mt-1">結案率 85%</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
-          <div class="text-muted small fw-bold mb-1">逾期工單警報</div>
-          <div class="h2 fw-bold text-danger mb-0">2 筆</div>
-          <div class="small text-danger mt-1">已超出生效時效</div>
+          <div class="h2 fw-bold text-success mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-success me-1"></span>
+            <span v-else>{{ kpiStats.completedCount }}</span> 筆
+          </div>
+          <div class="small text-success mt-1">工單成功修復並歸檔</div>
         </div>
       </div>
     </div>
@@ -119,6 +138,9 @@ import axios from '@/plugins/axios.js'
 import plainAxios from 'axios'
 import Swal from 'sweetalert2'
 
+// 📌 參考 TicketList.vue 做法，匯入 getWorkOrderList API 來查詢真實資料庫工單
+import { getWorkOrderList } from '@/api/workOrder.js'
+
 // 匯入 FullCalendar 組件與外掛
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -136,6 +158,42 @@ const todayYMD = now.toISOString().split('T')[0]
 // 狀態變數
 const isGoogleConnected = ref(false)
 const googleEvents = ref([])
+
+// -------------------------------------------------------------
+// 📊 1. 4 大 KPI 卡片區塊 - 讀取真實資料庫數據
+// -------------------------------------------------------------
+const kpiStats = ref({
+  pendingReviewCount: 0,      // 待審核工單筆數 (PENDING_REVIEW)
+  inProgressCount: 0,         // 處理中工單筆數 (IN_PROGRESS)
+  pendingAcceptanceCount: 0,  // 待驗收工單筆數 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE)
+  completedCount: 0,          // 完成結案筆數 (COMPLETED)
+  loading: true
+})
+
+// 載入 4 大 KPI 統計數據 (傳統一般做法：一次抓取全量資料，前端用 .filter().length 算長度)
+const loadKpiStats = async () => {
+  try {
+    kpiStats.value.loading = true
+
+    // 1. 一般傳統方式：只發送 1 次 API 請求，抓取工單資料清單 (設定較大的 size 抓回全量陣列)
+    const response = await getWorkOrderList({ page: 0, size: 1000 })
+    const allTickets = response?.content || [] // 拿到完整的工單陣列
+
+    // 2. 前端直接使用 JavaScript 原生的 .filter() 陣列過濾，再用 .length 取得長度/總筆數！
+    kpiStats.value.pendingReviewCount = allTickets.filter(t => t.status === 'PENDING_REVIEW').length
+    kpiStats.value.inProgressCount = allTickets.filter(t => t.status === 'IN_PROGRESS').length
+    kpiStats.value.pendingAcceptanceCount = allTickets.filter(
+      t => t.status === 'PENDING_USER_ACCEPTANCE' || t.status === 'PENDING_ADMIN_ACCEPTANCE'
+    ).length
+    kpiStats.value.completedCount = allTickets.filter(t => t.status === 'COMPLETED').length
+
+    console.log('✅ 傳統一般方式（前端陣列 .filter().length）計算 4 大 KPI 成功：', kpiStats.value)
+  } catch (error) {
+    console.error('❌ 載入 KPI 統計數據失敗：', error)
+  } finally {
+    kpiStats.value.loading = false
+  }
+}
 
 // 1. 公告 API 連線
 const announcements = ref([])
@@ -275,9 +333,10 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
   }
 }
 
-// 組件掛載
+// 組件掛載 (頁面開啟時自動執行)
 onMounted(() => {
-  loadAnnouncements()
+  loadAnnouncements() // 載入公告列表
+  loadKpiStats()      // 載入 4 大 KPI 工單真實統計數據
 })
 </script>
 
