@@ -25,9 +25,18 @@ pipeline {
 
         stage('Build Images') {
             steps {
-                // 只 build，不 up：build context 是打包傳給 daemon，跟路徑無關，DooD 底下沒問題；
-                // 部署（up，牽涉 bind mount）先不做，卡在 DooD 的路徑問題，留到之後解決
+                // 只 build，不 up：build context 是打包傳給 daemon，跟路徑無關，DooD 底下沒問題
                 sh 'docker compose build backend frontend'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // 不透過 DooD 直接 up（bind mount 路徑會對不上），改成 SSH 回 host，
+                // 在檔案真正存在的地方原生執行 docker compose up，順便沿用 host 上已經有的 .env
+                sshagent(credentials: ['jenkins-deploy-key']) {
+                    sh 'ssh -o StrictHostKeyChecking=no h2322@host.docker.internal "cd C:/Users/h2322/Desktop/git/work-order-system && docker compose up -d --build"'
+                }
             }
         }
     }
