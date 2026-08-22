@@ -263,12 +263,12 @@ const STATUS_LABEL_MAP = {
 };
 
 const STATUS_BADGE_MAP = {
-  PENDING_REVIEW: "text-bg-secondary",
-  IN_PROGRESS: "text-bg-primary",
-  PENDING_USER_ACCEPTANCE: "text-bg-warning",
-  PENDING_ADMIN_ACCEPTANCE: "text-bg-warning",
-  COMPLETED: "text-bg-success",
-  CANCELLED: "text-bg-light",
+  PENDING_REVIEW: "bg-info-subtle text-info-emphasis",
+  IN_PROGRESS: "bg-primary-subtle text-primary-emphasis",
+  PENDING_USER_ACCEPTANCE: "bg-warning-subtle text-warning-emphasis",
+  PENDING_ADMIN_ACCEPTANCE: "bg-info-subtle text-info-emphasis",
+  COMPLETED: "bg-success-subtle text-success-emphasis",
+  CANCELLED: "bg-danger-subtle text-danger-emphasis",
 };
 
 // 狀態提示訊息
@@ -277,7 +277,7 @@ const STATUS_NOTICE_MAP = {
   PENDING_REVIEW: {
     title: "工單已送出，等待審核",
     message: "管理員審核後，將安排負責工程師。",
-    alertClass: "alert-secondary",
+    alertClass: "alert-info",
     iconClass: "bi-hourglass-split",
   },
   // 工程師處理中
