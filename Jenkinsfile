@@ -22,5 +22,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Images') {
+            steps {
+                // 只 build，不 up：build context 是打包傳給 daemon，跟路徑無關，DooD 底下沒問題；
+                // 部署（up，牽涉 bind mount）先不做，卡在 DooD 的路徑問題，留到之後解決
+                sh 'docker compose build backend frontend'
+            }
+        }
     }
 }
