@@ -25,6 +25,9 @@ public class ReportService {
         return workOrderRepository.findAll();
     }
 
+    public List<CategoryReportDto> getSubCategoryReport() {
+        return workOrderRepository.countWorkOrdersBySubCategory();
+    }
     // @Transactional
     // public WorkOrder createSampleWorkOrder() {
     // WorkOrder wo = new WorkOrder();

@@ -193,11 +193,13 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from '@/plugins/axios.js'
 import Swal from 'sweetalert2'
-
-// 全局 API 基底網址
-const API_BASE = '/api/announcements'
+import {
+  getAnnouncements,
+  createAnnouncement as apiCreateAnnouncement,
+  updateAnnouncement as apiUpdateAnnouncement,
+  deleteAnnouncement as apiDeleteAnnouncement
+} from '@/api/announcement.js'
 
 // 響應式狀態變數
 const announcements = ref([])
@@ -254,8 +256,8 @@ const formatTime = (timeStr) => {
 // ---- API 1: 載入所有公告 (GET) ----
 const loadAnnouncements = async () => {
   try {
-    const response = await axios.get(API_BASE)
-    announcements.value = response.data
+    const data = await getAnnouncements()
+    announcements.value = data || []
   } catch (error) {
     console.error('載入公告失敗：', error)
     Swal.fire('錯誤', '無法載入公告資料，請確認後端是否運作中', 'error')
@@ -270,7 +272,7 @@ const createAnnouncement = async () => {
   }
 
   try {
-    await axios.post(API_BASE, form)
+    await apiCreateAnnouncement(form)
     Swal.fire('成功', '公告發布成功！', 'success')
     showAddModal.value = false
     
@@ -307,8 +309,7 @@ const updateAnnouncement = async () => {
   }
 
   try {
-    // 發送 PUT 請求給 Java 後端: @PutMapping("/{id}")
-    await axios.put(`${API_BASE}/${editForm.announcementId}`, editForm)
+    await apiUpdateAnnouncement(editForm.announcementId, editForm)
     Swal.fire('成功', '公告修改成功！', 'success')
     showEditModal.value = false
     loadAnnouncements()
@@ -331,7 +332,7 @@ const deleteAnn = async (id) => {
 
   if (result.isConfirmed) {
     try {
-      await axios.delete(`${API_BASE}/${id}`)
+      await apiDeleteAnnouncement(id)
       Swal.fire('已刪除', '公告已成功刪除', 'success')
       loadAnnouncements()
     } catch (error) {

@@ -22,4 +22,9 @@ public interface ReportWorkOrderRepository extends JpaRepository<WorkOrder, Inte
             "FROM WorkOrder w JOIN w.subCategory sc " +
             "GROUP BY sc.repairCategory.name")
     List<CategoryReportDto> countWorkOrdersByCategory();
+
+    @Query("SELECT sc.name AS subCategoryName, COUNT(w.workOrderId) AS count " +
+            "FROM WorkOrder w JOIN w.subCategory sc " +
+            "GROUP BY sc.name")
+    List<CategoryReportDto> countWorkOrdersBySubCategory();
 }

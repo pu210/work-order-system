@@ -4,7 +4,7 @@
     <div class="page-header d-flex justify-content-between align-items-end mb-4">
       <div>
         <span class="eyebrow text-primary text-uppercase fw-bold">WELCOME BACK</span>
-        <h1 class="h3 fw-bold text-dark mb-1">哈囉！管理員 (王建宏)</h1>
+        <h1 class="h3 fw-bold text-dark mb-1">哈囉！{{ userDisplayName }}</h1>
         <p class="text-muted small mb-0">今天是 {{ todayFormatted }}，以下是今日工單狀況與 Google 行事曆總覽。</p>
       </div>
 
@@ -133,19 +133,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/plugins/axios.js'
 import plainAxios from 'axios'
 import Swal from 'sweetalert2'
 
-// 📌 參考 TicketList.vue 做法，匯入 getWorkOrderList API 來查詢真實資料庫工單
+import { useAuthStore } from '@/stores/auth.js'
+
+// 📌 匯入 API 模組
 import { getWorkOrderList } from '@/api/workOrder.js'
+import { getAnnouncements } from '@/api/announcement.js'
 
 // 匯入 FullCalendar 組件與外掛
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+// 使用者動態顯示名稱
+const userDisplayName = computed(() => {
+  if (authStore.name) {
+    const roles = authStore.roleCodes || []
+    let roleText = '使用者'
+    if (roles.includes('ADMIN')) roleText = '管理員'
+    else if (roles.includes('HANDLER') || roles.includes('ENGINEER')) roleText = '工程師'
+    return `${roleText} (${authStore.name})`
+  }
+  return authStore.account || '使用者'
+})
 
 // Client ID
 const GOOGLE_CLIENT_ID = '810812971350-qkc6j8tv3d36qskh1as240ho18b386s8.apps.googleusercontent.com'
@@ -158,9 +177,59 @@ const todayYMD = now.toISOString().split('T')[0]
 // 狀態變數
 const isGoogleConnected = ref(false)
 const googleEvents = ref([])
+const realWorkOrderEvents = ref([])
+
+// 工單狀態對應色彩與文字
+const STATUS_COLOR_MAP = {
+  PENDING_REVIEW: '#6c757d',          // 灰色 - 待審核
+  IN_PROGRESS: '#2F6FED',             // 藍色 - 處理中
+  PENDING_USER_ACCEPTANCE: '#ffc107', // 黃色 - 待使用者驗收
+  PENDING_ADMIN_ACCEPTANCE: '#fd7e14',// 橘色 - 待管理員驗收
+  COMPLETED: '#198754',               // 綠色 - 已完成
+  CANCELLED: '#dc3545'                // 紅色 - 已取消
+}
+
+const STATUS_TEXT_MAP = {
+  PENDING_REVIEW: '待審核',
+  IN_PROGRESS: '處理中',
+  PENDING_USER_ACCEPTANCE: '待使用者驗收',
+  PENDING_ADMIN_ACCEPTANCE: '待管理員驗收',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消'
+}
 
 // -------------------------------------------------------------
-// 📊 1. 4 大 KPI 卡片區塊 - 讀取真實資料庫數據
+// 🛠️ FullCalendar 時間格式化專用防呆函式 (ISO 8601 標準相容)
+// -------------------------------------------------------------
+const formatFullCalendarDate = (dateVal) => {
+  if (!dateVal) return null
+
+  // 情況 1：若後端回傳的是陣列格式 [2026, 8, 22, 14, 30]
+  if (Array.isArray(dateVal)) {
+    const [y, m, d, h = 0, min = 0, s = 0] = dateVal
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${y}-${pad(m)}-${pad(d)}T${pad(h)}:${pad(min)}:${pad(s)}`
+  }
+
+  // 情況 2：若後端回傳的是字串 (例如 "2026-08-22T11:30:00" 或 "2026-08-22 11:30:00")
+  if (typeof dateVal === 'string') {
+    const cleaned = dateVal.trim().replace(' ', 'T')
+    if (cleaned.includes('T')) {
+      return cleaned.substring(0, 19)
+    }
+    return cleaned.substring(0, 10)
+  }
+
+  // 情況 3：若已是 Date 物件
+  if (dateVal instanceof Date) {
+    return dateVal.toISOString().substring(0, 19)
+  }
+
+  return null
+}
+
+// -------------------------------------------------------------
+// 📊 1. 4 大 KPI 卡片區塊 + 依角色分流整合至 FullCalendar
 // -------------------------------------------------------------
 const kpiStats = ref({
   pendingReviewCount: 0,      // 待審核工單筆數 (PENDING_REVIEW)
@@ -170,34 +239,104 @@ const kpiStats = ref({
   loading: true
 })
 
-// 載入 4 大 KPI 統計數據 (傳統一般做法：一次抓取全量資料，前端用 .filter().length 算長度)
+// 更新 FullCalendar 的總事件列表 (整合真實系統工單 + Google 日曆行程)
+const updateCalendarEvents = () => {
+  calendarOptions.value = {
+    ...calendarOptions.value,
+    events: [
+      ...realWorkOrderEvents.value,
+      ...googleEvents.value
+    ]
+  }
+}
+
+// 載入 4 大 KPI 統計數據與真實工單資料 (含角色分流邏輯)
 const loadKpiStats = async () => {
   try {
     kpiStats.value.loading = true
 
-    // 1. 一般傳統方式：只發送 1 次 API 請求，抓取工單資料清單 (設定較大的 size 抓回全量陣列)
+    // 1. 發送 API 請求，抓取資料庫真實工單清單
     const response = await getWorkOrderList({ page: 0, size: 1000 })
     const allTickets = response?.content || [] // 拿到完整的工單陣列
 
-    // 2. 前端直接使用 JavaScript 原生的 .filter() 陣列過濾，再用 .length 取得長度/總筆數！
-    kpiStats.value.pendingReviewCount = allTickets.filter(t => t.status === 'PENDING_REVIEW').length
-    kpiStats.value.inProgressCount = allTickets.filter(t => t.status === 'IN_PROGRESS').length
-    kpiStats.value.pendingAcceptanceCount = allTickets.filter(
+    // 2. 角色權限分流判斷
+    const currentUserId = authStore.userId
+    const currentUserName = authStore.name
+    const roleCodes = authStore.roleCodes || []
+
+    const isAdmin = roleCodes.includes('ADMIN')
+    const isHandler = roleCodes.includes('HANDLER') || roleCodes.includes('ENGINEER')
+
+    let userFilteredTickets = []
+
+    if (isAdmin) {
+      // 👑 管理員 (ADMIN)：可以看到全部的單 (權限最大)
+      userFilteredTickets = allTickets
+    } else if (isHandler) {
+      // 🛠️ 工程師 (HANDLER / ENGINEER)：看自己建立的單 或 指派給自己的單
+      userFilteredTickets = allTickets.filter(t => {
+        const creatorId = t.creatorId ?? t.creatorUserId ?? t.creator?.userId
+        const handlerId = t.assignedHandlerId ?? t.assigned_handler_id ?? t.assignedHandler?.userId
+
+        // 雙層比對：先比對 ID (若有)，備用比對 Name
+        const isCreatorById = creatorId != null && currentUserId != null && creatorId === currentUserId
+        const isHandlerById = handlerId != null && currentUserId != null && handlerId === currentUserId
+
+        const isCreatorByName = Boolean(t.creatorName && currentUserName && t.creatorName === currentUserName)
+        const isHandlerByName = Boolean(t.assignedHandlerName && currentUserName && t.assignedHandlerName === currentUserName)
+
+        return isCreatorById || isHandlerById || isCreatorByName || isHandlerByName
+      })
+    } else {
+      // 👤 一般使用者 / 員工 (EMPLOYEE / USER)：依照建立者分流 (如同 my-tickets.vue)
+      userFilteredTickets = allTickets.filter(t => {
+        const creatorId = t.creatorId ?? t.creatorUserId ?? t.creator?.userId
+        const isCreatorById = creatorId != null && currentUserId != null && creatorId === currentUserId
+        const isCreatorByName = Boolean(t.creatorName && currentUserName && t.creatorName === currentUserName)
+
+        return isCreatorById || isCreatorByName
+      })
+    }
+
+    console.log(`🔒 [Dashboard 權限分流] 當前角色: [${roleCodes.join(', ')}], 使用者 ID: ${currentUserId}, 過濾後展示筆數: ${userFilteredTickets.length} / 全部總筆數: ${allTickets.length}`)
+
+    // 3. 依據分流後的 userFilteredTickets 計算 4 大 KPI 卡片資料
+    kpiStats.value.pendingReviewCount = userFilteredTickets.filter(t => t.status === 'PENDING_REVIEW').length
+    kpiStats.value.inProgressCount = userFilteredTickets.filter(t => t.status === 'IN_PROGRESS').length
+    kpiStats.value.pendingAcceptanceCount = userFilteredTickets.filter(
       t => t.status === 'PENDING_USER_ACCEPTANCE' || t.status === 'PENDING_ADMIN_ACCEPTANCE'
     ).length
-    kpiStats.value.completedCount = allTickets.filter(t => t.status === 'COMPLETED').length
+    kpiStats.value.completedCount = userFilteredTickets.filter(t => t.status === 'COMPLETED').length
 
-    console.log('✅ 傳統一般方式（前端陣列 .filter().length）計算 4 大 KPI 成功：', kpiStats.value)
+    // 4. 轉譯分流後的工單陣列為 FullCalendar 相容的事件格式
+    realWorkOrderEvents.value = userFilteredTickets.map(t => {
+      const rawTime = t.createdTime || t.created_time || t.dueTime || t.due_time
+      const startDate = formatFullCalendarDate(rawTime) || todayYMD
+      const color = STATUS_COLOR_MAP[t.status] || '#2F6FED'
+
+      return {
+        id: `ticket-${t.workOrderId || t.work_order_id}`,
+        title: `🔧 ${t.workOrderNo ? t.workOrderNo + ': ' : ''}${t.title}`,
+        start: startDate,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: {
+          ticket: t
+        }
+      }
+    })
+
+    // 5. 更新日曆事件
+    updateCalendarEvents()
   } catch (error) {
-    console.error('❌ 載入 KPI 統計數據失敗：', error)
+    console.error('❌ 載入工單數據失敗：', error)
   } finally {
     kpiStats.value.loading = false
   }
 }
 
-// 1. 公告 API 連線
+// 2. 公告 API 連線
 const announcements = ref([])
-const API_BASE = '/api/announcements'
 
 // 時間格式化相容
 const formatCreatedTime = (a) => {
@@ -207,22 +346,15 @@ const formatCreatedTime = (a) => {
 
 const loadAnnouncements = async () => {
   try {
-    const response = await axios.get(API_BASE)
-    console.log('✅ 讀取後端公告成功：', response.data)
-    announcements.value = response.data || []
+    const data = await getAnnouncements()
+    console.log('✅ 讀取後端公告成功：', data)
+    announcements.value = data || []
   } catch (error) {
     console.error('❌ 載入公告失敗：', error)
   }
 }
 
-// 2. 預設系統報修工單 (使用當前真實日期)
-const systemWorkOrderEvents = [
-  { id: 'wo-1', title: '🔧 WO-001: 3樓冷氣維修', start: todayYMD, backgroundColor: '#2F6FED', borderColor: '#2F6FED' },
-  { id: 'wo-2', title: '🔧 WO-002: 電腦無法開機', start: todayYMD, backgroundColor: '#2F6FED', borderColor: '#2F6FED' },
-  { id: 'wo-3', title: '🔧 WO-003: 印表機卡紙檢修', start: todayYMD, backgroundColor: '#D64545', borderColor: '#D64545' }
-]
-
-// 3. FullCalendar 官方 Vue 3 建議 ref 結構
+// 3. FullCalendar 官方 Vue 3 配置
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
@@ -237,14 +369,43 @@ const calendarOptions = ref({
     month: '月視圖',
     week: '週視圖'
   },
-  events: [...systemWorkOrderEvents],
+  events: [],
   eventClick: (info) => {
-    Swal.fire({
-      title: info.event.title,
-      text: `日期：${info.event.startStr}`,
-      icon: 'info',
-      confirmButtonText: '確定'
-    })
+    const ticket = info.event.extendedProps?.ticket
+    if (ticket) {
+      const statusText = STATUS_TEXT_MAP[ticket.status] || ticket.status
+      const timeStr = formatFullCalendarDate(ticket.createdTime || ticket.created_time) || '—'
+      Swal.fire({
+        title: info.event.title,
+        html: `
+          <div class="text-start fs-6">
+            <p class="mb-2"><b>工單編號：</b>${ticket.workOrderNo || '無'}</p>
+            <p class="mb-2"><b>工單標題：</b>${ticket.title || '無'}</p>
+            <p class="mb-2"><b>報修類別：</b>${ticket.categoryName || '無'}</p>
+            <p class="mb-2"><b>當前狀態：</b><span class="badge bg-primary">${statusText}</span></p>
+            <p class="mb-2"><b>建立時間：</b>${timeStr.replace('T', ' ')}</p>
+            ${ticket.description ? `<p class="mb-1"><b>工單描述：</b>${ticket.description}</p>` : ''}
+          </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '前往工單詳情 ➔',
+        cancelButtonText: '關閉',
+        confirmButtonColor: '#2F6FED'
+      }).then((result) => {
+        if (result.isConfirmed && (ticket.workOrderId || ticket.work_order_id)) {
+          const id = ticket.workOrderId || ticket.work_order_id
+          router.push({ name: 'ticket-detail', params: { id } })
+        }
+      })
+    } else {
+      Swal.fire({
+        title: info.event.title,
+        text: `日期：${info.event.startStr}`,
+        icon: 'info',
+        confirmButtonText: '確定'
+      })
+    }
   }
 })
 
@@ -274,7 +435,6 @@ const connectGoogleCalendar = () => {
 const fetchGoogleCalendarEvents = async (accessToken) => {
   try {
     const currentDate = new Date()
-    // 設定查詢時間範圍：前 1 個月 到 未來 12 個月 (精準捕捉當前日曆畫面上的所有行程)
     const timeMin = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1).toISOString()
     const timeMax = new Date(currentDate.getFullYear() + 1, 11, 31).toISOString()
 
@@ -297,10 +457,8 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
     const rawItems = res.data.items || []
     console.log('✅ Google API 抓取到的近期行程：', rawItems)
 
-    // 1. 過濾掉已取消 (cancelled) 以及沒有開始時間的無效行程
     const validItems = rawItems.filter(item => item.status !== 'cancelled' && (item.start?.date || item.start?.dateTime))
 
-    // 2. 轉換成 FullCalendar 標準格式
     googleEvents.value = validItems.map(item => {
       const startDate = item.start?.date || item.start?.dateTime
       const endDate = item.end?.date || item.end?.dateTime
@@ -315,16 +473,8 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
       }
     })
 
-    console.log('✅ 轉換成 FullCalendar 的近距離行程：', googleEvents.value)
-
-    // 3. 動態替換 FullCalendar 的 events 陣列
-    calendarOptions.value = {
-      ...calendarOptions.value,
-      events: [
-        ...systemWorkOrderEvents,
-        ...googleEvents.value
-      ]
-    }
+    // 動態更新包含 Google 日曆行程的總事件陣列
+    updateCalendarEvents()
 
     Swal.fire('同步完成', `已成功為您載入近期 ${googleEvents.value.length} 筆 Google 日曆私人行程！`, 'success')
   } catch (error) {
@@ -336,7 +486,7 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
 // 組件掛載 (頁面開啟時自動執行)
 onMounted(() => {
   loadAnnouncements() // 載入公告列表
-  loadKpiStats()      // 載入 4 大 KPI 工單真實統計數據
+  loadKpiStats()      // 載入 4 大 KPI 統計數據並渲染真實工單至 FullCalendar
 })
 </script>
 

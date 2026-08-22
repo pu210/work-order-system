@@ -2,14 +2,16 @@ package com.eeit219.work_order_system.modules.e.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
+import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
+import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
 import com.eeit219.work_order_system.modules.e.service.ReportService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,20 +26,22 @@ public class ReportController {
 
     // 取得大分類統計報表
     @GetMapping("/categories")
-    public List<CategoryReportDto> getCategoryReport() {
-        return reportService.getCategoryReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getCategoryReport() {
+        List<CategoryReportDto> report = reportService.getCategoryReport();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢報表成功", report));
+    }
+
+    // 取得細項分類統計報表
+    @GetMapping("/subcategories")
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getSubCategoryReport() {
+        List<CategoryReportDto> report = reportService.getSubCategoryReport();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢報表成功", report));
     }
 
     // 測試用 API：列出目前資料庫內的所有工單
     @GetMapping("/test-work-orders")
-    public List<WorkOrder> getAllWorkOrders() {
-        return reportService.getAllWorkOrders();
+    public ResponseEntity<ApiResponse<List<WorkOrder>>> getAllWorkOrders() {
+        List<WorkOrder> list = reportService.getAllWorkOrders();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢工單成功", list));
     }
-
-    // 測試用 API：自動在資料庫建立一筆測試工單
-    // @GetMapping("/test-create-sample")
-    // @PostMapping("/test-create-sample")
-    // public WorkOrder createSampleWorkOrder() {
-    // return reportService.createSampleWorkOrder();
-    // }
 }

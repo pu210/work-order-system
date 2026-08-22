@@ -18,6 +18,8 @@ public abstract class WorkOrderSummary {
     private String categoryName;
     private String priorityName;
     private String status;
+    private Integer creatorId;
     private String creatorName;
+    private Integer assignedHandlerId;
     private LocalDateTime createdTime;
 }
