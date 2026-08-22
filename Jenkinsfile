@@ -34,8 +34,8 @@ pipeline {
             steps {
                 // 不透過 DooD 直接 up（bind mount 路徑會對不上），改成 SSH 回 host，
                 // 在檔案真正存在的地方原生執行 docker compose up，順便沿用 host 上已經有的 .env
-                sshagent(credentials: ['jenkins-deploy-key']) {
-                    sh 'ssh -o StrictHostKeyChecking=no h2322@host.docker.internal "cd C:/Users/h2322/Desktop/git/work-order-system && docker compose up -d --build"'
+                withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-deploy-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                    sh 'ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "$SSH_USER"@host.docker.internal "cd C:/Users/h2322/Desktop/git/work-order-system && docker compose up -d --build"'
                 }
             }
         }
