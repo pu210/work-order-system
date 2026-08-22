@@ -11,6 +11,8 @@ pipeline {
         stage('Backend Test') {
             steps {
                 dir('work-order-backend') {
+                    // mvnw 在 git 裡沒有標記可執行權限（Windows 開發常見），這裡先手動補上
+                    sh 'chmod +x mvnw'
                     sh './mvnw clean test -B'
                 }
             }
