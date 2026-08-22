@@ -3,7 +3,11 @@ import { getToken, saveAuth, clearAuth } from "@/utils/auth.js";
 import { notify } from "@/plugins/notify.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+// const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+// Docker 化：改用 ?? 而非 ||，讓 VITE_API_URL 可以被明確設成空字串（代表走相對路徑，
+// 由 nginx 反向代理轉發給後端），「||」會把空字串也當成沒設定，錯誤地退回寫死的 localhost:8080
+const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 const instance = axios.create({
   baseURL,
