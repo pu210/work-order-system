@@ -22,6 +22,6 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY app-locations.conf /etc/nginx/app-locations.conf
 COPY proxy_params.conf /etc/nginx/proxy_params.conf
-# 憑證不烤進 image（會隨環境不同、且不進版控），由 docker-compose 掛 volume 進來
+# HTTPS 由前面的 caddy 服務負責，這裡只對內部網路提供一般 HTTP
 
-EXPOSE 80 443
+EXPOSE 80

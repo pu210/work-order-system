@@ -84,11 +84,28 @@ services:
     container_name: work-order-frontend
     depends_on:
       - backend
+    # 不對外開 port：HTTPS 由前面的 caddy 負責，frontend 只在內部網路被 caddy 連到
+    networks:
+      - work-order-net
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: work-order-caddy
+    depends_on:
+      - frontend
     ports:
       - "${FRONTEND_PORT:-80}:80"
       - "${FRONTEND_HTTPS_PORT:-443}:443"
+    environment:
+      # 沒設或空字串都會用 localhost（本機測試用 Caddy 內建的 CA）；
+      # 真的有網域時在 .env 設 DOMAIN=your-domain.com，Caddy 會自動改用 Let's Encrypt。
+      # 預設值故意寫在這裡（不是 Caddyfile 裡），因為 docker compose 的 ${VAR:-default}
+      # 對「空字串」也會套用預設值，Caddyfile 自己的 {$VAR:default} 語法只認「完全沒設定」
+      DOMAIN: ${DOMAIN:-localhost}
     volumes:
-      - ./docker/nginx/certs:/etc/nginx/certs:ro
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     networks:
       - work-order-net
 
@@ -98,3 +115,5 @@ networks:
 
 volumes:
   mssql_data:
+  caddy_data:
+  caddy_config:
