@@ -90,6 +90,9 @@ docker/nginx/certs/*.key
 docker/nginx/certs/*.crt
 docker/nginx/certs/*.pem
 
+# Jenkins 部署用的 SSH 金鑰，私鑰不進版控
+docker/jenkins/ssh/
+
 # 前端測試 (Cypress / Vitest)
 cypress/videos/
 cypress/screenshots/
