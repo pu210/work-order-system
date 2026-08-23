@@ -6,7 +6,7 @@
         <h2 class="h4 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
           <i class="bi bi-pie-chart-fill text-primary"></i> 工單統計報表中心
         </h2>
-        <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與分類占比統計</p>
+        <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與占比統計</p>
       </div>
 
       <div class="d-flex align-items-center gap-2">
@@ -40,7 +40,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <div class="text-muted small mb-1 fw-medium">
-                {{ filterDimension === 'SUBCATEGORY' ? '細項分類總數' : '報修大分類總數' }}
+                {{ getDimensionTitle() }}總數
               </div>
               <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">類</span></div>
             </div>
@@ -85,10 +85,10 @@
       </div>
     </div>
 
-    <!-- 3. 客製化條件篩選控制列 (包含大分類 / 細項分類 快速頁籤) -->
+    <!-- 3. 客製化條件篩選控制列 (含 5 大維度快捷 Tab 按鈕) -->
     <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
       <div class="card-header bg-light bg-opacity-75 py-2.5 px-3 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
           <div class="d-flex align-items-center gap-1">
             <span class="text-muted small fw-medium">資料來源：</span>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal">
@@ -96,15 +96,15 @@
             </span>
           </div>
 
-          <!-- 快速分類切換 Tab 按鈕 -->
-          <div class="btn-group rounded-pill p-1 bg-white border shadow-2xs">
+          <!-- 5 大統計維度快速頁籤 Tab 按鈕 -->
+          <div class="btn-group rounded-pill p-1 bg-white border shadow-2xs flex-wrap">
             <button 
               type="button"
               class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
               :class="filterDimension === 'CATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
               @click="filterDimension = 'CATEGORY'"
             >
-              <i class="bi bi-grid-fill me-1"></i> 大分類統計
+              <i class="bi bi-grid-fill me-1"></i> 大分類
             </button>
             <button 
               type="button"
@@ -112,7 +112,31 @@
               :class="filterDimension === 'SUBCATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
               @click="filterDimension = 'SUBCATEGORY'"
             >
-              <i class="bi bi-diagram-3-fill me-1"></i> 細項分類統計
+              <i class="bi bi-diagram-3-fill me-1"></i> 細項分類
+            </button>
+            <button 
+              type="button"
+              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
+              :class="filterDimension === 'STATUS' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
+              @click="filterDimension = 'STATUS'"
+            >
+              <i class="bi bi-flag-fill me-1"></i> 依狀態
+            </button>
+            <button 
+              type="button"
+              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
+              :class="filterDimension === 'CREATOR' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
+              @click="filterDimension = 'CREATOR'"
+            >
+              <i class="bi bi-person-fill me-1"></i> 依建立者
+            </button>
+            <button 
+              type="button"
+              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
+              :class="filterDimension === 'PRIORITY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
+              @click="filterDimension = 'PRIORITY'"
+            >
+              <i class="bi bi-exclamation-triangle-fill me-1"></i> 依優先級
             </button>
           </div>
         </div>
@@ -134,9 +158,9 @@
               <label class="input-group-text bg-white text-muted" for="limit-select">資料筆數</label>
               <select class="form-select border-start-0" id="limit-select" v-model="filterLimit">
                 <option value="ALL">全部資料</option>
-                <option value="3">前 3 大分類</option>
-                <option value="5">前 5 大分類</option>
-                <option value="10">前 10 大分類</option>
+                <option value="3">前 3 大項目</option>
+                <option value="5">前 5 大項目</option>
+                <option value="10">前 10 大項目</option>
               </select>
             </div>
           </div>
@@ -147,6 +171,9 @@
               <select class="form-select border-start-0" id="dimension-select" v-model="filterDimension">
                 <option value="CATEGORY">按工單大分類</option>
                 <option value="SUBCATEGORY">按細項分類</option>
+                <option value="STATUS">依工單狀態</option>
+                <option value="CREATOR">依工單建立者</option>
+                <option value="PRIORITY">依優先級 (Priority)</option>
               </select>
             </div>
           </div>
@@ -156,7 +183,10 @@
               <label class="input-group-text bg-white text-muted" for="field-select">選擇分類欄位</label>
               <select class="form-select border-start-0" id="field-select" v-model="filterField">
                 <option v-if="filterDimension === 'CATEGORY'" value="CATEGORY_NAME">報修大分類 (Category)</option>
-                <option v-else value="SUB_CATEGORY_NAME">細項分類 (SubCategory)</option>
+                <option v-else-if="filterDimension === 'SUBCATEGORY'" value="SUB_CATEGORY_NAME">細項分類 (SubCategory)</option>
+                <option v-else-if="filterDimension === 'STATUS'" value="STATUS_NAME">工單狀態 (Status)</option>
+                <option v-else-if="filterDimension === 'CREATOR'" value="CREATOR_NAME">建立者 (Creator)</option>
+                <option v-else-if="filterDimension === 'PRIORITY'" value="PRIORITY_NAME">優先級 (Priority)</option>
               </select>
             </div>
           </div>
@@ -172,7 +202,7 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title h6 fw-bold text-dark mb-0">
               <i class="bi bi-pie-chart me-1 text-primary"></i> 
-              {{ filterDimension === 'SUBCATEGORY' ? '工單細項分類占比圖' : '工單報修大分類占比圖' }}
+              {{ getChartTitle() }}
             </h5>
             <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5">Chart.js 視覺化</span>
           </div>
@@ -184,7 +214,7 @@
 
           <div v-else-if="filteredReportData.length === 0" class="d-flex flex-column align-items-center justify-content-center py-5 min-h-300">
             <i class="bi bi-pie-chart text-muted opacity-50 fs-1 mb-2"></i>
-            <p class="text-muted small mb-0">目前尚無分類統計數據</p>
+            <p class="text-muted small mb-0">目前尚無統計數據</p>
           </div>
 
           <div v-else class="chart-wrapper min-h-350 d-flex align-items-center justify-content-center position-relative">
@@ -236,7 +266,7 @@
       <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
         <h5 class="card-title h6 fw-bold text-dark mb-0">
           <i class="bi bi-table me-1 text-primary"></i> 
-          {{ filterDimension === 'SUBCATEGORY' ? '細項分類統計詳細數據表' : '大分類統計詳細數據表' }}
+          {{ getDimensionTitle() }}詳細數據表
         </h5>
       </div>
 
@@ -245,7 +275,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-4" style="width: 80px;">#</th>
-              <th>分類名稱</th>
+              <th>名稱</th>
               <th>工單數量</th>
               <th>百分比占比</th>
               <th class="pe-4" style="width: 30%;">占比視覺進度條</th>
@@ -293,7 +323,13 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { getCategoryReport, getSubCategoryReport } from '@/api/report.js'
+import {
+  getCategoryReport,
+  getSubCategoryReport,
+  getStatusReport,
+  getCreatorReport,
+  getPriorityReport
+} from '@/api/report.js'
 import { notify } from '@/plugins/notify.js'
 
 // 匯入 Chart.js 與 vue-chartjs 組件
@@ -317,7 +353,7 @@ const categoryReportList = ref([]) // 後端 API 抓回的原始分類數據
 
 // 下拉選單控制條件
 const filterLimit = ref('ALL')          // 限制筆數 ('ALL' | '3' | '5' | '10')
-const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY')
+const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY')
 const filterField = ref('CATEGORY_NAME')// 選擇欄位
 
 // 調和色彩盤
@@ -334,9 +370,59 @@ const paletteColors = [
   '#e879f9'  // 粉紫
 ]
 
-// 取得項目的顯示名稱（相容大分類 categoryName 與細項名稱 subCategoryName）
+// 工單狀態碼對照表
+const formatStatus = (statusStr) => {
+  if (!statusStr) return '未指定'
+  const map = {
+    PENDING_REVIEW: '待審核',
+    DRAFT: '草稿',
+    SUBMITTED: '已送出',
+    ASSIGNED: '已派單',
+    IN_PROGRESS: '處理中',
+    PENDING_USER_ACCEPTANCE: '待使用者驗收',
+    PENDING_ADMIN_ACCEPTANCE: '待管理員驗收',
+    COMPLETED: '已完成',
+    CLOSED: '已結案',
+    CANCELLED: '已撤回',
+    REJECTED: '已退單'
+  }
+  return map[statusStr] || statusStr
+}
+
+// 取得項目的顯示名稱（相容大分類、細項名稱、狀態、建立者、優先級）
 const getDisplayName = (item) => {
-  return item.categoryName || item.subCategoryName || '未分類'
+  if (!item) return '未指定'
+  if (filterDimension.value === 'STATUS') {
+    return formatStatus(item.statusName || item.status)
+  }
+  return (
+    item.categoryName ||
+    item.subCategoryName ||
+    item.creatorName ||
+    item.priorityName ||
+    item.statusName ||
+    '未指定'
+  )
+}
+
+// 取得當前維度的中文標題
+const getDimensionTitle = () => {
+  switch (filterDimension.value) {
+    case 'SUBCATEGORY':
+      return '細項分類'
+    case 'STATUS':
+      return '工單狀態'
+    case 'CREATOR':
+      return '工單建立者'
+    case 'PRIORITY':
+      return '工單優先級'
+    default:
+      return '報修大分類'
+  }
+}
+
+const getChartTitle = () => {
+  return `工單${getDimensionTitle()}占比圖`
 }
 
 // ---- 2. Computed 計算屬性 ----
@@ -384,21 +470,27 @@ const calculatePercentage = (count) => {
   return (((count || 0) / totalCount.value) * 100).toFixed(1)
 }
 
-// ---- 3. Chart.js 圓餅圖數據結構 ----
+// ---- 3. Chart.js 圓餅圖數據結構與資料轉置 ----
 const chartData = computed(() => {
+  // 1. 從後端數據中萃取所有項目的名稱標籤 (例如：['環境設施', '資訊系統', '儀器設備'])
   const labels = filteredReportData.value.map(item => getDisplayName(item))
+  
+  // 2. 從後端數據中萃取對應的工單筆數數字 (例如：[15, 8, 3])
   const counts = filteredReportData.value.map(item => item.count || 0)
+  
+  // 3. 根據標籤數量截取對應數量的顏色
   const colors = paletteColors.slice(0, labels.length)
 
+  // 4. 組合成 Chart.js 要求的標準資料格式，傳給 HTML 的 <Pie :data="chartData" /> 繪製
   return {
     labels,
     datasets: [
       {
-        backgroundColor: colors,
-        hoverBackgroundColor: colors,
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        data: counts
+        backgroundColor: colors,        // 各扇形區塊背景顏色
+        hoverBackgroundColor: colors,   // 滑鼠移入時的懸浮背景顏色
+        borderWidth: 2,                 // 扇形邊框粗細
+        borderColor: '#ffffff',         // 扇形白色分割線
+        data: counts                    // 填入真正的工單筆數數字
       }
     ]
   }
@@ -447,6 +539,12 @@ const loadData = async () => {
     let data = []
     if (filterDimension.value === 'SUBCATEGORY') {
       data = await getSubCategoryReport()
+    } else if (filterDimension.value === 'STATUS') {
+      data = await getStatusReport()
+    } else if (filterDimension.value === 'CREATOR') {
+      data = await getCreatorReport()
+    } else if (filterDimension.value === 'PRIORITY') {
+      data = await getPriorityReport()
     } else {
       data = await getCategoryReport()
     }
@@ -459,10 +557,16 @@ const loadData = async () => {
   }
 }
 
-// 當維度切換 (按大分類 vs 按細項分類) 時，自動重新向後端請求資料
+// 當維度切換時，自動重新向後端請求資料
 watch(filterDimension, (newDim) => {
   if (newDim === 'SUBCATEGORY') {
     filterField.value = 'SUB_CATEGORY_NAME'
+  } else if (newDim === 'STATUS') {
+    filterField.value = 'STATUS_NAME'
+  } else if (newDim === 'CREATOR') {
+    filterField.value = 'CREATOR_NAME'
+  } else if (newDim === 'PRIORITY') {
+    filterField.value = 'PRIORITY_NAME'
   } else {
     filterField.value = 'CATEGORY_NAME'
   }

@@ -3,10 +3,9 @@ package com.eeit219.work_order_system.modules.e.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
+import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
 import com.eeit219.work_order_system.modules.e.repository.ReportWorkOrderRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,27 +16,33 @@ public class ReportService {
 
     private final ReportWorkOrderRepository workOrderRepository;
 
+    // 1. 取得大分類統計報表
     public List<CategoryReportDto> getCategoryReport() {
         return workOrderRepository.countWorkOrdersByCategory();
     }
 
-    public List<WorkOrder> getAllWorkOrders() {
-        return workOrderRepository.findAll();
-    }
-
+    // 2. 取得細項分類統計報表
     public List<CategoryReportDto> getSubCategoryReport() {
         return workOrderRepository.countWorkOrdersBySubCategory();
     }
-    // @Transactional
-    // public WorkOrder createSampleWorkOrder() {
-    // WorkOrder wo = new WorkOrder();
-    // wo.setWorkOrderNo("WO-2026-" + (System.currentTimeMillis() % 10000));
-    // wo.setTitle("測試冷氣報修工單");
-    // wo.setSubCategoryId(1);
-    // wo.setPriorityId(1);
-    // wo.setLocationDetail("A棟 3樓");
-    // wo.setCreatorUserId(1);
-    // wo.setStatus("PENDING_REVIEW");
-    // return workOrderRepository.save(wo);
-    // }
+
+    // 3. 依狀態統計報表
+    public List<CategoryReportDto> getStatusReport() {
+        return workOrderRepository.countWorkOrdersByStatus();
+    }
+
+    // 4. 依工單建立者統計報表
+    public List<CategoryReportDto> getCreatorReport() {
+        return workOrderRepository.countWorkOrdersByCreator();
+    }
+
+    // 5. 依優先級統計報表
+    public List<CategoryReportDto> getPriorityReport() {
+        return workOrderRepository.countWorkOrdersByPriority();
+    }
+
+    // 列出目前資料庫內的所有工單
+    public List<WorkOrder> getAllWorkOrders() {
+        return workOrderRepository.findAll();
+    }
 }

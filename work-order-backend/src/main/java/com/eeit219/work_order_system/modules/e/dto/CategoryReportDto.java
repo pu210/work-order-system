@@ -5,5 +5,11 @@ public interface CategoryReportDto {
 
     String getSubCategoryName();
 
+    String getStatusName();
+
+    String getCreatorName();
+
+    String getPriorityName();
+
     Long getCount();
 }
