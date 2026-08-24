@@ -22,8 +22,12 @@ export function getErrorMessage(error, fallback = "操作失敗，請稍後再�
     return "伺服器回應逾時，請稍後再試";
   }
 
-  if (!error.response) {
+  if (error.isAxiosError && !error.response) {
     return "無法連線至伺服器，請確認網路連線";
+  }
+
+  if (!error.response) {
+    return fallback;
   }
 
   const responseMessage = error.response.data?.message;

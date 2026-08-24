@@ -80,7 +80,7 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
                     String path = request.getServletPath();
-                    boolean isChangeInitialPasswordRequest = "/account/initial-password".equals(path)
+                    boolean isChangeInitialPasswordRequest = "/api/account/initial-password".equals(path)
                             && "PATCH".equalsIgnoreCase(request.getMethod());
 
                     if (Boolean.TRUE.equals(user.getMustChangePassword())
@@ -122,13 +122,13 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
         // 回傳 true (不檢查 Filter)；回傳 false (檢查 Filter)
-        return "/auth/login".equals(path) ||
-                "/auth/refresh".equals(path) ||
-                "/auth/logout".equals(path) ||
-                "/auth/register".equals(path) ||
-                "/auth/reset-password".equals(path) ||
-                "/auth/forgot-password".equals(path)
-                || "/auth/oauth2/session".equals(path)
+        return "/api/auth/login".equals(path) ||
+                "/api/auth/refresh".equals(path) ||
+                "/api/auth/logout".equals(path) ||
+                "/api/auth/register".equals(path) ||
+                "/api/auth/reset-password".equals(path) ||
+                "/api/auth/forgot-password".equals(path)
+                || "/api/auth/oauth2/session".equals(path)
                 || path.startsWith("/oauth2/")
                 || path.startsWith("/login/oauth2/");
     }
