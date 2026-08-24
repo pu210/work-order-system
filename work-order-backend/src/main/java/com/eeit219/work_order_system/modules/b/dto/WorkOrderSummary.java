@@ -20,4 +20,5 @@ public abstract class WorkOrderSummary {
     private String status;
     private String creatorName;
     private LocalDateTime createdTime;
+
 }
