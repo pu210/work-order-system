@@ -6,7 +6,9 @@
         <h1 class="mt-title">我的工單</h1>
         <p class="mt-subtitle">您所提交過的所有報修工單</p>
       </div>
-      <router-link to="/ticket-create" class="mt-btn mt-btn-primary">+ 建立工單</router-link>
+      <router-link to="/ticket-create" class="mt-btn mt-btn-primary"
+        >+ 建立工單</router-link
+      >
     </div>
 
     <div class="mt-card">
@@ -33,15 +35,50 @@
         </div>
         <div class="mt-search">
           <input
-            v-model.trim="keyword"
+            v-model.trim="keywordInput"
             type="text"
             class="mt-input"
             placeholder="搜尋標題"
-            @keyup.enter="reload"
+            @keyup.enter="submitSearch"
           />
-          <button type="button" class="mt-btn mt-btn-secondary" @click="reload">搜尋</button>
+          <button
+            type="button"
+            class="mt-btn mt-btn-secondary"
+            @click="submitSearch"
+          >
+            搜尋
+          </button>
         </div>
       </div>
+
+      <form class="mt-mobile-filter" @submit.prevent="submitSearch">
+        <select
+          v-model="statusFilter"
+          class="mt-mobile-control"
+          aria-label="選擇工單狀態"
+          @change="selectStatus(statusFilter)"
+        >
+          <option value="">全部狀態</option>
+          <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">
+            {{ s.label }}
+          </option>
+        </select>
+
+        <input
+          v-model.trim="keywordInput"
+          type="search"
+          class="mt-mobile-control"
+          placeholder="搜尋標題"
+          aria-label="搜尋工單標題"
+        />
+
+        <button
+          type="submit"
+          class="mt-btn mt-btn-primary mt-mobile-search-btn"
+        >
+          搜尋
+        </button>
+      </form>
 
       <div v-if="errorMessage" class="mt-alert-danger">{{ errorMessage }}</div>
 
@@ -53,37 +90,90 @@
         <p>試著建立您的第一張工單，或調整篩選條件</p>
       </div>
 
-      <div v-else class="mt-table-wrap">
-        <table class="mt-table">
-          <thead>
-            <tr>
-              <th>工單編號</th>
-              <th>標題</th>
-              <th>類別</th>
-              <th v-if="showPriority">優先級</th>
-              <th>狀態</th>
-              <th>處理人</th>
-              <th>建立時間</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="t in tickets"
-              :key="t.workOrderId"
-              role="button"
-              @click="router.push({ name: 'ticket-detail', params: { id: t.workOrderId }, query: { from: 'my-tickets' } })"
-            >
-              <td class="mt-mono">{{ t.workOrderNo }}</td>
-              <td>{{ t.title }}</td>
-              <td>{{ t.categoryName }}</td>
-              <td v-if="showPriority">{{ t.priorityName }}</td>
-              <td><span :class="['mt-badge', statusBadgeClass(t.status)]">{{ statusLabel(t.status) }}</span></td>
-              <td>{{ t.assignedHandlerName || '—' }}</td>
-              <td>{{ formatTime(t.createdTime) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <template v-else>
+        <div class="mt-table-wrap">
+          <table class="mt-table">
+            <thead>
+              <tr>
+                <th>工單編號</th>
+                <th>標題</th>
+                <th>類別</th>
+                <th v-if="showPriority">優先級</th>
+                <th>狀態</th>
+                <th>處理人</th>
+                <th>建立時間</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="t in tickets"
+                :key="t.workOrderId"
+                role="button"
+                @click="
+                  router.push({
+                    name: 'ticket-detail',
+                    params: { id: t.workOrderId },
+                    query: { from: 'my-tickets' },
+                  })
+                "
+              >
+                <td class="mt-mono">{{ t.workOrderNo }}</td>
+                <td>{{ t.title }}</td>
+                <td>{{ t.categoryName }}</td>
+                <td v-if="showPriority">{{ t.priorityName }}</td>
+                <td>
+                  <span :class="['mt-badge', statusBadgeClass(t.status)]">{{
+                    statusLabel(t.status)
+                  }}</span>
+                </td>
+                <td>{{ t.assignedHandlerName || "—" }}</td>
+                <td>{{ formatTime(t.createdTime) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-mobile-list" aria-label="工單列表">
+          <router-link
+            v-for="t in tickets"
+            :key="t.workOrderId"
+            :to="{
+              name: 'ticket-detail',
+              params: { id: t.workOrderId },
+              query: { from: 'my-tickets' },
+            }"
+            class="mt-ticket-card"
+          >
+            <div class="mt-ticket-card-header">
+              <span class="mt-mono">{{ t.workOrderNo }}</span>
+              <span :class="['mt-badge', statusBadgeClass(t.status)]">
+                {{ statusLabel(t.status) }}
+              </span>
+            </div>
+
+            <h2 class="mt-ticket-card-title">{{ t.title }}</h2>
+
+            <dl class="mt-ticket-meta">
+              <div>
+                <dt>類別</dt>
+                <dd>{{ t.categoryName || "—" }}</dd>
+              </div>
+              <div v-if="showPriority">
+                <dt>優先級</dt>
+                <dd>{{ t.priorityName || "—" }}</dd>
+              </div>
+              <div>
+                <dt>處理人</dt>
+                <dd>{{ t.assignedHandlerName || "—" }}</dd>
+              </div>
+              <div>
+                <dt>建立時間</dt>
+                <dd>{{ formatTime(t.createdTime) }}</dd>
+              </div>
+            </dl>
+          </router-link>
+        </div>
+      </template>
 
       <nav v-if="totalPages > 1" class="mt-pagination">
         <button
@@ -94,7 +184,9 @@
         >
           上一頁
         </button>
-        <span class="mt-page-info">第 {{ page + 1 }} / {{ totalPages }} 頁</span>
+        <span class="mt-page-info"
+          >第 {{ page + 1 }} / {{ totalPages }} 頁</span
+        >
         <button
           type="button"
           class="mt-page-btn"
@@ -109,71 +201,79 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getMySubmissions } from '@/api/workOrder.js'
-import { useAuthStore } from '@/stores/auth.js'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { getMySubmissions } from "@/api/workOrder.js";
+import { useAuthStore } from "@/stores/auth.js";
 import {
   WORK_ORDER_STATUS_OPTIONS,
   statusBadgeClass,
   statusLabel,
-} from '@/constants/workOrderStatus.js'
+} from "@/constants/workOrderStatus.js";
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
 // 純 EMPLOYEE（沒有 ADMIN/HANDLER 角色）不顯示優先級欄位
-const showPriority = computed(() => authStore.hasRole('ADMIN') || authStore.hasRole('HANDLER'))
+const showPriority = computed(
+  () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER")
+);
 
-const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS
+const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS;
 
-const tickets = ref([])
-const keyword = ref('')
-const statusFilter = ref('')
-const page = ref(0)
-const totalPages = ref(0)
-const loading = ref(false)
-const errorMessage = ref('')
+const tickets = ref([]);
+const keywordInput = ref("");
+const appliedKeyword = ref("");
+const statusFilter = ref("");
+const page = ref(0);
+const totalPages = ref(0);
+const loading = ref(false);
+const errorMessage = ref("");
 
 function formatTime(value) {
-  if (!value) return '—'
-  return value.replace('T', ' ').slice(0, 16)
+  if (!value) return "—";
+  return value.replace("T", " ").slice(0, 16);
 }
 
 async function fetchTickets() {
-  loading.value = true
-  errorMessage.value = ''
+  loading.value = true;
+  errorMessage.value = "";
   try {
     const result = await getMySubmissions({
-      keyword: keyword.value || undefined,
+      keyword: appliedKeyword.value || undefined,
       status: statusFilter.value || undefined,
       page: page.value,
-    })
-    tickets.value = result.content
-    totalPages.value = result.totalPages
+    });
+    tickets.value = result.content;
+    totalPages.value = result.totalPages;
   } catch (error) {
-    errorMessage.value = '無法載入工單列表，請確認後端已啟動'
+    errorMessage.value = "無法載入工單列表，請確認後端已啟動";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function reload() {
-  page.value = 0
-  fetchTickets()
+  page.value = 0;
+  fetchTickets();
+}
+
+function submitSearch() {
+  appliedKeyword.value = keywordInput.value;
+  reload();
 }
 
 function selectStatus(value) {
-  statusFilter.value = value
-  reload()
+  statusFilter.value = value;
+  reload();
 }
 
 function goToPage(target) {
-  page.value = target
-  fetchTickets()
+  page.value = target;
+  fetchTickets();
 }
 
-onMounted(fetchTickets)
+onMounted(fetchTickets);
 </script>
 
 <style scoped>
@@ -232,21 +332,27 @@ onMounted(fetchTickets)
 .mt-toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 24px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
 .mt-pill-tabs {
   display: flex;
-  gap: 6px;
-  background: #eceef2;
-  padding: 4px;
-  border-radius: 999px;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
   flex-wrap: wrap;
 }
 .mt-pill-tab {
-  padding: 6px 14px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 0;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--color-text-muted);
@@ -256,24 +362,37 @@ onMounted(fetchTickets)
   font-family: var(--font-body);
 }
 .mt-pill-tab.active {
-  background: #fff;
-  color: var(--color-ink);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  color: var(--color-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 .mt-search {
   display: flex;
   gap: 8px;
-  margin-left: auto;
+  flex: 0 1 360px;
+  height: 40px;
+  margin-left: 0;
 }
 .mt-input {
-  padding: 8px 12px;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   font-size: 13.5px;
   font-family: var(--font-body);
   background: #fff;
   color: var(--color-text);
-  min-width: 200px;
+}
+.mt-search .mt-btn {
+  height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.mt-mobile-filter {
+  display: none;
 }
 .mt-input:focus {
   border-color: var(--color-primary);
@@ -358,6 +477,55 @@ onMounted(fetchTickets)
   font-family: var(--font-mono, monospace);
   font-weight: 600;
   color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 手機工單卡片（桌面版預設隱藏） */
+/* ---------------------------------------------------------------------- */
+.mt-mobile-list {
+  display: none;
+}
+.mt-ticket-card {
+  color: var(--color-text);
+  text-decoration: none;
+}
+.mt-ticket-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mt-ticket-card-title {
+  margin: 14px 0 16px;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.mt-ticket-meta {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+.mt-ticket-meta > div {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 10px;
+}
+.mt-ticket-meta dt,
+.mt-ticket-meta dd {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.mt-ticket-meta dt {
+  color: var(--color-text-faint);
+  font-weight: 600;
+}
+.mt-ticket-meta dd {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -463,13 +631,63 @@ onMounted(fetchTickets)
   color: var(--color-text-muted);
 }
 
-@media (max-width: 700px) {
-  .mt-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 850px) {
+  .mt-page-header {
+    align-items: center;
+    margin-bottom: 16px;
   }
-  .mt-search {
-    margin-left: 0;
+  .mt-card {
+    padding: 14px 12px;
+  }
+  .mt-toolbar {
+    display: none;
+  }
+  .mt-mobile-filter {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .mt-mobile-control {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .mt-mobile-control:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+  }
+  .mt-mobile-search-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+  .mt-table-wrap {
+    display: none;
+  }
+  .mt-mobile-list {
+    display: grid;
+    gap: 10px;
+  }
+  .mt-ticket-card {
+    display: block;
+    padding: 15px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .mt-ticket-card:hover,
+  .mt-ticket-card:focus-visible {
+    border-color: #b9c9ed;
+    box-shadow: 0 2px 8px rgba(20, 33, 61, 0.08);
+    outline: none;
   }
 }
 </style>
