@@ -1,11 +1,16 @@
 import api from "@/plugins/axios.js";
 
 export function getUsers(params) {
-  return api.get("/api/users", { params }).then((res) => res.data.data);
+  return api
+    .get("/api/users", {
+      params,
+      skipGlobalError: true,
+    })
+    .then((res) => res.data.data);
 }
 export function updateUserStatus(userId, status) {
   return api
-    .patch(`/api/users/${userId}`, { status })
+    .patch(`/api/users/${userId}`, { status }, { skipGlobalError: true })
     .then((res) => res.data.data);
 }
 
@@ -15,7 +20,9 @@ export function createUser(payload) {
 
 export function reviewUserRegistration(userId, payload) {
   return api
-    .patch(`/api/users/${userId}/approval`, payload)
+    .patch(`/api/users/${userId}/approval`, payload, {
+      skipGlobalError: true,
+    })
     .then((res) => res.data.data);
 }
 export function getUser(userId) {
