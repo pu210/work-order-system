@@ -80,9 +80,10 @@
             <input v-model="form.name" required placeholder="請輸入設備名稱 (例如: 蘋果手機)" />
           </div>
 
-          <div class="form-group">
-            <label>設備編號：</label>
-            <input v-model="form.targetNo" required placeholder="請輸入設備編號 (例如: phone 1)" />
+          <!-- 只有在「編輯」模式下才顯示設備編號，且設為唯讀 (disabled) -->
+          <div class="form-group" v-if="isEditMode">
+            <label>設備編號 (系統自動產生)：</label>
+            <input v-model="form.targetNo" disabled class="disabled-input" />
           </div>
 
           <div class="form-group">
@@ -121,9 +122,10 @@ const tableData = ref([]);
 const isModalOpen = ref(false);
 const isEditMode = ref(false);
 const currentEditId = ref(null);
+
+// 新增時不需要 targetNo 欄位
 const form = ref({ 
   name: "", 
-  targetNo: "", 
   model: "" 
 });
 
@@ -150,7 +152,7 @@ const handleStatusChange = async (item) => {
 const openCreateModal = () => {
   isEditMode.value = false;
   currentEditId.value = null;
-  form.value = { name: "", targetNo: "", model: "" };
+  form.value = { name: "", model: "" };
   isModalOpen.value = true;
 };
 
@@ -159,7 +161,7 @@ const openEditModal = (item) => {
   currentEditId.value = item.targetId;
   form.value = { 
     name: item.name, 
-    targetNo: item.targetNo, 
+    targetNo: item.targetNo, // 編輯時帶入現有的亂碼編號供畫面上顯示
     model: item.model 
   };
   isModalOpen.value = true;
@@ -221,7 +223,8 @@ input:checked + .slider:before { transform: translateX(18px); }
 .modal-form { padding: 20px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 6px; }
-.form-group input, .form-select { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; background: #fff; }
+.form-group input { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none; background: #fff; }
+.form-group input.disabled-input { background-color: #f1f5f9; color: #64748b; cursor: not-allowed; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 .btn-cancel { background-color: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; }
 .btn-submit { background-color: #2563eb; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; }
