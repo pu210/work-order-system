@@ -125,7 +125,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 const googleLoginUrl = `${apiBaseUrl.replace(/\/$/, "")}/oauth2/authorization/google`;
 

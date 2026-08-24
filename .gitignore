@@ -62,8 +62,9 @@ nbdist/
 **/src/main/resources/application-*.yml
 **/src/main/resources/application-*.yaml
 
-# 但不要忽略範本檔（通常預設就不會忽略 .example）
+# 但不要忽略範本檔，也不要忽略 Docker 專用設定（敏感值走環境變數，本身不含明碼密鑰，要進版控）
 !**/src/main/resources/application.properties.example
+!**/src/main/resources/application-docker.properties
 
 ### Frontend (Vue / Node.js) ###
 logs/
