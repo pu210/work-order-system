@@ -146,7 +146,7 @@ onMounted(async () => {
   errorMessage.value = "";
 
   try {
-    const response = await axios.get("/auth/oauth2/session", {
+    const response = await axios.get("/api/auth/oauth2/session", {
       withCredentials: true,
       skipAuthRedirect: true,
     });
@@ -179,7 +179,7 @@ async function handleLogin() {
   isSubmitting.value = true;
   try {
     const response = await axios.post(
-      "/auth/login",
+      "/api/auth/login",
       { account: account.value, password: password.value },
       {
         skipAuthRedirect: true,

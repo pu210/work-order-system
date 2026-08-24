@@ -19,7 +19,7 @@ let refreshPromise = null;
 export async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = axios
-      .post(`${baseURL}/auth/refresh`, null, {
+      .post(`${baseURL}/api/auth/refresh`, null, {
         withCredentials: true,
       })
       .then((response) => {

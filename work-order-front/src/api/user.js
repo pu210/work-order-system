@@ -1,25 +1,29 @@
 import api from "@/plugins/axios.js";
 
 export function getUsers(params) {
-  return api.get("/users", { params }).then((res) => res.data.data);
+  return api.get("/api/users", { params }).then((res) => res.data.data);
 }
 export function updateUserStatus(userId, status) {
-  return api.patch(`/users/${userId}`, { status }).then((res) => res.data.data);
+  return api
+    .patch(`/api/users/${userId}`, { status })
+    .then((res) => res.data.data);
 }
 
 export function createUser(payload) {
-  return api.post("/users", payload).then((res) => res.data.data);
+  return api.post("/api/users", payload).then((res) => res.data.data);
 }
 
 export function reviewUserRegistration(userId, payload) {
   return api
-    .patch(`/users/${userId}/approval`, payload)
+    .patch(`/api/users/${userId}/approval`, payload)
     .then((res) => res.data.data);
 }
 export function getUser(userId) {
-  return api.get(`/users/${userId}`).then((res) => res.data.data);
+  return api.get(`/api/users/${userId}`).then((res) => res.data.data);
 }
 
 export function updateUser(userId, payload) {
-  return api.patch(`/users/${userId}`, payload).then((res) => res.data.data);
+  return api
+    .patch(`/api/users/${userId}`, payload)
+    .then((res) => res.data.data);
 }
