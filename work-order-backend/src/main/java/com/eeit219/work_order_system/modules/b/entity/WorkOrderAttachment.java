@@ -36,6 +36,10 @@ public class WorkOrderAttachment {
     @JoinColumn(name = "work_order_id", nullable = false)
     private WorkOrder workOrder;
 
+    // D模組新增，圖片關聯欄位：null=建立工單時上傳的附件；not null=留言上傳的附件。
+    @Column(name = "contact_record_id")
+    private Integer contactRecordId;
+
     @Column(name = "original_file_name", nullable = false, length = 255)
     private String originalFileName;
 

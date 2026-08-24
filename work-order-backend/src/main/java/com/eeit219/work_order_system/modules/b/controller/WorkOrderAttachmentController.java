@@ -3,6 +3,7 @@ package com.eeit219.work_order_system.modules.b.controller;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -65,6 +66,12 @@ public class WorkOrderAttachmentController {
     @GetMapping("/api/work-orders/attachments/{attachmentId}/view")
     public ResponseEntity<byte[]> view(@PathVariable Integer attachmentId) {
         WorkOrderAttachment attachment = workOrderAttachmentService.view(attachmentId);
+
+        // 留言圖片必須由 D 模組驗證工單與留言的查看權限。
+        // 若從 B 的原始附件預覽端點請求，統一回傳 404，避免繞過權限檢查。
+        if (attachment.getContactRecordId() != null) {
+            throw new EntityNotFoundException("找不到附件：" + attachmentId);
+        }
 
         String encodedFileName = java.net.URLEncoder
                 .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)
