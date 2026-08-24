@@ -36,7 +36,45 @@
           <i class="bi bi-box-arrow-right"></i>
           登出
         </button>
+
+        <button
+          type="button"
+          class="wo-menu-btn"
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="wo-mobile-menu"
+          :aria-label="mobileMenuOpen ? '關閉導覽選單' : '開啟導覽選單'"
+          @click.stop="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+        </button>
       </div>
+    </div>
+
+    <div
+      id="wo-mobile-menu"
+      class="wo-mobile-menu"
+      :class="{ open: mobileMenuOpen }"
+    >
+      <router-link
+        v-for="item in visibleNavItems"
+        :key="item.key"
+        :to="item.path"
+        @click="mobileMenuOpen = false"
+      >
+        {{ item.label }}
+      </router-link>
+
+      <div class="wo-mobile-menu-divider"></div>
+
+      <router-link to="/profile" @click="mobileMenuOpen = false">
+        <i class="bi bi-person"></i>
+        個人資料
+      </router-link>
+
+      <button type="button" class="wo-mobile-logout" @click="handleLogout">
+        <i class="bi bi-box-arrow-right"></i>
+        登出
+      </button>
     </div>
   </nav>
 </template>
@@ -51,7 +89,7 @@ import { NAV_ITEMS } from "@/router/navItems.js";
 const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const dropdownOpen = ref(false);
+const mobileMenuOpen = ref(false);
 
 const ROLE_LABEL = { ADMIN: "管理員", HANDLER: "工程師", EMPLOYEE: "一般員工" };
 
@@ -73,15 +111,15 @@ const initials = computed(() => {
 });
 
 async function handleLogout() {
-  dropdownOpen.value = false;
+  mobileMenuOpen.value = false;
   notificationStore.disconnectWebSocket(); // 登出時斷開 WebSocket 連線
   await authStore.logout();
   await router.replace({ name: "Login" });
 }
 
 function handleClickOutside(event) {
-  if (!event.target.closest(".wo-role-switch")) {
-    dropdownOpen.value = false;
+  if (!event.target.closest(".wo-nav")) {
+    mobileMenuOpen.value = false;
   }
 }
 
