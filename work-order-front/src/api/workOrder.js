@@ -54,22 +54,22 @@ export function releaseEditSession(workOrderId, sessionToken) {
 // 管理員初審／派工
 
 export function reviewAccept(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? { headers: { "X-Edit-Session-Token": sessionToken } }
+    : {};
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, config)
     .then((res) => res.data.data);
 }
 
 export function reviewReject(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? { headers: { "X-Edit-Session-Token": sessionToken } }
+    : {};
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, config)
     .then((res) => res.data.data);
 }
 

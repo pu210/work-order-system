@@ -156,6 +156,13 @@ public class WorkOrderService {
                 .status(workOrder.getStatus().name())
                 .createdTime(workOrder.getCreatedTime())
                 .creatorName(creator.getName())
+                .adminUserId(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getUserId()
+                        : null)
+                .adminName(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getName()
+                        : null)
+                .isOverdue(workOrder.getIsOverdue())
                 .attachments(attachments)
                 .build();
     }
@@ -173,6 +180,14 @@ public class WorkOrderService {
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()
                         : null)
+                .adminUserId(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getUserId()
+                        : null)
+                .adminName(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getName()
+                        : null)
+                .dueTime(workOrder.getDueTime())
+                .isOverdue(workOrder.getIsOverdue())
                 .createdTime(workOrder.getCreatedTime())
                 .build();
     }

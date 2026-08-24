@@ -34,7 +34,7 @@ export const NAV_ITEMS = [
   },
   {
     key: "ticket-assign",
-    label: "指派工單",
+    label: "管理員工作台",
     path: "/ticket-assign",
     roles: ["ADMIN"],
     enabled: true,

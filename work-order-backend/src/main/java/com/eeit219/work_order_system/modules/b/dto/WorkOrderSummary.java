@@ -19,5 +19,14 @@ public abstract class WorkOrderSummary {
     private String priorityName;
     private String status;
     private String creatorName;
+    private Integer adminUserId;
+    // 負責管理員姓名
+    private String adminName;
+
+    // 預計完成期限
+    private LocalDateTime dueTime;
+
+    // 是否逾期
+    private Boolean isOverdue;
     private LocalDateTime createdTime;
 }
