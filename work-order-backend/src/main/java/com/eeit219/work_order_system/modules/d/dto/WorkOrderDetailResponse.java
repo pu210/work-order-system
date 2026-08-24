@@ -33,7 +33,7 @@ public class WorkOrderDetailResponse {
     private LocalDateTime dueTime;
     private LocalDateTime createdTime;
     private LocalDateTime updatedTime;
-
+    private Integer version;
     private Boolean isOverDue;
 
     private Integer version;

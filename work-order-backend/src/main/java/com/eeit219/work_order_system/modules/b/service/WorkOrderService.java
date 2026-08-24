@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.eeit219.work_order_system.common.exception.BusinessRuleViolationException;
+import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
@@ -91,12 +93,18 @@ public class WorkOrderService {
     // 查詢工單詳情
     public WorkOrderResponse getById(Integer workOrderId) {
         WorkOrder workOrder = workOrderRepository.findByIdWithDetails(workOrderId)
-                .orElseThrow(() -> new IllegalArgumentException("找不到工單：" + workOrderId));
+                .orElseThrow(() -> new ResourceNotFoundException("找不到工單：" + workOrderId));
 
         List<WorkOrderAttachmentResponse> attachments = workOrderAttachmentService.listByWorkOrder(workOrderId);
 
         return toResponse(workOrder, workOrder.getSubCategory(), workOrder.getPriority(), workOrder.getCreator(),
                 attachments);
+    }
+
+    // 取得工單實體參照（不含附件明細的 join 查詢），供其他端點（如附件上傳）確認工單存在
+    public WorkOrder getWorkOrderEntity(Integer workOrderId) {
+        return workOrderRepository.findById(workOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到工單：" + workOrderId));
     }
 
     // 管理員視角列表：關鍵字/狀態/優先級/類別/指派工程師皆可選填篩選
@@ -120,7 +128,7 @@ public class WorkOrderService {
         // override_priority 為 null 時，往上抓大類別的預設優先級
         Priority defaultPriority = subCategory.getRepairCategory().getDefaultPriority();
         if (defaultPriority == null) {
-            throw new IllegalStateException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
+            throw new BusinessRuleViolationException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
         }
         return defaultPriority;
     }
@@ -169,7 +177,9 @@ public class WorkOrderService {
                 .categoryName(workOrder.getSubCategory().getRepairCategory().getName())
                 .priorityName(workOrder.getPriority().getName())
                 .status(workOrder.getStatus().name())
-                .creatorName(workOrder.getCreator().getName())
+                .creatorId(workOrder.getCreator() != null ? workOrder.getCreator().getUserId() : null)
+                .creatorName(workOrder.getCreator() != null ? workOrder.getCreator().getName() : null)
+                .assignedHandlerId(workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getUserId() : null)
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()
                         : null)

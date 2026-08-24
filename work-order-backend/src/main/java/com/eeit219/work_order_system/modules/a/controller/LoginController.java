@@ -14,21 +14,31 @@ import com.eeit219.work_order_system.modules.a.service.UserService;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import com.eeit219.work_order_system.common.security.RefreshTokenCookieUtility;
+import com.eeit219.work_order_system.modules.a.service.RefreshTokenService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class LoginController {
 
         private final UserService userService;
         private final JsonWebTokenUtility jwtUtil;
+        private final RefreshTokenService refreshTokenService;
+        private final RefreshTokenCookieUtility refreshTokenCookieUtility;
 
-        public LoginController(UserService userService, JsonWebTokenUtility jwtUtil) {
+        public LoginController(UserService userService, JsonWebTokenUtility jwtUtil,
+                        RefreshTokenService refreshTokenService, RefreshTokenCookieUtility refreshTokenCookieUtility) {
                 this.userService = userService;
                 this.jwtUtil = jwtUtil;
+                this.refreshTokenService = refreshTokenService;
+                this.refreshTokenCookieUtility = refreshTokenCookieUtility;
         }
 
         @PostMapping("/auth/login")
         public ResponseEntity<ApiResponse<LoginResponseDTO>> login(
-                        @RequestBody LoginRequestDTO request) {
+                        @RequestBody LoginRequestDTO request,
+                        HttpServletResponse response) {
                 if (request.account() == null || request.account().isBlank()
                                 || request.password() == null || request.password().isBlank()) {
                         return ResponseEntity.badRequest().body(
@@ -59,6 +69,11 @@ public class LoginController {
                 LoginResponseDTO data = new LoginResponseDTO(
                                 token, bean.account(),
                                 bean.userId(), bean.name(), bean.email(), bean.roleCodes(), bean.mustChangePassword());
+                String refreshToken = refreshTokenService.createRefreshToken(bean.userId());
+
+                refreshTokenCookieUtility.addCookie(
+                                response,
+                                refreshToken);
 
                 return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "登入成功", data));
         }

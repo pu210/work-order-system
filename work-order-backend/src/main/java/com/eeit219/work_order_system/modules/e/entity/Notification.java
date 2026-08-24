@@ -6,8 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,7 +30,7 @@ public class Notification {
     private Integer workOrderId; // 工單編號（外鍵）
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 50)
+    @Column(name = "status", length = 50)
     private WorkOrderState status; // 工單狀態
 
     @Column(name = "title", length = 100)
