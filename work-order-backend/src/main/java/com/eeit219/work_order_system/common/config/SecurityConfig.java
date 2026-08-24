@@ -41,11 +41,6 @@ public class SecurityConfig {
         }
 
         @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-                return (web) -> web.ignoring().requestMatchers("/ws/**", "/ws/notifications");
-        }
-
-        @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .cors(cors -> {

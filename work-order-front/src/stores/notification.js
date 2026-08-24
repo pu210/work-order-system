@@ -20,8 +20,23 @@ export const useNotificationStore = defineStore('notification', () => {
   // A. 初始化從後端 API 取得該使用者的歷史通知列表
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('/api/notifications/my')
-      const list = response.data?.data || []
+      const authStore = useAuthStore()
+      const userId = authStore.userId
+
+      let response
+      try {
+        response = await axios.get('/api/notifications/my')
+      } catch (err) {
+        // 若舊版端點發送 400，備用降級呼叫專屬使用者通知端點
+        if (userId && err.response?.status === 400) {
+          response = await axios.get(`/api/notifications/user/${userId}`)
+        } else {
+          throw err
+        }
+      }
+
+      const rawData = response.data?.data !== undefined ? response.data.data : response.data
+      const list = Array.isArray(rawData) ? rawData : []
       notifications.value = list
       unreadCount.value = list.filter(n => !n.isRead).length
     } catch (error) {
@@ -86,13 +101,15 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  // C. 中斷 WebSocket 連線 (例如使用者登出時)
+  // C. 中斷 WebSocket 連線並清空通知快取 (例如使用者登出時)
   const disconnectWebSocket = () => {
     if (socket.value) {
       socket.value.close()
       socket.value = null
       isConnected.value = false
     }
+    notifications.value = []
+    unreadCount.value = 0
   }
 
   // D. 標記單筆已讀

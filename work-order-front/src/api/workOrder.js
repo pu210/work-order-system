@@ -9,6 +9,10 @@ export function getWorkOrderById(id) {
   return api.get(`/api/work-orders/${id}`).then((res) => res.data.data);
 }
 
+export function getWorkOrderDetail(id) {
+  return api.get(`/api/work-orders/${id}/detail`).then((res) => res.data.data);
+}
+
 export function getWorkOrderList(params) {
   return api.get("/api/work-orders", { params }).then((res) => res.data.data);
 }
