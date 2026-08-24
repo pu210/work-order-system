@@ -115,6 +115,7 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "@/plugins/axios.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { notify } from "@/plugins/notify.js";
 
 const showPassword = ref(false);
 const account = ref("");
@@ -133,8 +134,9 @@ onMounted(async () => {
   const oauthResult = route.query.oauth;
 
   if (oauthResult === "failed") {
-    errorMessage.value =
-      "Google 登入失敗，請確認 Google Email 已建立系統帳號且帳號已啟用";
+    notify.error(
+      "Google 登入失敗，請確認 Google Email 已建立系統帳號且帳號已啟用",
+    );
     return;
   }
 
@@ -149,6 +151,7 @@ onMounted(async () => {
     const response = await axios.get("/api/auth/oauth2/session", {
       withCredentials: true,
       skipAuthRedirect: true,
+      skipGlobalError: true,
     });
 
     const data = response.data?.data;
@@ -160,9 +163,11 @@ onMounted(async () => {
     authStore.login(data);
 
     await router.replace("/dashboard");
+    notify.success("登入成功");
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message || "無法取得 Google 登入結果，請重新登入";
+    notify.error(
+      error.response?.data?.message || "無法取得 Google 登入結果，請重新登入",
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -183,6 +188,7 @@ async function handleLogin() {
       { account: account.value, password: password.value },
       {
         skipAuthRedirect: true,
+        skipGlobalError: true,
         withCredentials: true,
       },
     );
@@ -203,9 +209,11 @@ async function handleLogin() {
         ? route.query.returnUrl
         : "/dashboard";
     await router.replace(returnUrl);
+    notify.success("登入成功");
   } catch (error) {
-    errorMessage.value =
-      error.response?.data?.message || "無法登入，請確認後端服務與帳號密碼";
+    notify.error(
+      error.response?.data?.message || "無法登入，請確認後端服務與帳號密碼",
+    );
   } finally {
     isSubmitting.value = false;
   }

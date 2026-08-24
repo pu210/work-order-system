@@ -165,8 +165,8 @@ const router = useRouter();
 
 const roleOptions = [
   { value: "EMPLOYEE", label: "一般員工" },
-  { value: "HANDLER", label: "處理人員" },
-  { value: "ADMIN", label: "系統管理員" },
+  { value: "HANDLER", label: "維修人員" },
+  { value: "ADMIN", label: "管理員" },
 ];
 
 const goBack = () => {

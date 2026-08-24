@@ -47,6 +47,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { NAV_ITEMS } from "@/router/navItems.js";
+import { notify } from "@/plugins/notify.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -73,10 +74,20 @@ const initials = computed(() => {
 });
 
 async function handleLogout() {
-  dropdownOpen.value = false;
-  notificationStore.disconnectWebSocket(); // 登出時斷開 WebSocket 連線
+  const result = await notify.confirm({
+    title: "確定要登出嗎？",
+    icon: "question",
+    confirmButtonText: "確定",
+    cancelButtonText: "取消",
+  });
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
   await authStore.logout();
   await router.replace({ name: "Login" });
+  notify.success("已成功登出");
 }
 
 function handleClickOutside(event) {
