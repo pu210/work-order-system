@@ -100,7 +100,11 @@ public class SubCategoryController {
             sub.setOverridePriorityName(null);
         }
 
-        sub.setStatus(request.getStatus());
+        // 🌟 加上防呆：有傳 status 才更新，沒傳就維持原樣
+        if (request.getStatus() != null) {
+            sub.setStatus(request.getStatus());
+        }
+
         sub.setUpdatedTime(LocalDateTime.now());
 
         return subCategoryRepository.save(sub);

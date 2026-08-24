@@ -26,12 +26,16 @@ public class RepairTargets {
     @Column(name = "target_id")
     private Integer targetId;
 
-    @Column(name = "target_no",nullable = false,unique = true,length = 30)
+    @Column(name = "target_no", nullable = false, unique = true, length = 30)
     private String targetNo;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 30)
     private String name;
 
-    @Column(name = "model", length = 100)
+    @Column(name = "model", length = 50)
     private String model;
+
+    @Column(name = "status")
+    private Boolean status; // true 啟用, false 停用 (軟刪除/狀態切換)
+
 }

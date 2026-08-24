@@ -12,48 +12,48 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class RefreshTokenCookieUtility {
 
-    public static final String COOKIE_NAME = "refresh_token";
+        public static final String COOKIE_NAME = "refresh_token";
 
-    private final long expireDays;
-    private final boolean secure;
+        private final long expireDays;
+        private final boolean secure;
 
-    public RefreshTokenCookieUtility(
-            @Value("${refresh.token.expire-days}") long expireDays,
-            @Value("${refresh.cookie.secure:false}") boolean secure) {
-        this.expireDays = expireDays;
-        this.secure = secure;
-    }
+        public RefreshTokenCookieUtility(
+                        @Value("${refresh.token.expire-days}") long expireDays,
+                        @Value("${refresh.cookie.secure:false}") boolean secure) {
+                this.expireDays = expireDays;
+                this.secure = secure;
+        }
 
-    public void addCookie(
-            HttpServletResponse response,
-            String refreshToken) {
+        public void addCookie(
+                        HttpServletResponse response,
+                        String refreshToken) {
 
-        ResponseCookie cookie = ResponseCookie
-                .from(COOKIE_NAME, refreshToken)
-                .httpOnly(true)
-                .secure(secure)
-                .sameSite("Lax")
-                .path("/auth")
-                .maxAge(Duration.ofDays(expireDays))
-                .build();
+                ResponseCookie cookie = ResponseCookie
+                                .from(COOKIE_NAME, refreshToken)
+                                .httpOnly(true)
+                                .secure(secure)
+                                .sameSite("Lax")
+                                .path("/api/auth")
+                                .maxAge(Duration.ofDays(expireDays))
+                                .build();
 
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                cookie.toString());
-    }
+                response.addHeader(
+                                HttpHeaders.SET_COOKIE,
+                                cookie.toString());
+        }
 
-    public void clearCookie(HttpServletResponse response) {
-        ResponseCookie cookie = ResponseCookie
-                .from(COOKIE_NAME, "")
-                .httpOnly(true)
-                .secure(secure)
-                .sameSite("Lax")
-                .path("/auth")
-                .maxAge(Duration.ZERO)
-                .build();
+        public void clearCookie(HttpServletResponse response) {
+                ResponseCookie cookie = ResponseCookie
+                                .from(COOKIE_NAME, "")
+                                .httpOnly(true)
+                                .secure(secure)
+                                .sameSite("Lax")
+                                .path("/api/auth")
+                                .maxAge(Duration.ZERO)
+                                .build();
 
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                cookie.toString());
-    }
+                response.addHeader(
+                                HttpHeaders.SET_COOKIE,
+                                cookie.toString());
+        }
 }

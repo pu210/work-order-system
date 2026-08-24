@@ -15,7 +15,7 @@ export const NAV_ITEMS = [
     key: "ticket-list",
     label: "工單列表",
     path: "/ticket-list",
-    roles: ["ADMIN", "HANDLER"],
+    roles: ["ADMIN"],
     enabled: true,
   },
   {

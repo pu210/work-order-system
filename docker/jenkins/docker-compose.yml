@@ -1,0 +1,16 @@
+services:
+  jenkins:
+    build:
+      context: .
+    image: work-order-jenkins
+    container_name: work-order-jenkins
+    ports:
+      - "${JENKINS_PORT:-9090}:8080" # 管理介面，用 9090 避開後端已經用掉的 8080
+      - "${JENKINS_AGENT_PORT:-50000}:50000" # 給外部 build agent 連線用，本機單機開發用不到，先開著
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock # 讓 Jenkins 容器操作 host 的 Docker
+    restart: unless-stopped
+
+volumes:
+  jenkins_data:

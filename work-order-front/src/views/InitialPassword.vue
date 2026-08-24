@@ -131,7 +131,7 @@ async function handleSubmit() {
   isSubmitting.value = true;
 
   try {
-    const response = await axios.patch("/account/initial-password", {
+    const response = await axios.patch("/api/account/initial-password", {
       currentPassword: form.currentPassword,
       newPassword: form.newPassword,
       confirmPassword: form.confirmPassword,

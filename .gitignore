@@ -85,6 +85,14 @@ coverage/
 # 允許上傳 .env 範例檔
 !.env.example
 
+# 本機自簽憑證，每個人/每個環境自己產生，不進版控
+docker/nginx/certs/*.key
+docker/nginx/certs/*.crt
+docker/nginx/certs/*.pem
+
+# Jenkins 部署用的 SSH 金鑰，私鑰不進版控
+docker/jenkins/ssh/
+
 # 前端測試 (Cypress / Vitest)
 cypress/videos/
 cypress/screenshots/

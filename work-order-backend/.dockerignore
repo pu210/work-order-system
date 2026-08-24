@@ -1,0 +1,7 @@
+target/
+.git/
+.idea/
+*.iml
+.vscode/
+# 本機開發用的真實設定檔，含真實密碼，絕對不能被打包進 image
+src/main/resources/application.properties
