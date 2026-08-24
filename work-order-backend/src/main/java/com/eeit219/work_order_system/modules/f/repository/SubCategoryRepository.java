@@ -11,23 +11,17 @@ import com.eeit219.work_order_system.modules.f.entity.SubCategory;
 
 public interface SubCategoryRepository extends JpaRepository<SubCategory, Integer> {
 
-    // 給模組 b 新增工單用：一次撈齊 overridePriority、所屬大類別與大類別的預設優先級
-    @Query("SELECT s FROM SubCategory s " +
-            "LEFT JOIN FETCH s.overridePriority " +
-            "LEFT JOIN FETCH s.repairCategory rc " +
-            "LEFT JOIN FETCH rc.defaultPriority " +
-            "WHERE s.subCategoriesId = :id")
-    Optional<SubCategory> findByIdWithPriorityDetails(@Param("id") Integer id);
+        @Query("SELECT s FROM SubCategory s " +
+                        "LEFT JOIN FETCH s.overridePriority " +
+                        "LEFT JOIN FETCH s.repairCategory rc " +
+                        "LEFT JOIN FETCH rc.defaultPriority " +
+                        "WHERE s.subCategoriesId = :id")
+        Optional<SubCategory> findByIdWithPriorityDetails(@Param("id") Integer id);
 
-    @Query("SELECT s FROM SubCategory s LEFT JOIN s.repairCategory c WHERE "
-            + "CONCAT(s.subCategoriesId, '') LIKE %:keyword% OR "
-            + "CONCAT(s.categoryId, '') LIKE %:keyword% OR "
-            + "s.name LIKE %:keyword% OR "
-            + "CONCAT(s.overridePriorityId, '') LIKE %:keyword% OR "
-            + "s.overridePriorityName LIKE %:keyword% OR "
-            + "CONCAT(s.createdTime, '') LIKE %:keyword% OR "
-            + "CONCAT(s.updatedTime, '') LIKE %:keyword% OR "
-            + "c.name LIKE %:keyword% OR " // 支援用大類名稱搜尋 (如: 電腦設備)
-            + "CONCAT(c.defaultPriorityId, '') LIKE %:keyword%")
-    List<SubCategory> searchByKeyword(@Param("keyword") String keyword);
+        @Query("SELECT s FROM SubCategory s LEFT JOIN s.repairCategory c WHERE "
+                        + "s.name LIKE %:keyword% OR " // 子類名稱模糊搜尋
+                        + "c.name LIKE %:keyword% OR " // 大類名稱模糊搜尋
+                        + "s.overridePriorityName LIKE %:keyword% OR " // 優先級名稱模糊搜尋
+                        + "str(s.subCategoriesId) = :keyword") // 只有在輸入精確 ID 時才撈 ID
+        List<SubCategory> searchByKeyword(@Param("keyword") String keyword); // 註：保持你原本的方法名稱
 }
