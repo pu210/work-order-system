@@ -153,7 +153,7 @@
 
       <div class="card-body p-3 bg-light-subtle">
         <div class="row g-2 align-items-center">
-          <div class="col-12 col-sm-4 col-md-3">
+          <div class="col-12 col-sm-6 col-md-4">
             <div class="input-group input-group-sm">
               <label class="input-group-text bg-white text-muted" for="limit-select">資料筆數</label>
               <select class="form-select border-start-0" id="limit-select" v-model="filterLimit">
@@ -165,7 +165,7 @@
             </div>
           </div>
 
-          <div class="col-12 col-sm-4 col-md-3">
+          <div class="col-12 col-sm-6 col-md-4">
             <div class="input-group input-group-sm">
               <label class="input-group-text bg-white text-muted" for="dimension-select">統計維度</label>
               <select class="form-select border-start-0" id="dimension-select" v-model="filterDimension">
@@ -174,19 +174,6 @@
                 <option value="STATUS">依工單狀態</option>
                 <option value="CREATOR">依工單建立者</option>
                 <option value="PRIORITY">依優先級 (Priority)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="col-12 col-sm-4 col-md-3">
-            <div class="input-group input-group-sm">
-              <label class="input-group-text bg-white text-muted" for="field-select">選擇分類欄位</label>
-              <select class="form-select border-start-0" id="field-select" v-model="filterField">
-                <option v-if="filterDimension === 'CATEGORY'" value="CATEGORY_NAME">報修大分類 (Category)</option>
-                <option v-else-if="filterDimension === 'SUBCATEGORY'" value="SUB_CATEGORY_NAME">細項分類 (SubCategory)</option>
-                <option v-else-if="filterDimension === 'STATUS'" value="STATUS_NAME">工單狀態 (Status)</option>
-                <option v-else-if="filterDimension === 'CREATOR'" value="CREATOR_NAME">建立者 (Creator)</option>
-                <option v-else-if="filterDimension === 'PRIORITY'" value="PRIORITY_NAME">優先級 (Priority)</option>
               </select>
             </div>
           </div>
@@ -204,7 +191,7 @@
               <i class="bi bi-pie-chart me-1 text-primary"></i> 
               {{ getChartTitle() }}
             </h5>
-            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5">Chart.js 視覺化</span>
+            <!-- <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5">Chart.js 視覺化</span> -->
           </div>
 
           <div v-if="loading" class="d-flex flex-column align-items-center justify-content-center py-5 min-h-300">
@@ -261,61 +248,53 @@
       </div>
     </div>
 
-    <!-- 5. 底部表格細節清單 -->
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-      <div class="card-header bg-white py-3 px-4 border-0 d-flex align-items-center justify-content-between">
-        <h5 class="card-title h6 fw-bold text-dark mb-0">
-          <i class="bi bi-table me-1 text-primary"></i> 
-          {{ getDimensionTitle() }}詳細數據表
-        </h5>
+    <!-- 5. 報修數量趨勢折線圖卡片 (放置於頁面最下方) -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 p-md-4 bg-white">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+        <div>
+          <h5 class="card-title h6 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-graph-up text-primary"></i> 
+            {{ trendMonth ? `${trendMonth} 月每日報修數量趨勢分析 (折線圖)` : '每月報修數量趨勢分析 (折線圖)' }}
+          </h5>
+          <p class="text-muted small mb-0">
+            {{ trendMonth ? `追蹤 ${trendMonth} 月份中各日期的報修數量分布` : '依據工單建立時間追蹤每月報修單總數與趨勢走勢 (選取特定月份可查看每日明細)' }}
+          </p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- 年份篩選下拉選單 -->
+          <div class="input-group input-group-sm" style="width: 140px;">
+            <label class="input-group-text bg-light text-muted border-0 fw-medium">年份</label>
+            <select class="form-select bg-light border-0" v-model="trendYear">
+              <option :value="null">全部年份</option>
+              <option :value="2025">2025 年</option>
+              <option :value="2026">2026 年</option>
+            </select>
+          </div>
+
+          <!-- 月份篩選下拉選單 -->
+          <div class="input-group input-group-sm" style="width: 140px;">
+            <label class="input-group-text bg-light text-muted border-0 fw-medium">月份</label>
+            <select class="form-select bg-light border-0" v-model="trendMonth">
+              <option :value="null">全部月份</option>
+              <option v-for="m in 12" :key="m" :value="m">{{ m }} 月</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4" style="width: 80px;">#</th>
-              <th>名稱</th>
-              <th>工單數量</th>
-              <th>百分比占比</th>
-              <th class="pe-4" style="width: 30%;">占比視覺進度條</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td colspan="5" class="text-center py-4 text-muted">資料載入中...</td>
-            </tr>
-            <tr v-else-if="filteredReportData.length === 0">
-              <td colspan="5" class="text-center py-4 text-muted">暫無數據</td>
-            </tr>
-            <tr v-else v-for="(item, index) in filteredReportData" :key="getDisplayName(item)">
-              <td class="ps-4 fw-medium text-muted">{{ index + 1 }}</td>
-              <td>
-                <div class="d-flex align-items-center gap-2">
-                  <span 
-                    class="color-badge rounded-circle" 
-                    :style="{ backgroundColor: paletteColors[index % paletteColors.length] }"
-                  ></span>
-                  <span class="fw-semibold text-dark">{{ getDisplayName(item) }}</span>
-                </div>
-              </td>
-              <td class="fw-bold text-dark font-monospace">{{ item.count }} 筆</td>
-              <td class="fw-bold text-primary font-monospace">{{ calculatePercentage(item.count) }}%</td>
-              <td class="pe-4">
-                <div class="progress rounded-pill" style="height: 8px;">
-                  <div 
-                    class="progress-bar rounded-pill transition-all" 
-                    role="progressbar" 
-                    :style="{ 
-                      width: calculatePercentage(item.count) + '%',
-                      backgroundColor: paletteColors[index % paletteColors.length]
-                    }"
-                  ></div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-if="trendLoading" class="d-flex flex-column align-items-center justify-content-center py-5 min-h-300">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted small mt-2">正在載入報修趨勢數據...</p>
+      </div>
+
+      <div v-else-if="trendRawData.length === 0" class="d-flex flex-column align-items-center justify-content-center py-5 min-h-300">
+        <i class="bi bi-graph-up text-muted opacity-50 fs-1 mb-2"></i>
+        <p class="text-muted small mb-0">目前尚無報修趨勢數據</p>
+      </div>
+
+      <div v-else class="chart-wrapper min-h-300 d-flex align-items-center justify-content-center position-relative">
+        <Line :data="lineChartData" :options="lineChartOptions" />
       </div>
     </div>
   </div>
@@ -328,7 +307,9 @@ import {
   getSubCategoryReport,
   getStatusReport,
   getCreatorReport,
-  getPriorityReport
+  getPriorityReport,
+  getMonthlyReport,
+  getDailyReport
 } from '@/api/report.js'
 import { notify } from '@/plugins/notify.js'
 
@@ -339,13 +320,28 @@ import {
   Tooltip,
   Legend,
   ArcElement,
-  CategoryScale
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler
 } from 'chart.js'
-import { Pie } from 'vue-chartjs'
+import { Pie, Line } from 'vue-chartjs'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 
 // 註冊 Chart.js 元件與外掛
-ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, ChartDataLabels)
+ChartJS.register(
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  ChartDataLabels
+)
 
 // ---- 1. State 狀態 ----
 const loading = ref(false)
@@ -590,9 +586,119 @@ const exportReport = () => {
   notify.success('報表下載指令已傳送（模擬匯出 CSV/PDF）')
 }
 
+// ---- 5. 折線圖趨勢狀態與邏輯 ----
+const trendYear = ref(null)      // null (全部) | 2025 | 2026
+const trendMonth = ref(null)     // null (全部月份 - 每月統計) | 1 ~ 12 (特定月份 - 每日統計)
+const trendLoading = ref(false)
+const trendRawData = ref([])
+
+// 從後端 API 拉取月/日統計數據
+const loadTrendData = async () => {
+  trendLoading.value = true
+  try {
+    const params = {}
+    if (trendYear.value != null) params.year = trendYear.value
+    if (trendMonth.value != null) params.month = trendMonth.value
+
+    if (trendMonth.value != null) {
+      // 選擇特定月份 ➡️ 呼叫每日統計 API
+      trendRawData.value = (await getDailyReport(params)) || []
+    } else {
+      // 未選擇月份 (全部月份) ➡️ 呼叫每月統計 API
+      trendRawData.value = (await getMonthlyReport(params)) || []
+    }
+  } catch (err) {
+    console.error('載入報修趨勢失敗：', err)
+    notify.error('載入報修趨勢失敗')
+  } finally {
+    trendLoading.value = false
+  }
+}
+
+// 監聽年份或月份變化，自動重新載入
+watch([trendYear, trendMonth], () => {
+  loadTrendData()
+})
+
+// 折線圖 Chart.js 數據轉置
+const lineChartData = computed(() => {
+  const isDaily = trendMonth.value != null
+
+  const labels = trendRawData.value.map(item => {
+    if (isDaily) {
+      // 每日模式：顯示 "3/1" 或 "2025/3/1"
+      return trendYear.value
+        ? `${item.month}/${item.day}`
+        : `${item.year}/${item.month}/${item.day}`
+    }
+    // 每月模式：顯示 "1 月" 或 "2025-01"
+    return trendYear.value ? `${item.month} 月` : `${item.year}-${String(item.month).padStart(2, '0')}`
+  })
+
+  const counts = trendRawData.value.map(item => item.count || 0)
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: isDaily ? `${trendMonth.value} 月每日報修工單數` : '每月報修工單數',
+        backgroundColor: 'rgba(47, 111, 237, 0.12)',
+        borderColor: '#2F6FED',
+        pointBackgroundColor: '#2F6FED',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        borderWidth: 3,
+        tension: 0.35, // 弧度平滑曲線
+        fill: true,
+        data: counts
+      }
+    ]
+  }
+})
+
+// 折線圖 Chart.js 選項設定
+const lineChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top'
+    },
+    tooltip: {
+      callbacks: {
+        label: (context) => ` 報修數量: ${context.raw} 筆`
+      }
+    },
+    datalabels: {
+      display: true,
+      align: 'top',
+      anchor: 'end',
+      offset: 4,
+      color: '#2F6FED',
+      font: {
+        weight: 'bold',
+        size: 15
+      },
+      formatter: (val) => `${val}`
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        precision: 0
+      }
+    }
+  }
+}))
+
 // 頁面載入時自動拉取後端 API 數據
 onMounted(() => {
   loadData()
+  loadTrendData()
 })
 </script>
 

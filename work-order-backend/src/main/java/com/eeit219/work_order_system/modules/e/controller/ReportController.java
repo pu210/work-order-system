@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
+import com.eeit219.work_order_system.modules.e.dto.DailyReportDto;
+import com.eeit219.work_order_system.modules.e.dto.MonthlyReportDto;
 import com.eeit219.work_order_system.modules.e.service.ReportService;
+
+import org.springframework.web.bind.annotation.RequestParam;
 
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +61,23 @@ public class ReportController {
     public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getPriorityReport() {
         List<CategoryReportDto> report = reportService.getPriorityReport();
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢優先級報表成功", report));
+    }
+
+    // 6. 依月份統計報表 (折線圖用)
+    @GetMapping("/monthly")
+    public ResponseEntity<ApiResponse<List<MonthlyReportDto>>> getMonthlyReport(
+            @RequestParam(required = false) Integer year) {
+        List<MonthlyReportDto> report = reportService.getMonthlyReport(year);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢月份統計報表成功", report));
+    }
+
+    // 7. 依每日統計報表 (折線圖用，支援年份與月份過濾)
+    @GetMapping("/daily")
+    public ResponseEntity<ApiResponse<List<DailyReportDto>>> getDailyReport(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        List<DailyReportDto> report = reportService.getDailyReport(year, month);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢每日統計報表成功", report));
     }
 
     // 測試用 API：列出目前資料庫內的所有工單

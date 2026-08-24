@@ -25,6 +25,16 @@ export function getPriorityReport() {
   return api.get('/api/reports/priorities').then((res) => res.data.data)
 }
 
+// 6. 依月份統計報表 (折線圖用)
+export function getMonthlyReport(params) {
+  return api.get('/api/reports/monthly', { params }).then((res) => res.data.data)
+}
+
+// 7. 依每日統計報表 (折線圖用)
+export function getDailyReport(params) {
+  return api.get('/api/reports/daily', { params }).then((res) => res.data.data)
+}
+
 // 測試用 API：列出目前資料庫內的所有工單報表
 export function getAllWorkOrdersReport() {
   return api.get('/api/reports/test-work-orders').then((res) => res.data.data)
