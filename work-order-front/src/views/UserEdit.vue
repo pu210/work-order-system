@@ -199,8 +199,8 @@ const isLastActiveAdmin = ref(false);
 
 const roleOptions = [
   { value: "EMPLOYEE", label: "一般員工" },
-  { value: "HANDLER", label: "處理人員" },
-  { value: "ADMIN", label: "系統管理員" },
+  { value: "HANDLER", label: "維修人員" },
+  { value: "ADMIN", label: "管理員" },
 ];
 
 const goBack = () => {
@@ -275,7 +275,24 @@ const handleSubmit = async () => {
     notify.error(errorMessage.value);
     return;
   }
+  const isEditingSelf = Number(userId) === Number(authStore.userId);
+  const isRemovingOwnAdmin =
+    isEditingSelf &&
+    authStore.roleCodes.includes("ADMIN") &&
+    !form.value.roleCodes.includes("ADMIN");
 
+  if (isRemovingOwnAdmin) {
+    const result = await notify.confirm({
+      title: "確定要移除自己的管理員角色？",
+      text: "儲存後將立即失去管理權限，且無法自行恢復，必須由其他管理員重新指派。",
+      confirmButtonText: "確定",
+      cancelButtonText: "取消",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+  }
   isSubmitting.value = true;
 
   try {

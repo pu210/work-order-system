@@ -177,7 +177,9 @@ public class WorkOrderService {
                 .categoryName(workOrder.getSubCategory().getRepairCategory().getName())
                 .priorityName(workOrder.getPriority().getName())
                 .status(workOrder.getStatus().name())
-                .creatorName(workOrder.getCreator().getName())
+                .creatorId(workOrder.getCreator() != null ? workOrder.getCreator().getUserId() : null)
+                .creatorName(workOrder.getCreator() != null ? workOrder.getCreator().getName() : null)
+                .assignedHandlerId(workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getUserId() : null)
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()
                         : null)

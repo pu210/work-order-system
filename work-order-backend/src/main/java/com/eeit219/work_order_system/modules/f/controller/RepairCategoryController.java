@@ -54,7 +54,12 @@ public class RepairCategoryController {
 
         category.setName(categoryDetails.getName());
         category.setDefaultPriorityId(categoryDetails.getDefaultPriorityId());
-        category.setStatus(categoryDetails.getStatus());
+
+        // 🌟 加上這行防呆：有傳 status 才更新，沒傳就保留原本的值
+        if (categoryDetails.getStatus() != null) {
+            category.setStatus(categoryDetails.getStatus());
+        }
+
         category.setUpdatedTime(LocalDateTime.now());
 
         RepairCategory saved = repairCategoryRepository.save(category);

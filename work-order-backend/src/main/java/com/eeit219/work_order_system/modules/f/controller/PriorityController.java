@@ -34,6 +34,9 @@ public class PriorityController {
 
     @PostMapping
     public Priority createPriority(@RequestBody Priority priority) {
+        if (priority.getStatus() == null) {
+            priority.setStatus(true);
+        }
         return priorityRepository.save(priority);
     }
 
@@ -44,7 +47,11 @@ public class PriorityController {
 
         priority.setName(priorityDetails.getName());
         priority.setHours(priorityDetails.getHours());
-        priority.setStatus(priorityDetails.getStatus());
+
+        // 🌟 加上防呆：有傳 status 才更新，沒傳就維持原樣
+        if (priorityDetails.getStatus() != null) {
+            priority.setStatus(priorityDetails.getStatus());
+        }
 
         return priorityRepository.save(priority);
     }

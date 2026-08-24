@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { getToken, getCurrentUser, saveAuth, clearAuth } from "@/utils/auth.js";
+import {
+  getToken,
+  getCurrentUser,
+  saveAuth,
+  updateCurrentUser,
+  clearAuth,
+} from "@/utils/auth.js";
 import api from "@/plugins/axios.js";
 
 export const useAuthStore = defineStore("auth", () => {
@@ -32,7 +38,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function logout() {
     try {
-      await api.post("/auth/logout", null, {
+      await api.post("/api/auth/logout", null, {
         skipAuthRedirect: true,
         skipGlobalError: true,
       });
@@ -48,6 +54,14 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  function syncProfile(data) {
+    if (data.name !== undefined) name.value = data.name;
+    if (data.email !== undefined) email.value = data.email;
+    if (data.roleCodes !== undefined) roleCodes.value = data.roleCodes;
+
+    updateCurrentUser(data);
+  }
+
   // ---- 4. Return (對外公開的屬性與函數) ----
   return {
     token,
@@ -61,5 +75,6 @@ export const useAuthStore = defineStore("auth", () => {
     hasRole,
     login,
     logout,
+    syncProfile,
   };
 });

@@ -13,7 +13,7 @@ import com.eeit219.work_order_system.modules.a.dto.ResetPasswordRequestDTO;
 import com.eeit219.work_order_system.modules.a.service.PasswordResetService;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class PasswordResetController {
         private final PasswordResetService passwordResetService;
 

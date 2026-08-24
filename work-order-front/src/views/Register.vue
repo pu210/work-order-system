@@ -1,7 +1,9 @@
 <template>
   <div class="register-view">
     <h4 class="fw-bold mb-2">建立新帳號</h4>
-    <p class="text-muted small mb-4">填寫資料送出後，帳號需經管理員審核才能登入。</p>
+    <p class="text-muted small mb-4">
+      填寫資料送出後，帳號需經管理員審核才能登入。
+    </p>
 
     <form v-if="!successMessage" @submit.prevent="handleSubmit">
       <div class="row g-3">
@@ -88,11 +90,19 @@
         </div>
       </div>
 
-      <div v-if="errorMessage" class="alert alert-danger py-2 small mt-3 mb-0" role="alert">
+      <div
+        v-if="errorMessage"
+        class="alert alert-danger py-2 small mt-3 mb-0"
+        role="alert"
+      >
         {{ errorMessage }}
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 mt-4" :disabled="isSubmitting">
+      <button
+        type="submit"
+        class="btn btn-primary w-100 mt-4"
+        :disabled="isSubmitting"
+      >
         <span
           v-if="isSubmitting"
           class="spinner-border spinner-border-sm me-2"
@@ -101,7 +111,10 @@
         {{ isSubmitting ? "送出中…" : "送出註冊申請" }}
       </button>
 
-      <router-link to="/auth/login" class="btn btn-link w-100 mt-2 text-decoration-none">
+      <router-link
+        to="/auth/login"
+        class="btn btn-link w-100 mt-2 text-decoration-none"
+      >
         返回登入
       </router-link>
     </form>
@@ -111,7 +124,9 @@
         <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>
         {{ successMessage }}
       </div>
-      <router-link to="/auth/login" class="btn btn-primary w-100">返回登入</router-link>
+      <router-link to="/auth/login" class="btn btn-primary w-100"
+        >返回登入</router-link
+      >
     </div>
   </div>
 </template>
@@ -156,12 +171,16 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   try {
-    const response = await axios.post("/auth/register", {
-      ...form,
-      phone: phone || null,
-    }, {
-      skipAuthRedirect: true,
-    });
+    const response = await axios.post(
+      "/api/auth/register",
+      {
+        ...form,
+        phone: phone || null,
+      },
+      {
+        skipAuthRedirect: true,
+      },
+    );
     successMessage.value =
       response.data?.message || "註冊成功，請等待管理員審核";
   } catch (error) {

@@ -88,7 +88,7 @@
                   :key="roleCode"
                   class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-normal me-1"
                 >
-                  {{ roleCode }}
+                  {{ roleLabels[roleCode] ?? roleCode }}
                 </span>
               </td>
 
@@ -368,6 +368,12 @@ function closeReview() {
   selectedRoleCodes.value = [];
 }
 
+const roleLabels = {
+  ADMIN: "管理員",
+  HANDLER: "維修人員",
+  EMPLOYEE: "一般員工",
+};
+
 const statusLabels = {
   0: "已停用",
   1: "使用中",
@@ -454,9 +460,8 @@ async function submitReview(approved) {
 
     notify.success(approved ? "帳號已核准" : "註冊申請已拒絕");
   } catch (error) {
-    errorMessage.value = getErrorMessage(
-      error,
-      approved ? "核准帳號失敗" : "拒絕註冊申請失敗",
+    notify.error(
+      getErrorMessage(error, approved ? "核准帳號失敗" : "拒絕註冊申請失敗"),
     );
   } finally {
     reviewSubmitting.value = false;
@@ -515,7 +520,7 @@ async function toggleStatus(user) {
     await loadUsers();
     notify.success(`帳號已成功${actionName}`);
   } catch (error) {
-    errorMessage.value = getErrorMessage(error, `${actionName}帳號失敗`);
+    notify.error(getErrorMessage(error, `${actionName}帳號失敗`));
   } finally {
     updatingUserId.value = null;
   }
