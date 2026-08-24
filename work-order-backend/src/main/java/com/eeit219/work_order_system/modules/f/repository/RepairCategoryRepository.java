@@ -18,4 +18,6 @@ public interface RepairCategoryRepository extends JpaRepository<RepairCategory, 
             "CONCAT(c.createdTime, '') LIKE :keyword OR " +
             "CONCAT(c.updatedTime, '') LIKE :keyword")
     List<RepairCategory> searchByKeyword(@Param("keyword") String keyword);
+
+    List<RepairCategory> findByStatusTrue();
 }

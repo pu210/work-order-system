@@ -24,8 +24,6 @@
             <th>大類名稱</th>
             <th>優先級別</th>
             <th>狀態</th>
-            <th>建立時間</th>
-            <th>更新時間</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -46,8 +44,6 @@
                 <span class="slider"></span>
               </label>
             </td>
-            <td class="time-text">{{ item.createdTime || "-" }}</td>
-            <td class="time-text">{{ item.updatedTime || "-" }}</td>
             <td>
               <button class="btn-edit" @click="openEditModal(item)">
                 編輯
@@ -114,7 +110,7 @@ import {
   updateRepairCategory,
   updateRepairCategoryStatus,
 } from "@/api/category.js";
-import { getPriorities } from "@/api/priority.js";
+import { getActivePriorities } from "@/api/priority.js";
 
 const keyword = ref("");
 const tableData = ref([]);
@@ -136,7 +132,8 @@ const fetchData = async () => {
 
 const fetchPriorities = async () => {
   try {
-    const res = await getPriorities();
+    // 把原本的 getPriorities() 改成 getActivePriorities()
+    const res = await getActivePriorities(); 
     priorityList.value = Array.isArray(res) ? res : (res.data || []);
   } catch (error) {
     priorityList.value = [];

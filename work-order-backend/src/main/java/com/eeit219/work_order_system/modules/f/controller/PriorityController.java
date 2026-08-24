@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.modules.f.dto.PriorityResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
+import com.eeit219.work_order_system.modules.f.service.PriorityService;
 
 @RestController
 @RequestMapping("/api/priorities")
@@ -22,6 +24,8 @@ public class PriorityController {
 
     @Autowired
     private PriorityRepository priorityRepository;
+    @Autowired
+    private PriorityService priorityService;
 
     @GetMapping
     public List<Priority> getAllOrSearchPriorities(@RequestParam(required = false) String keyword) {
@@ -30,6 +34,11 @@ public class PriorityController {
         } else {
             return priorityRepository.findAll();
         }
+    }
+
+    @GetMapping("/active")
+    public List<PriorityResponseDto> getActivePriorities() {
+        return priorityService.getActivePriorities();
     }
 
     @PostMapping

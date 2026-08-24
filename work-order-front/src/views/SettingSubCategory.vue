@@ -25,8 +25,6 @@
             <th>所屬大類</th>
             <th>優先級別</th>
             <th>狀態</th>
-            <th>建立時間</th>
-            <th>更新時間</th>
             <th>操作</th> <!-- 補回操作欄位 -->
           </tr>
         </thead>
@@ -48,8 +46,6 @@
                 <span class="slider"></span>
               </label>
             </td>
-            <td class="time-text">{{ item.createdTime || "-" }}</td>
-            <td class="time-text">{{ item.updatedTime || "-" }}</td>
             <td>
               <!-- 補回編輯按鈕 -->
               <button class="btn-edit" @click="openEditModal(item)">
@@ -124,11 +120,11 @@ import { ref, onMounted } from "vue";
 import { 
   getSubCategories, 
   createSubCategory, 
-  updateSubCategory, /* 確保 API 有匯入更新方法 */
-  getRepairCategories,
+  updateSubCategory, 
+  getActiveRepairCategories,
   updateSubCategoryStatus 
 } from "@/api/category.js";
-import { getPriorities } from "@/api/priority.js";
+import { getActivePriorities } from "@/api/priority.js";
 
 const keyword = ref("");
 const tableData = ref([]);
@@ -177,7 +173,7 @@ const handleStatusChange = async (item) => {
 
 const fetchCategories = async () => {
   try {
-    const res = await getRepairCategories();
+    const res = await getActiveRepairCategories(); // 🌟 改成呼叫 active API
     categoryList.value = Array.isArray(res) ? res : (res.data || []);
   } catch (error) {
     categoryList.value = [];
@@ -186,7 +182,8 @@ const fetchCategories = async () => {
 
 const fetchPriorities = async () => {
   try {
-    const res = await getPriorities();
+    // 把原本的 getPriorities() 改成 getActivePriorities()
+    const res = await getActivePriorities(); 
     priorityList.value = Array.isArray(res) ? res : (res.data || []);
   } catch (error) {
     priorityList.value = [];

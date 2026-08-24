@@ -5,6 +5,10 @@ export function getRepairCategories(keyword) {
   return api.get('/api/repair-categories', { params: { keyword } }).then((res) => res.data)
 }
 
+
+export function getActiveRepairCategories() {
+  return api.get('/api/repair-categories/active').then((res) => res.data)
+}
 export function createRepairCategory(payload) {
   return api.post('/api/repair-categories', payload).then((res) => res.data)
 }

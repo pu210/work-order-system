@@ -1,6 +1,5 @@
 package com.eeit219.work_order_system.modules.f.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.modules.f.dto.RepairCategoryRequestDto;
+import com.eeit219.work_order_system.modules.f.dto.RepairCategoryResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
 import com.eeit219.work_order_system.modules.f.repository.RepairCategoryRepository;
+import com.eeit219.work_order_system.modules.f.service.RepairCategoryService;
 
 @RestController
 @RequestMapping("/api/repair-categories")
@@ -23,6 +25,9 @@ public class RepairCategoryController {
 
     @Autowired
     private RepairCategoryRepository repairCategoryRepository;
+
+    @Autowired
+    private RepairCategoryService repairCategoryService; // 注入 Service
 
     @GetMapping
     public List<RepairCategory> getAllOrSearchCategories(@RequestParam(required = false) String keyword) {
@@ -33,39 +38,21 @@ public class RepairCategoryController {
         }
     }
 
-    @PostMapping
-    public RepairCategory createCategory(@RequestBody RepairCategory category) {
-        category.setCreatedTime(LocalDateTime.now());
-        category.setUpdatedTime(LocalDateTime.now());
-        if (category.getStatus() == null) {
-            category.setStatus(true);
-        }
-        RepairCategory saved = repairCategoryRepository.save(category);
+    // 🌟 專門給細項下拉選單用的 API（透過 Service 回傳 DTO）
+    @GetMapping("/active")
+    public List<RepairCategoryResponseDto> getActiveCategories() {
+        return repairCategoryService.getActiveCategories();
+    }
 
-        // 🌟 關鍵：存檔後重新用 ID 查詢一次，讓 EAGER 關聯順便載進來
-        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
+    @PostMapping
+    public RepairCategory createCategory(@RequestBody RepairCategoryRequestDto request) {
+        return repairCategoryService.createCategory(request);
     }
 
     @PutMapping("/{repairCategoriesId}")
     public RepairCategory updateCategory(@PathVariable Integer repairCategoriesId,
-            @RequestBody RepairCategory categoryDetails) {
-        RepairCategory category = repairCategoryRepository.findById(repairCategoriesId)
-                .orElseThrow(() -> new RuntimeException("找不到該報修大類 ID: " + repairCategoriesId));
-
-        category.setName(categoryDetails.getName());
-        category.setDefaultPriorityId(categoryDetails.getDefaultPriorityId());
-
-        // 🌟 加上這行防呆：有傳 status 才更新，沒傳就保留原本的值
-        if (categoryDetails.getStatus() != null) {
-            category.setStatus(categoryDetails.getStatus());
-        }
-
-        category.setUpdatedTime(LocalDateTime.now());
-
-        RepairCategory saved = repairCategoryRepository.save(category);
-
-        // 🌟 關鍵：更新後也重新用 ID 查詢一次
-        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
+            @RequestBody RepairCategoryRequestDto request) {
+        return repairCategoryService.updateCategory(repairCategoriesId, request);
     }
 
     @PatchMapping("/{repairCategoriesId}/status")
@@ -74,7 +61,7 @@ public class RepairCategoryController {
                 .orElseThrow(() -> new RuntimeException("找不到該報修大類 ID: " + repairCategoriesId));
 
         category.setStatus(status);
-        category.setUpdatedTime(LocalDateTime.now());
+        category.setUpdatedTime(java.time.LocalDateTime.now());
 
         RepairCategory saved = repairCategoryRepository.save(category);
         return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);

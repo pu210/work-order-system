@@ -16,4 +16,5 @@ public interface PriorityRepository extends JpaRepository<Priority, Integer> {
             + "CAST(p.hours AS string) LIKE %:keyword%")
     List<Priority> searchByKeyword(@Param("keyword") String keyword);
 
+    List<Priority> findByStatusTrue();
 }

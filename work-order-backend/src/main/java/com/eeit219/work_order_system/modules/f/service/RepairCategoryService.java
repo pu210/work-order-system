@@ -1,6 +1,8 @@
 package com.eeit219.work_order_system.modules.f.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,13 @@ public class RepairCategoryService {
         }
 
         return dto;
+    }
+
+    // 🌟 新增：專門給下拉選單過濾掉關閉的大類
+    public List<RepairCategoryResponseDto> getActiveCategories() {
+        return repairCategoryRepository.findByStatusTrue().stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
     }
 
     // 新增商業邏輯
