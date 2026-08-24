@@ -113,6 +113,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMySubmissions } from '@/api/workOrder.js'
 import { useAuthStore } from '@/stores/auth.js'
+import {
+  WORK_ORDER_STATUS_OPTIONS,
+  statusBadgeClass,
+  statusLabel,
+} from '@/constants/workOrderStatus.js'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -120,25 +125,7 @@ const authStore = useAuthStore()
 // 純 EMPLOYEE（沒有 ADMIN/HANDLER 角色）不顯示優先級欄位
 const showPriority = computed(() => authStore.hasRole('ADMIN') || authStore.hasRole('HANDLER'))
 
-const STATUS_OPTIONS = [
-  { value: 'PENDING_REVIEW', label: '待審核' },
-  { value: 'IN_PROGRESS', label: '進行中' },
-  { value: 'PENDING_USER_ACCEPTANCE', label: '待使用者驗收' },
-  { value: 'PENDING_ADMIN_ACCEPTANCE', label: '待管理員驗收' },
-  { value: 'COMPLETED', label: '已完成' },
-  { value: 'CANCELLED', label: '已取消' },
-]
-
-const STATUS_LABEL_MAP = Object.fromEntries(STATUS_OPTIONS.map((s) => [s.value, s.label]))
-
-const STATUS_BADGE_MAP = {
-  PENDING_REVIEW: 'mt-badge-neutral',
-  IN_PROGRESS: 'mt-badge-primary',
-  PENDING_USER_ACCEPTANCE: 'mt-badge-warning',
-  PENDING_ADMIN_ACCEPTANCE: 'mt-badge-warning',
-  COMPLETED: 'mt-badge-success',
-  CANCELLED: 'mt-badge-neutral',
-}
+const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS
 
 const tickets = ref([])
 const keyword = ref('')
@@ -147,14 +134,6 @@ const page = ref(0)
 const totalPages = ref(0)
 const loading = ref(false)
 const errorMessage = ref('')
-
-function statusLabel(status) {
-  return STATUS_LABEL_MAP[status] || status
-}
-
-function statusBadgeClass(status) {
-  return STATUS_BADGE_MAP[status] || 'mt-badge-neutral'
-}
 
 function formatTime(value) {
   if (!value) return '—'

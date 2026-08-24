@@ -63,11 +63,11 @@
 
                 <!-- 問題描述 -->
                 <div
-                  class="bg-body-secondary rounded p-3 mb-2"
+                  class="ticket-description rounded p-3 mb-2"
                   style="white-space: pre-wrap"
                 >
-                  <div class="small text-muted mb-1">問題描述</div>
-                  <div>
+                  <div class="text-muted mb-1">問題描述</div>
+                  <div class="small">
                     {{ ticket.description || "無" }}
                   </div>
                 </div>
@@ -112,13 +112,28 @@
                     class="text-center"
                     style="width: 120px"
                   >
-                    <img
+                    <button
                       v-if="previewUrls[att.attachmentId]"
-                      :src="previewUrls[att.attachmentId]"
-                      :alt="att.originalFileName"
-                      class="img-thumbnail"
-                      style="width: 120px; height: 120px; object-fit: cover"
-                    />
+                      type="button"
+                      class="btn p-0 border-0 attachment-preview-button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#imagePreviewModal"
+                      :aria-label="`放大查看 ${att.originalFileName}`"
+                      @click="
+                        openImagePreview(
+                          previewUrls[att.attachmentId],
+                          att.originalFileName
+                        )
+                      "
+                    >
+                      <img
+                        :src="previewUrls[att.attachmentId]"
+                        :alt="att.originalFileName"
+                        class="img-thumbnail"
+                        style="width: 120px; height: 120px; object-fit: cover"
+                      />
+                    </button>
+
                     <div
                       v-else
                       class="border rounded d-flex align-items-center justify-content-center text-muted small"
@@ -219,6 +234,39 @@
         </aside>
       </div>
     </div>
+
+    <!-- 報修圖片與留言圖片共用的放大預覽視窗 -->
+    <div
+      id="imagePreviewModal"
+      class="modal fade"
+      tabindex="-1"
+      aria-labelledby="imagePreviewModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 id="imagePreviewModalLabel" class="modal-title">
+              {{ selectedImageName || "圖片預覽" }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="關閉圖片預覽"
+            ></button>
+          </div>
+          <div class="modal-body text-center bg-dark-subtle">
+            <img
+              v-if="selectedImageUrl"
+              :src="selectedImageUrl"
+              :alt="selectedImageName || '放大圖片'"
+              class="image-preview-large"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -226,13 +274,14 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import {
-  acceptWorkOrder,
+  userCheckAccept,
   getAttachments,
   getAttachmentPreview,
   deleteAttachment,
 } from "@/api/workOrder.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { getWorkOrderDetail } from "@/api/workOrderDetail.js";
+import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -245,6 +294,8 @@ const actionError = ref("");
 const attachments = ref([]);
 const attachmentsLoading = ref(false);
 const previewUrls = ref({});
+const selectedImageUrl = ref("");
+const selectedImageName = ref("");
 
 const VALID_BACK_TARGETS = ["ticket-list", "my-tickets"];
 const backTarget = computed(() =>
@@ -253,39 +304,51 @@ const backTarget = computed(() =>
     : "ticket-list"
 );
 
-const STATUS_LABEL_MAP = {
-  PENDING_REVIEW: "待審核",
-  IN_PROGRESS: "進行中",
-  PENDING_USER_ACCEPTANCE: "待使用者驗收",
-  PENDING_ADMIN_ACCEPTANCE: "待管理員驗收",
-  COMPLETED: "已完成",
-  CANCELLED: "已取消",
-};
-
-const STATUS_BADGE_MAP = {
-  PENDING_REVIEW: "bg-info-subtle text-info-emphasis",
-  IN_PROGRESS: "bg-primary-subtle text-primary-emphasis",
-  PENDING_USER_ACCEPTANCE: "bg-warning-subtle text-warning-emphasis",
-  PENDING_ADMIN_ACCEPTANCE: "bg-info-subtle text-info-emphasis",
-  COMPLETED: "bg-success-subtle text-success-emphasis",
-  CANCELLED: "bg-danger-subtle text-danger-emphasis",
-};
-
 // 狀態提示訊息
 const STATUS_NOTICE_MAP = {
   // 待審核
   PENDING_REVIEW: {
     title: "工單已送出，等待審核",
     message: "管理員審核後，將安排負責工程師。",
-    alertClass: "alert-info",
+    alertClass: "alert-secondary",
     iconClass: "bi-hourglass-split",
   },
-  // 工程師處理中
+  // 進行中
   IN_PROGRESS: {
     title: "工程師處理中",
     message: "案件目前正在維修中，請留意後續進度。",
     alertClass: "alert-primary",
     iconClass: "bi-tools",
+  },
+
+  // 待使用者驗收
+  PENDING_USER_ACCEPTANCE: {
+    title: "維修已完成，等待使用者驗收",
+    message: "等待報修人確認設備是否已恢復正常。",
+    alertClass: "alert-warning",
+    iconClass: "bi-clipboard-check",
+  },
+
+  // 待管理員驗收
+  PENDING_ADMIN_ACCEPTANCE: {
+    title: "等待管理員驗收",
+    message: "案件已由使用者驗收，等待管理員確認。",
+    alertClass: "alert-warning",
+    iconClass: "bi-shield-check",
+  },
+
+  // 取消
+  CANCELLED: {
+    title: "案件已取消",
+    alertClass: "alert-danger",
+    iconClass: "bi-x-circle-fill",
+  },
+
+  // 完成
+  COMPLETED: {
+    title: "案件已完成",
+    alertClass: "alert-success",
+    iconClass: "bi-check-circle-fill",
   },
 };
 
@@ -294,14 +357,6 @@ const progressNotice = computed(() => {
 
   return STATUS_NOTICE_MAP[ticket.value.status] || null;
 });
-
-function statusLabel(status) {
-  return STATUS_LABEL_MAP[status] || status;
-}
-
-function statusBadgeClass(status) {
-  return STATUS_BADGE_MAP[status] || "text-bg-secondary";
-}
 
 function formatTime(value) {
   if (!value) return "—";
@@ -362,6 +417,11 @@ async function handleDeleteAttachment(attachmentId) {
   }
 }
 
+function openImagePreview(imageUrl, imageName) {
+  selectedImageUrl.value = imageUrl;
+  selectedImageName.value = imageName;
+}
+
 onMounted(async () => {
   try {
     await loadTicket();
@@ -383,7 +443,7 @@ async function handleAccept() {
   actionMessage.value = "";
   actionError.value = "";
   try {
-    await acceptWorkOrder(route.params.id, authStore.userId);
+    await userCheckAccept(route.params.id, { feedback: null });
     await loadTicket();
     actionMessage.value = "工單已驗收完成";
   } catch (error) {
@@ -394,6 +454,28 @@ async function handleAccept() {
 }
 </script>
 <style scoped>
+.attachment-preview-button {
+  cursor: zoom-in;
+}
+
+.attachment-preview-button:focus-visible {
+  outline: 3px solid rgba(var(--bs-primary-rgb), 0.35);
+  outline-offset: 2px;
+}
+
+.image-preview-large {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 80vh;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.ticket-description {
+  background-color: #f5f6f8;
+}
+
 @media (min-width: 1200px) {
   .ticket-main-column {
     flex: 1 1 0;

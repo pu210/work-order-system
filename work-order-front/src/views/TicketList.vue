@@ -115,28 +115,15 @@ import { getWorkOrderList } from '@/api/workOrder.js'
 import { getRepairCategories } from '@/api/category.js'
 import { getPriorities } from '@/api/priority.js'
 import { getUsers } from '@/api/user.js'
+import {
+  WORK_ORDER_STATUS_OPTIONS,
+  statusBadgeClass,
+  statusLabel,
+} from '@/constants/workOrderStatus.js'
 
 const router = useRouter()
 
-const STATUS_OPTIONS = [
-  { value: 'PENDING_REVIEW', label: '待審核' },
-  { value: 'IN_PROGRESS', label: '進行中' },
-  { value: 'PENDING_USER_ACCEPTANCE', label: '待使用者驗收' },
-  { value: 'PENDING_ADMIN_ACCEPTANCE', label: '待管理員驗收' },
-  { value: 'COMPLETED', label: '已完成' },
-  { value: 'CANCELLED', label: '已取消' },
-]
-
-const STATUS_LABEL_MAP = Object.fromEntries(STATUS_OPTIONS.map((s) => [s.value, s.label]))
-
-const STATUS_BADGE_MAP = {
-  PENDING_REVIEW: 'tl-badge-neutral',
-  IN_PROGRESS: 'tl-badge-primary',
-  PENDING_USER_ACCEPTANCE: 'tl-badge-warning',
-  PENDING_ADMIN_ACCEPTANCE: 'tl-badge-warning',
-  COMPLETED: 'tl-badge-success',
-  CANCELLED: 'tl-badge-neutral',
-}
+const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS
 
 const tickets = ref([])
 const categories = ref([])
@@ -151,14 +138,6 @@ const page = ref(0)
 const totalPages = ref(0)
 const loading = ref(false)
 const errorMessage = ref('')
-
-function statusLabel(status) {
-  return STATUS_LABEL_MAP[status] || status
-}
-
-function statusBadgeClass(status) {
-  return STATUS_BADGE_MAP[status] || 'tl-badge-neutral'
-}
 
 function formatTime(value) {
   if (!value) return '—'
