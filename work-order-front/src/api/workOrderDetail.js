@@ -6,10 +6,3 @@ export function getWorkOrderDetail(workOrderId) {
     .get(`/api/work-orders/${workOrderId}/detail`)
     .then((response) => response.data.data);
 }
-
-// 取得聯繫紀錄
-export function getContactRecords(workOrderId) {
-  return api
-    .get(`/api/work-orders/${workOrderId}/contact-records`)
-    .then((response) => response.data.data);
-}
