@@ -215,7 +215,9 @@ CREATE TABLE contact_records (
     record_id      INT            IDENTITY (1, 1) NOT NULL,
     author_user_id INT            NOT NULL,
     work_order_id  INT            NOT NULL,
-    content        NVARCHAR (500) NOT NULL,
+    -- [B 模組協助修復 D 模組]：留言允許純圖片、不帶文字，這種情況 content 會是 null，
+    -- 原本 NOT NULL 會擋下這種留言、造成工單詳情頁只有圖片的留言直接報錯，改成 NULL
+    content        NVARCHAR (500) NULL,
     created_time   DATETIME2      DEFAULT GETDATE() NOT NULL,
     record_type    VARCHAR (30)   DEFAULT 'COMMENT' NOT NULL,
     CONSTRAINT PK_contact_records PRIMARY KEY (record_id)
