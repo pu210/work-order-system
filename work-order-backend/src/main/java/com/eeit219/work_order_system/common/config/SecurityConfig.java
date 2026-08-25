@@ -69,7 +69,8 @@ public class SecurityConfig {
                                                                 "/api/priorities/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
+                                                                "/api/reports/**")
                                                 .hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
