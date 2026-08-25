@@ -1,8 +1,6 @@
 package com.eeit219.work_order_system.modules.b.entity;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.f.entity.Priority;

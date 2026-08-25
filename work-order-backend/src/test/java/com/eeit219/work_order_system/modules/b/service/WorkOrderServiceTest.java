@@ -304,27 +304,26 @@ class WorkOrderServiceTest {
         WorkOrderState status = WorkOrderState.IN_PROGRESS;
         Pageable pageable = PageRequest.of(0, 20);
         when(userRoleRepository.findRoleCodesByUserId(1)).thenReturn(List.of("ADMIN"));
-        when(workOrderRepository.search("冷氣", status, 2, 3, 4, pageable))
+        when(workOrderRepository.search("冷氣", status, 2, 3, 4, null, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
         workOrderService.list("冷氣", status, 2, 3, 4, 1, pageable);
 
-        verify(workOrderRepository).search("冷氣", status, 2, 3, 4, pageable);
+        verify(workOrderRepository).search("冷氣", status, 2, 3, 4, null, pageable);
         verifyNoInteractions(workOrderAttachmentService);
     }
 
     @Test
-    void list_usesFindRelevantToUser_whenCallerIsHandler() {
+    void list_restrictsToSelfViaSearch_whenCallerIsHandler() {
         WorkOrderState status = WorkOrderState.IN_PROGRESS;
         Pageable pageable = PageRequest.of(0, 20);
         when(userRoleRepository.findRoleCodesByUserId(9)).thenReturn(List.of("HANDLER"));
-        when(workOrderRepository.findRelevantToUser("冷氣", status, 2, 3, 9, pageable))
+        when(workOrderRepository.search("冷氣", status, 2, 3, null, 9, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
         workOrderService.list("冷氣", status, 2, 3, null, 9, pageable);
 
-        verify(workOrderRepository).findRelevantToUser("冷氣", status, 2, 3, 9, pageable);
-        verify(workOrderRepository, org.mockito.Mockito.never()).search(any(), any(), any(), any(), any(), any());
+        verify(workOrderRepository).search("冷氣", status, 2, 3, null, 9, pageable);
     }
 
     @Test
@@ -338,9 +337,8 @@ class WorkOrderServiceTest {
         workOrderService.list("冷氣", status, 2, 3, 4, 5, pageable);
 
         verify(workOrderRepository).findMySubmissions("冷氣", status, 5, pageable);
-        verify(workOrderRepository, org.mockito.Mockito.never()).search(any(), any(), any(), any(), any(), any());
-        verify(workOrderRepository, org.mockito.Mockito.never()).findRelevantToUser(any(), any(), any(), any(),
-                any(), any());
+        verify(workOrderRepository, org.mockito.Mockito.never()).search(any(), any(), any(), any(), any(), any(),
+                any());
     }
 
     @Test

@@ -130,11 +130,11 @@ public class WorkOrderService {
                 .toList();
 
         if (roleCodes.contains(Role.ADMIN)) {
-            return workOrderRepository.search(keyword, status, priorityId, categoryId, assignedHandlerId, pageable)
-                    .map(this::toListItem);
+            return workOrderRepository.search(keyword, status, priorityId, categoryId, assignedHandlerId, null,
+                    pageable).map(this::toListItem);
         }
         if (roleCodes.contains(Role.HANDLER)) {
-            return workOrderRepository.findRelevantToUser(keyword, status, priorityId, categoryId, currentUserId,
+            return workOrderRepository.search(keyword, status, priorityId, categoryId, null, currentUserId,
                     pageable).map(this::toListItem);
         }
         return workOrderRepository.findMySubmissions(keyword, status, currentUserId, pageable)
