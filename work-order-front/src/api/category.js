@@ -6,9 +6,13 @@ export function getRepairCategories(keyword) {
 }
 
 // B 模組用：新增工單頁下拉選單，只拿啟用中的大類，跟上面給設定頁用的 getRepairCategories() 分開。
-// 這支後端包了 ApiResponse，要多解一層 res.data.data，跟這支檔案其他函式的解包方式不一樣
 export function getActiveRepairCategories() {
   return api.get('/api/repair-categories/active').then((res) => res.data.data)
+}
+
+// B 模組用：需要「全部大類」的地方（例如工單列表篩選下拉選單）改打這支，不要打 getRepairCategories()。
+export function getAllRepairCategoriesWithPriority() {
+  return api.get('/api/repair-categories/all-with-priority').then((res) => res.data.data)
 }
 
 export function createRepairCategory(payload) {

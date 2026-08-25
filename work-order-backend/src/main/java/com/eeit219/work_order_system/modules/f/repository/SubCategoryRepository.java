@@ -27,5 +27,12 @@ public interface SubCategoryRepository extends JpaRepository<SubCategory, Intege
 
         // B 模組用：新增工單頁下拉選單只要啟用中的細項，獨立一支查詢，跟上面給設定頁用的查詢分開，
         // 避免 F 模組之後調整查詢邏輯時，連帶把新增工單頁的下拉選單也改掉。
+        // 帶 LEFT JOIN FETCH：SubCategoryService.convertToResponseDto() 會逐筆存取 repairCategory、
+        // overridePriority（都是 LAZY），沒有 JOIN FETCH 的話，細項有幾筆就會多幾條 N+1 查詢
+        @Query("SELECT s FROM SubCategory s " +
+                        "LEFT JOIN FETCH s.repairCategory rc " +
+                        "LEFT JOIN FETCH rc.defaultPriority " +
+                        "LEFT JOIN FETCH s.overridePriority " +
+                        "WHERE s.status = true")
         List<SubCategory> findByStatusTrue();
 }
