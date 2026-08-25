@@ -71,9 +71,6 @@
                 <span :class="['priority-pill', priorityClass(ticket.priorityName)]">
                   {{ ticket.priorityName || '未設定優先級' }}
                 </span>
-                <span :class="['overdue-pill', overdueClass(ticket)]">
-                  {{ overdueLabel(ticket) }}
-                </span>
                 <span :class="['status-pill', statusClass(ticket.status)]">
                   待審查
                 </span>
@@ -84,16 +81,7 @@
               <h5>{{ ticket.title }}</h5>
               <span class="todo-created"><i class="bi bi-calendar3 me-1"></i>建立：{{ formatDate(ticket.createdTime) }}</span>
             </div>
-            <div class="todo-info-row">
-              <p><i class="bi bi-person me-1"></i>申請人：{{ ticket.creatorName || '—' }}</p>
-              <span class="todo-info-separator">｜</span>
-              <p><i class="bi bi-person-badge me-1"></i>負責管理員：{{ ticket.adminName || '尚未指定' }}</p>
-            </div>
-            <div class="todo-info-row">
-              <p><i class="bi bi-tools me-1"></i>指派工程師：{{ ticket.assignedHandlerName || '尚未指派' }}</p>
-              <span class="todo-info-separator">｜</span>
-              <p><i class="bi bi-calendar-check me-1"></i>完成期限：{{ formatDateTime(ticket.dueTime) }}</p>
-            </div>
+            <p class="todo-applicant"><i class="bi bi-person me-1"></i>申請人：{{ ticket.creatorName || '—' }}</p>
             <div class="detail-hint"><i class="bi bi-chevron-right"></i></div>
           </article>
 
@@ -135,7 +123,10 @@
               :class="['status-tab', { active: activeStatus === tab.value }]"
               @click="activeStatus = tab.value"
             >
-              {{ tab.label }} <span class="tab-count">{{ statusCount(tab.value) }}</span>
+              {{ tab.label }}
+              <span :class="['tab-count', { 'tab-count-alert': shouldHighlightCount(tab.value) }]">
+                {{ statusCount(tab.value) }}
+              </span>
             </button>
           </nav>
 
@@ -202,11 +193,14 @@
                 <span class="order-created">・建立：{{ formatDate(ticket.createdTime) }}</span>
               </div>
               <div class="card-badges">
-                <span :class="['priority-pill', priorityClass(ticket.priorityName)]">
+                <span
+                  v-if="!isClosed(ticket)"
+                  :class="['priority-pill', priorityClass(ticket.priorityName)]"
+                >
                   <i class="bi bi-exclamation-triangle-fill me-1"></i>
                   {{ ticket.priorityName || '未設定優先級' }}
                 </span>
-                <span :class="['overdue-pill', overdueClass(ticket)]">
+                <span v-if="!isClosed(ticket)" :class="['overdue-pill', overdueClass(ticket)]">
                   {{ overdueLabel(ticket) }}
                 </span>
                 <span :class="['status-pill', statusClass(ticket.status)]">
@@ -277,7 +271,7 @@ import { getWorkOrderList } from "@/api/workOrder.js";
 const router = useRouter();
 
 const statusTabs = [
-  { value: "", label: "全部工單" },
+  { value: "", label: "未結案" },
   { value: "RE_REVIEW", label: "重新審查" },
   { value: "IN_PROGRESS", label: "進行中" },
   { value: "PENDING_USER_ACCEPTANCE", label: "使用者驗收" },
@@ -359,7 +353,9 @@ async function fetchAllTickets() {
 
 const filteredTickets = computed(() => {
   let matches = tickets.value.filter(
-    (ticket) => !(ticket.status === "PENDING_REVIEW" && ticket.adminUserId == null),
+    (ticket) =>
+      !(ticket.status === "PENDING_REVIEW" && ticket.adminUserId == null) &&
+      !["COMPLETED", "CANCELLED"].includes(ticket.status),
   );
   if (activeStatus.value === "RE_REVIEW") {
     matches = tickets.value.filter(
@@ -472,10 +468,20 @@ function statusCount(status) {
   }
   if (!status) {
     return tickets.value.filter(
-      (ticket) => !(ticket.status === "PENDING_REVIEW" && ticket.adminUserId == null),
+      (ticket) =>
+        !(ticket.status === "PENDING_REVIEW" && ticket.adminUserId == null) &&
+        !["COMPLETED", "CANCELLED"].includes(ticket.status),
     ).length;
   }
   return tickets.value.filter((ticket) => ticket.status === status).length;
+}
+
+function shouldHighlightCount(status) {
+  return ["RE_REVIEW", "PENDING_ADMIN_ACCEPTANCE"].includes(status) && statusCount(status) > 0;
+}
+
+function isClosed(ticket) {
+  return ["COMPLETED", "CANCELLED"].includes(ticket.status);
 }
 
 function overdueLabel(ticket) {
@@ -569,9 +575,7 @@ onMounted(loadTickets);
 .todo-title-row { display: flex; align-items: baseline; gap: 0.55rem; margin-bottom: 0.55rem; }
 .todo-title-row h5 { flex: 1 1 auto; min-width: 0; margin: 0; }
 .todo-created { flex: 0 0 auto; margin-left: auto; color: #8a96a8; font-size: 0.72rem; white-space: nowrap; }
-.todo-info-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: 0.35rem; }
-.todo-info-row p { min-width: 0; overflow-wrap: anywhere; }
-.todo-info-separator { padding-top: 0.2rem; color: #b1bac8; font-size: 0.75rem; }
+.todo-applicant { overflow-wrap: anywhere; }
 .detail-hint { position: absolute; top: 50%; right: 0.75rem; color: #a3aec0; transform: translateY(-50%); }
 .work-order-no { color: #67758a; font-size: 0.88rem; }
 .card-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 0.4rem; }
@@ -597,6 +601,7 @@ onMounted(loadTickets);
 .status-tab.active { color: #7c3aed; font-weight: 750; }
 .status-tab.active::after { background: #7c3aed; }
 .tab-count { display: inline-block; min-width: 18px; margin-left: 0.1rem; padding: 0.03rem 0.28rem; border-radius: 999px; background: #f1f3f7; color: #7b8799; font-size: 0.65rem; }
+.tab-count-alert { background: #dc3545; color: #fff; }
 .sort-control { display: flex; align-items: center; flex: 0 0 auto; gap: 0.2rem; padding-left: 0.45rem; border-left: 1px solid #edf0f4; color: #7b8799; font-size: 0.76rem; white-space: nowrap; }
 .sort-control .form-select { width: 126px; min-height: 30px; padding: 0.2rem 1.5rem 0.2rem 0.35rem; border: 0; background-position: right 0.35rem center; background-size: 10px 8px; font-size: 0.75rem; font-weight: 650; box-shadow: none; }
 .orders-list { display: grid; gap: 1rem; }
