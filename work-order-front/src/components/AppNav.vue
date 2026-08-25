@@ -2,8 +2,8 @@
   <nav class="wo-nav">
     <div class="wo-nav-inner">
       <router-link to="/dashboard" class="wo-logo">
-        <div class="wo-logo-mark">WO</div>
-        <div class="wo-logo-text">WOHub<small>WORK ORDER SYSTEM</small></div>
+        <img src="/favicon.ico" alt="logo" class="wo-logo-img" />
+        <div class="wo-logo-text">Gongxiahuei<small>WORK ORDER SYSTEM</small></div>
       </router-link>
 
       <div class="wo-nav-links">

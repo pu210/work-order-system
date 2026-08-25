@@ -90,11 +90,19 @@ body {
   justify-content: center;
 }
 
+.wo-logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .wo-logo-text {
   color: #fff;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 15px;
 }
 
 .wo-logo-text small {
