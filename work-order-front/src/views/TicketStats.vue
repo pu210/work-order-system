@@ -55,12 +55,14 @@
         <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white hover-lift transition-all">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="text-muted small mb-1 fw-medium">最高報修項目</div>
+              <div class="text-muted small mb-1 fw-medium">
+                {{ getTopCategoryCardTitle() }}
+              </div>
               <div class="h5 fw-bold mb-0 text-warning text-truncate" style="max-width: 140px;">
                 {{ topCategory ? getDisplayName(topCategory) : '無資料' }}
               </div>
               <div class="small text-muted" v-if="topCategory">
-                {{ topCategory.count }} 筆 ({{ topCategoryPercentage }}%)
+                {{ topCategory.count || topCategory.completedCount || 0 }} 筆 ({{ topCategoryPercentage }}%)
               </div>
             </div>
             <div class="icon-avatar bg-warning-subtle text-warning rounded-circle p-3">
@@ -74,7 +76,7 @@
         <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white hover-lift transition-all">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="text-muted small mb-1 fw-medium">平均分類工單數</div>
+              <div class="text-muted small mb-1 fw-medium">平均工單數</div>
               <div class="h3 fw-bold mb-0 text-info">{{ avgCount }} <span class="fs-6 text-muted fw-normal">筆/類</span></div>
             </div>
             <div class="icon-avatar bg-info-subtle text-info rounded-circle p-3">
@@ -138,6 +140,14 @@
             >
               <i class="bi bi-exclamation-triangle-fill me-1"></i> 依優先級
             </button>
+            <button 
+              type="button"
+              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
+              :class="filterDimension === 'ENGINEER_KPI' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
+              @click="filterDimension = 'ENGINEER_KPI'"
+            >
+              <i class="bi bi-speedometer2 me-1"></i> 工程師 KPI
+            </button>
           </div>
         </div>
 
@@ -153,7 +163,7 @@
 
       <div class="card-body p-3 bg-light-subtle">
         <div class="row g-2 align-items-center">
-          <div class="col-12 col-sm-6 col-md-4">
+          <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group input-group-sm">
               <label class="input-group-text bg-white text-muted" for="limit-select">資料筆數</label>
               <select class="form-select border-start-0" id="limit-select" v-model="filterLimit">
@@ -165,7 +175,7 @@
             </div>
           </div>
 
-          <div class="col-12 col-sm-6 col-md-4">
+          <div class="col-12 col-sm-6 col-md-3">
             <div class="input-group input-group-sm">
               <label class="input-group-text bg-white text-muted" for="dimension-select">統計維度</label>
               <select class="form-select border-start-0" id="dimension-select" v-model="filterDimension">
@@ -174,7 +184,34 @@
                 <option value="STATUS">依工單狀態</option>
                 <option value="CREATOR">依工單建立者</option>
                 <option value="PRIORITY">依優先級 (Priority)</option>
+                <option value="ENGINEER_KPI">依工程師處理 KPI (Engineer KPI)</option>
               </select>
+            </div>
+          </div>
+
+          <!-- 日期區間篩選 (開始) -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="input-group input-group-sm">
+              <label class="input-group-text bg-white text-muted" for="start-date-input">開始日期</label>
+              <input 
+                type="date" 
+                class="form-control border-start-0" 
+                id="start-date-input" 
+                v-model="filterStartDate"
+              />
+            </div>
+          </div>
+
+          <!-- 日期區間篩選 (結束) -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="input-group input-group-sm">
+              <label class="input-group-text bg-white text-muted" for="end-date-input">結束日期</label>
+              <input 
+                type="date" 
+                class="form-control border-start-0" 
+                id="end-date-input" 
+                v-model="filterEndDate"
+              />
             </div>
           </div>
         </div>
@@ -231,15 +268,20 @@
                   class="color-badge rounded-circle flex-shrink-0" 
                   :style="{ backgroundColor: paletteColors[index % paletteColors.length] }"
                 ></span>
-                <span class="fw-medium text-dark small text-truncate">{{ getDisplayName(item) }}</span>
+                <div>
+                  <span class="fw-medium text-dark small text-truncate d-block">{{ getDisplayName(item) }}</span>
+                  <small v-if="filterDimension === 'ENGINEER_KPI'" class="text-primary text-xs d-block fw-semibold">
+                    <i class="bi bi-clock-history me-1"></i>平均耗時: {{ item.avgDurationHours || 0 }} 小時 ({{ item.avgDurationMinutes || 0 }} 分鐘)
+                  </small>
+                </div>
               </div>
 
               <div class="d-flex align-items-center gap-3 flex-shrink-0">
                 <span class="badge bg-light text-secondary border px-2 py-1 small font-monospace">
-                  {{ item.count }} 筆
+                  {{ item.count || item.completedCount || 0 }} 筆完工
                 </span>
                 <span class="fw-bold small text-dark font-monospace text-end" style="min-width: 50px;">
-                  {{ calculatePercentage(item.count) }}%
+                  {{ calculatePercentage(item.count || item.completedCount || 0) }}%
                 </span>
               </div>
             </div>
@@ -262,6 +304,15 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- 折線圖樣式選擇 -->
+          <div class="input-group input-group-sm" style="width: 155px;">
+            <label class="input-group-text bg-light text-muted border-0 fw-medium">樣式</label>
+            <select class="form-select bg-light border-0" v-model="lineStyle">
+              <option value="SMOOTH">曲線折線圖</option>
+              <option value="STRAIGHT">直線折線圖</option>
+            </select>
+          </div>
+
           <!-- 年份篩選下拉選單 -->
           <div class="input-group input-group-sm" style="width: 140px;">
             <label class="input-group-text bg-light text-muted border-0 fw-medium">年份</label>
@@ -309,7 +360,8 @@ import {
   getCreatorReport,
   getPriorityReport,
   getMonthlyReport,
-  getDailyReport
+  getDailyReport,
+  getEngineerKpiReport
 } from '@/api/report.js'
 import { notify } from '@/plugins/notify.js'
 
@@ -351,6 +403,8 @@ const categoryReportList = ref([]) // 後端 API 抓回的原始分類數據
 const filterLimit = ref('ALL')          // 限制筆數 ('ALL' | '3' | '5' | '10')
 const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY')
 const filterField = ref('CATEGORY_NAME')// 選擇欄位
+const filterStartDate = ref('')         // 開始日期 YYYY-MM-DD
+const filterEndDate = ref('')           // 結束日期 YYYY-MM-DD
 
 // 調和色彩盤
 const paletteColors = [
@@ -385,13 +439,14 @@ const formatStatus = (statusStr) => {
   return map[statusStr] || statusStr
 }
 
-// 取得項目的顯示名稱（相容大分類、細項名稱、狀態、建立者、優先級）
+// 取得項目的顯示名稱（相容大分類、細項名稱、狀態、建立者、優先級、工程師）
 const getDisplayName = (item) => {
   if (!item) return '未指定'
   if (filterDimension.value === 'STATUS') {
     return formatStatus(item.statusName || item.status)
   }
   return (
+    item.engineerName ||
     item.categoryName ||
     item.subCategoryName ||
     item.creatorName ||
@@ -412,12 +467,35 @@ const getDimensionTitle = () => {
       return '工單建立者'
     case 'PRIORITY':
       return '工單優先級'
+    case 'ENGINEER_KPI':
+      return '工程師處理 KPI'
     default:
       return '報修大分類'
   }
 }
 
+// 取得當前最高項目卡片標題
+const getTopCategoryCardTitle = () => {
+  switch (filterDimension.value) {
+    case 'STATUS':
+      return '最多的狀態'
+    case 'CREATOR':
+      return '最多的建立者'
+    case 'PRIORITY':
+      return '最多的優先級'
+    case 'ENGINEER_KPI':
+      return '完成件數最高'
+    case 'SUBCATEGORY':
+      return '最高細項分類'
+    default:
+      return '最高報修項目'
+  }
+}
+
 const getChartTitle = () => {
+  if (filterDimension.value === 'ENGINEER_KPI') {
+    return '完成工單之工程師占比'
+  }
   return `工單${getDimensionTitle()}占比圖`
 }
 
@@ -426,7 +504,7 @@ const filteredReportData = computed(() => {
   let list = [...categoryReportList.value]
 
   // 按數量高到低排序
-  list.sort((a, b) => (b.count || 0) - (a.count || 0))
+  list.sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
 
   if (filterLimit.value !== 'ALL') {
     const limit = parseInt(filterLimit.value, 10)
@@ -438,26 +516,27 @@ const filteredReportData = computed(() => {
 
 // 計算總工單筆數
 const totalCount = computed(() => {
-  return categoryReportList.value.reduce((sum, item) => sum + (item.count || 0), 0)
+  return categoryReportList.value.reduce((sum, item) => sum + (item.count || item.completedCount || 0), 0)
 })
 
 // 計算最高報修項目
 const topCategory = computed(() => {
   if (categoryReportList.value.length === 0) return null
-  const sorted = [...categoryReportList.value].sort((a, b) => (b.count || 0) - (a.count || 0))
+  const sorted = [...categoryReportList.value].sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
   return sorted[0]
 })
 
 // 計算最高占比百分比
 const topCategoryPercentage = computed(() => {
   if (!topCategory.value || totalCount.value === 0) return '0.0'
-  return (((topCategory.value.count || 0) / totalCount.value) * 100).toFixed(1)
+  const count = topCategory.value.count || topCategory.value.completedCount || 0
+  return ((count / totalCount.value) * 100).toFixed(1)
 })
 
-// 平均每個分類筆數
+// 平均每個分類筆數 (保留小數點第一位)
 const avgCount = computed(() => {
-  if (categoryReportList.value.length === 0) return 0
-  return Math.round(totalCount.value / categoryReportList.value.length)
+  if (categoryReportList.value.length === 0) return '0.0'
+  return (totalCount.value / categoryReportList.value.length).toFixed(1)
 })
 
 // 計算特定數量的百分比占比
@@ -471,8 +550,8 @@ const chartData = computed(() => {
   // 1. 從後端數據中萃取所有項目的名稱標籤 (例如：['環境設施', '資訊系統', '儀器設備'])
   const labels = filteredReportData.value.map(item => getDisplayName(item))
   
-  // 2. 從後端數據中萃取對應的工單筆數數字 (例如：[15, 8, 3])
-  const counts = filteredReportData.value.map(item => item.count || 0)
+  // 2. 從後端數據中萃取對應的工單筆數數字 (相容大分類 count 與工程師 completedCount)
+  const counts = filteredReportData.value.map(item => item.count || item.completedCount || 0)
   
   // 3. 根據標籤數量截取對應數量的顏色
   const colors = paletteColors.slice(0, labels.length)
@@ -532,17 +611,23 @@ const chartOptions = computed(() => ({
 const loadData = async () => {
   loading.value = true
   try {
+    const params = {}
+    if (filterStartDate.value) params.startDate = filterStartDate.value
+    if (filterEndDate.value) params.endDate = filterEndDate.value
+
     let data = []
     if (filterDimension.value === 'SUBCATEGORY') {
-      data = await getSubCategoryReport()
+      data = await getSubCategoryReport(params)
     } else if (filterDimension.value === 'STATUS') {
-      data = await getStatusReport()
+      data = await getStatusReport(params)
     } else if (filterDimension.value === 'CREATOR') {
-      data = await getCreatorReport()
+      data = await getCreatorReport(params)
     } else if (filterDimension.value === 'PRIORITY') {
-      data = await getPriorityReport()
+      data = await getPriorityReport(params)
+    } else if (filterDimension.value === 'ENGINEER_KPI') {
+      data = await getEngineerKpiReport(params)
     } else {
-      data = await getCategoryReport()
+      data = await getCategoryReport(params)
     }
     categoryReportList.value = Array.isArray(data) ? data : []
   } catch (err) {
@@ -553,19 +638,8 @@ const loadData = async () => {
   }
 }
 
-// 當維度切換時，自動重新向後端請求資料
-watch(filterDimension, (newDim) => {
-  if (newDim === 'SUBCATEGORY') {
-    filterField.value = 'SUB_CATEGORY_NAME'
-  } else if (newDim === 'STATUS') {
-    filterField.value = 'STATUS_NAME'
-  } else if (newDim === 'CREATOR') {
-    filterField.value = 'CREATOR_NAME'
-  } else if (newDim === 'PRIORITY') {
-    filterField.value = 'PRIORITY_NAME'
-  } else {
-    filterField.value = 'CATEGORY_NAME'
-  }
+// 當維度或日期過濾區間變化時，自動重新向後端請求資料
+watch([filterDimension, filterStartDate, filterEndDate], () => {
   loadData()
 })
 
@@ -578,15 +652,79 @@ const resetFilters = () => {
   filterLimit.value = 'ALL'
   filterDimension.value = 'CATEGORY'
   filterField.value = 'CATEGORY_NAME'
+  filterStartDate.value = ''
+  filterEndDate.value = ''
   loadData()
   notify.info('已重置篩選條件')
 }
 
 const exportReport = () => {
-  notify.success('報表下載指令已傳送（模擬匯出 CSV/PDF）')
+  if (!filteredReportData.value || filteredReportData.value.length === 0) {
+    notify.warning('目前無可匯出的報表數據')
+    return
+  }
+
+  try {
+    const title = getDimensionTitle()
+    const todayStr = new Date().toISOString().split('T')[0]
+
+    // 1. 建立 CSV 標題與資料陣列
+    const csvRows = []
+    
+    // 報表元數據 Header
+    csvRows.push([`"工單統計報表 - ${title}"`])
+    csvRows.push([`"匯出時間"`, `"${new Date().toLocaleString()}"`])
+    if (filterStartDate.value || filterEndDate.value) {
+      csvRows.push([`"篩選日期區間"`, `"${filterStartDate.value || '不限'} ~ ${filterEndDate.value || '不限'}"`])
+    }
+    csvRows.push([]) // 空列隔開
+
+    // 表頭與資料列
+    if (filterDimension.value === 'ENGINEER_KPI') {
+      csvRows.push(['"項次"', '"工程師姓名"', '"完工數量(筆)"', '"平均處理時數(小時)"', '"平均處理時間(分鐘)"'])
+      filteredReportData.value.forEach((item, index) => {
+        const name = getDisplayName(item)
+        const count = item.completedCount || item.count || 0
+        const hours = item.avgDurationHours || 0
+        const minutes = item.avgDurationMinutes || 0
+        csvRows.push([index + 1, `"${name}"`, count, hours, minutes])
+      })
+    } else {
+      csvRows.push(['"項次"', '"名稱"', '"工單數量(筆)"', '"百分比占比(%)"'])
+      filteredReportData.value.forEach((item, index) => {
+        const name = getDisplayName(item)
+        const count = item.count || 0
+        const pct = calculatePercentage(count)
+        csvRows.push([index + 1, `"${name}"`, count, `"${pct}%"`])
+      })
+    }
+
+    // 2. 將陣列組合為 CSV 格式字串
+    const csvString = csvRows.map(row => row.join(',')).join('\n')
+
+    // 3. 加入 UTF-8 BOM ('\uFEFF')，確保 Microsoft Excel 開啟時中文無亂碼
+    const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8;' })
+
+    // 4. 建立隱藏 HTML 下載連結並觸發點擊
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `工單統計報表_${title}_${todayStr}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    notify.success(`已成功下載「${title}」CSV 報表檔案`)
+  } catch (err) {
+    console.error('匯出報表失敗：', err)
+    notify.error('匯出報表失敗，請稍後再試')
+  }
 }
 
 // ---- 5. 折線圖趨勢狀態與邏輯 ----
+const lineStyle = ref('SMOOTH')  // 'SMOOTH' (平滑曲線) | 'STRAIGHT' (直線折線)
 const trendYear = ref(null)      // null (全部) | 2025 | 2026
 const trendMonth = ref(null)     // null (全部月份 - 每月統計) | 1 ~ 12 (特定月份 - 每日統計)
 const trendLoading = ref(false)
@@ -642,7 +780,7 @@ const lineChartData = computed(() => {
     datasets: [
       {
         label: isDaily ? `${trendMonth.value} 月每日報修工單數` : '每月報修工單數',
-        backgroundColor: 'rgba(47, 111, 237, 0.12)',
+        backgroundColor: lineStyle.value === 'SMOOTH' ? 'rgba(47, 111, 237, 0.12)' : 'transparent',
         borderColor: '#2F6FED',
         pointBackgroundColor: '#2F6FED',
         pointBorderColor: '#ffffff',
@@ -650,8 +788,8 @@ const lineChartData = computed(() => {
         pointRadius: 5,
         pointHoverRadius: 7,
         borderWidth: 3,
-        tension: 0.35, // 弧度平滑曲線
-        fill: true,
+        tension: lineStyle.value === 'SMOOTH' ? 0.35 : 0, // SMOOTH 為平滑曲線，STRAIGHT 為直切折線
+        fill: lineStyle.value === 'SMOOTH',
         data: counts
       }
     ]

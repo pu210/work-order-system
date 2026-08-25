@@ -1,5 +1,6 @@
 package com.eeit219.work_order_system.modules.e.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,35 +14,55 @@ import org.springframework.data.repository.query.Param;
 
 public interface ReportWorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
-    // 1. 依大分類群組統計
+    // 1. 依大分類群組統計 (支援日期區間過濾)
     @Query("SELECT sc.repairCategory.name AS categoryName, COUNT(w.workOrderId) AS count " +
             "FROM WorkOrder w JOIN w.subCategory sc " +
+            "WHERE (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
             "GROUP BY sc.repairCategory.name")
-    List<CategoryReportDto> countWorkOrdersByCategory();
+    List<CategoryReportDto> countWorkOrdersByCategory(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    // 2. 依細項分類群組統計
+    // 2. 依細項分類群組統計 (支援日期區間過濾)
     @Query("SELECT sc.name AS subCategoryName, COUNT(w.workOrderId) AS count " +
             "FROM WorkOrder w JOIN w.subCategory sc " +
+            "WHERE (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
             "GROUP BY sc.name")
-    List<CategoryReportDto> countWorkOrdersBySubCategory();
+    List<CategoryReportDto> countWorkOrdersBySubCategory(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    // 3. 依工單狀態群組統計
+    // 3. 依工單狀態群組統計 (支援日期區間過濾)
     @Query("SELECT CAST(w.status AS string) AS statusName, COUNT(w.workOrderId) AS count " +
             "FROM WorkOrder w " +
+            "WHERE (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
             "GROUP BY w.status")
-    List<CategoryReportDto> countWorkOrdersByStatus();
+    List<CategoryReportDto> countWorkOrdersByStatus(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    // 4. 依建立者群組統計
+    // 4. 依建立者群組統計 (支援日期區間過濾)
     @Query("SELECT c.name AS creatorName, COUNT(w.workOrderId) AS count " +
             "FROM WorkOrder w JOIN w.creator c " +
+            "WHERE (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
             "GROUP BY c.name")
-    List<CategoryReportDto> countWorkOrdersByCreator();
+    List<CategoryReportDto> countWorkOrdersByCreator(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
-    // 5. 依優先級群組統計
+    // 5. 依優先級群組統計 (支援日期區間過濾)
     @Query("SELECT p.name AS priorityName, COUNT(w.workOrderId) AS count " +
             "FROM WorkOrder w JOIN w.priority p " +
+            "WHERE (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
             "GROUP BY p.name")
-    List<CategoryReportDto> countWorkOrdersByPriority();
+    List<CategoryReportDto> countWorkOrdersByPriority(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 
     // 6. 依月份群組統計 (全年份)
     @Query("SELECT YEAR(w.createdTime) AS year, MONTH(w.createdTime) AS month, COUNT(w.workOrderId) AS count " +

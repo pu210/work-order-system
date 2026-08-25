@@ -1,7 +1,9 @@
 package com.eeit219.work_order_system.modules.e.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,6 +15,7 @@ import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.e.dto.CategoryReportDto;
 import com.eeit219.work_order_system.modules.e.dto.DailyReportDto;
+import com.eeit219.work_order_system.modules.e.dto.EngineerKpiReportDto;
 import com.eeit219.work_order_system.modules.e.dto.MonthlyReportDto;
 import com.eeit219.work_order_system.modules.e.service.ReportService;
 
@@ -28,38 +31,48 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    // 1. 取得大分類統計報表
+    // 1. 取得大分類統計報表 (支援日期區間過濾)
     @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getCategoryReport() {
-        List<CategoryReportDto> report = reportService.getCategoryReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getCategoryReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getCategoryReport(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢報表成功", report));
     }
 
-    // 2. 取得細項分類統計報表
+    // 2. 取得細項分類統計報表 (支援日期區間過濾)
     @GetMapping("/subcategories")
-    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getSubCategoryReport() {
-        List<CategoryReportDto> report = reportService.getSubCategoryReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getSubCategoryReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getSubCategoryReport(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢報表成功", report));
     }
 
-    // 3. 依狀態統計報表
+    // 3. 依狀態統計報表 (支援日期區間過濾)
     @GetMapping("/statuses")
-    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getStatusReport() {
-        List<CategoryReportDto> report = reportService.getStatusReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getStatusReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getStatusReport(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢狀態報表成功", report));
     }
 
-    // 4. 依工單建立者統計報表
+    // 4. 依工單建立者統計報表 (支援日期區間過濾)
     @GetMapping("/creators")
-    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getCreatorReport() {
-        List<CategoryReportDto> report = reportService.getCreatorReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getCreatorReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getCreatorReport(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢建立者報表成功", report));
     }
 
-    // 5. 依優先級統計報表
+    // 5. 依優先級統計報表 (支援日期區間過濾)
     @GetMapping("/priorities")
-    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getPriorityReport() {
-        List<CategoryReportDto> report = reportService.getPriorityReport();
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getPriorityReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getPriorityReport(startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢優先級報表成功", report));
     }
 
@@ -78,6 +91,15 @@ public class ReportController {
             @RequestParam(required = false) Integer month) {
         List<DailyReportDto> report = reportService.getDailyReport(year, month);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢每日統計報表成功", report));
+    }
+
+    // 8. 取得工程師處理 KPI 報表 (支援日期區間過濾)
+    @GetMapping("/engineer-kpi")
+    public ResponseEntity<ApiResponse<List<EngineerKpiReportDto>>> getEngineerKpiReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<EngineerKpiReportDto> report = reportService.getEngineerKpiReport(startDate, endDate);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢工程師 KPI 報表成功", report));
     }
 
     // 測試用 API：列出目前資料庫內的所有工單
