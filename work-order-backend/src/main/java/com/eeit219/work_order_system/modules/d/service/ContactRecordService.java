@@ -5,6 +5,7 @@ import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
 import com.eeit219.work_order_system.modules.b.service.WorkOrderAttachmentService;
+import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.d.dto.ContactRecordCreateRequest;
 import com.eeit219.work_order_system.modules.d.dto.ContactRecordMultipartCreateRequest;
 import com.eeit219.work_order_system.modules.d.dto.ContactRecordResponse;
@@ -12,13 +13,16 @@ import com.eeit219.work_order_system.modules.d.entity.ContactRecord;
 import com.eeit219.work_order_system.modules.d.entity.ContactRecordType;
 import com.eeit219.work_order_system.modules.d.repository.ContactRecordRepository;
 import com.eeit219.work_order_system.modules.d.repository.WorkOrderDetailRepository;
+import com.eeit219.work_order_system.modules.e.service.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +42,9 @@ public class ContactRecordService {
 
     // 查詢留言人角色代號
     private final UserRoleRepository userRoleRepository;
+
+    // 建立留言後，透過 E 模組發送工單通知
+    private final NotificationService notificationService;
 
     // 每條留言最多5張圖片
     private static final int MAX_COMMENT_IMAGE_COUNT = 5;
@@ -65,6 +72,9 @@ public class ContactRecordService {
         contactRecord.setRecordType(ContactRecordType.COMMENT);
 
         ContactRecord savedRecord = contactRecordRepository.save(contactRecord);
+        // 留言成功儲存後，通知工單相關人員。
+        sendCommentNotifications(workOrder, currentUser);
+
         return toResponse(savedRecord);
     }
 
@@ -106,6 +116,9 @@ public class ContactRecordService {
                 );
             }
         }
+
+        // 留言與所有圖片都成功儲存後，才通知工單相關人員。
+        sendCommentNotifications(workOrder, currentUser);
 
         return toResponse(savedRecord);
     }
@@ -188,6 +201,67 @@ public class ContactRecordService {
             throw new IllegalArgumentException("每次最多上傳5張照片");
         }
 
+    }
+
+    // 整理留言通知的收件者 ID。
+    // 通知對象包含報修人、負責管理員與負責工程師，並排除留言者本人及重複對象。
+    // 待審核工單尚未指定負責管理員時，改為通知所有啟用中的管理員。
+    private Set<Integer> getCommentNotificationReceiverIds(
+            WorkOrder workOrder,
+            User currentUser) {
+
+        Set<Integer> receiverIds = new LinkedHashSet<>();
+
+        if (workOrder.getCreator() != null) {
+            receiverIds.add(workOrder.getCreator().getUserId());
+        }
+
+        if (workOrder.getAdmin() != null) {
+            receiverIds.add(workOrder.getAdmin().getUserId());
+        } else if (workOrder.getStatus() == WorkOrderState.PENDING_REVIEW) {
+            receiverIds.addAll(
+                    userRoleRepository.findUserIdsByRoleCodeAndStatus(
+                            "ADMIN",
+                            User.UserStatus.ACTIVE
+                    )
+            );
+        }
+
+        if (workOrder.getAssignedHandler() != null) {
+            receiverIds.add(workOrder.getAssignedHandler().getUserId());
+        }
+
+        receiverIds.remove(currentUser.getUserId());
+
+        return receiverIds;
+    }
+
+    // 將新留言通知發送給所有相關工單人員。
+    // 每位收件者會建立一筆E模組通知，並透過既有 WebSocket 即時推送至前端。
+    // 收件者整理、排除留言者本人及去除重複對象，由 getCommentNotificationReceiverIds() 負責。
+    private void sendCommentNotifications(
+            WorkOrder workOrder,
+            User currentUser) {
+
+        Set<Integer> receiverIds =
+                getCommentNotificationReceiverIds(workOrder, currentUser);
+
+        String title = "工單有新留言";
+        String message = currentUser.getName()
+                + "在工單 "
+                + workOrder.getWorkOrderNo()
+                + " 留下新訊息";
+
+        for (Integer receiverId : receiverIds) {
+            notificationService.sendNotification(
+                    receiverId,
+                    currentUser.getUserId(),
+                    workOrder.getWorkOrderId(),
+                    title,
+                    message,
+                    workOrder.getStatus()
+            );
+        }
     }
 
 
