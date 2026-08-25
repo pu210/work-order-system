@@ -1,6 +1,8 @@
 :root {
   --color-ink: #14213d;
   --color-ink-soft: #1d2e52;
+  --color-nav: #223a67;
+  --color-nav-panel: #2b4779;
   --color-bg: #f5f6f9;
   --color-surface: #ffffff;
   --color-primary: #2f6fed;
@@ -44,7 +46,7 @@ body {
 /* 導覽列（頂端列） */
 /* ---------------------------------------------------------------------- */
 .wo-nav {
-  background: var(--color-ink);
+  background: var(--color-nav);
   height: var(--nav-height);
   flex-shrink: 0;
   /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
@@ -109,7 +111,8 @@ body {
   align-items: center;
   gap: 4px;
   flex: 1;
-  overflow-x: auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .wo-nav-links a {
@@ -168,7 +171,7 @@ body {
   height: 8px;
   border-radius: 50%;
   background: var(--color-danger);
-  border: 2px solid var(--color-ink);
+  border: 2px solid var(--color-nav);
 }
 
 .wo-avatar {
@@ -276,7 +279,7 @@ body {
   padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  background: var(--color-ink-soft);
+  background: var(--color-nav-panel);
   box-shadow: var(--shadow-pop);
 }
 
@@ -400,7 +403,7 @@ body {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1320px) {
   .wo-nav-links,
   .wo-logout-btn {
     display: none;
