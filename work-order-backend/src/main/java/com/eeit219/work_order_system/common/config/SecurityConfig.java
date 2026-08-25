@@ -82,6 +82,11 @@ public class SecurityConfig {
                                                 // 工程師權限
                                                 .requestMatchers(HttpMethod.POST, "/api/work-orders/*/progress/**")
                                                 .hasRole("HANDLER")
+                                                // 工程師跟管理員權限
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/equipment/*/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER")
                                                 // 全用戶
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
