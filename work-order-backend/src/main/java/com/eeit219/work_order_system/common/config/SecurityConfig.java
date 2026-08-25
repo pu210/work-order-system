@@ -77,7 +77,9 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.DELETE,
                                                                 "/api/work-orders/*/review/edit-session")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
+                                                                "/api/reports/**")
                                                 .hasRole("ADMIN")
                                                 // 工程師權限
                                                 .requestMatchers(HttpMethod.POST, "/api/work-orders/*/progress/**")

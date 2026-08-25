@@ -4,7 +4,7 @@
       <!-- 帳號區塊 -->
       <div class="mb-3">
         <label class="form-label text-secondary extra-small fw-semibold mb-1"
-          >帳號 / 電子郵件</label
+          >帳號</label
         >
         <div class="input-group custom-input-group">
           <span class="input-group-text bg-light border-end-0 text-muted ps-3">
@@ -126,7 +126,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 const googleLoginUrl = `${apiBaseUrl.replace(/\/$/, "")}/oauth2/authorization/google`;
 

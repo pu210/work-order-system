@@ -1,8 +1,8 @@
 <template>
   <div class="dashboard-page">
     <!-- 頁面標題與問候區塊 -->
-    <div class="page-header d-flex justify-content-between align-items-end mb-4">
-      <div>
+    <div class="page-header dashboard-header mb-4">
+      <div class="dashboard-intro">
         <span class="eyebrow text-primary text-uppercase fw-bold">WELCOME BACK</span>
         <h1 class="h3 fw-bold text-dark mb-1">哈囉！{{ userDisplayName }}</h1>
         <p class="text-muted small mb-0">今天是 {{ todayFormatted }}，以下是今日工單狀況與 Google 行事曆總覽。</p>
@@ -11,12 +11,12 @@
       <!-- Google 日曆綁定按鈕 -->
       <button 
         v-if="!isGoogleConnected" 
-        class="btn btn-outline-danger shadow-sm fw-bold" 
+        class="btn btn-outline-danger shadow-sm fw-bold calendar-connect-btn"
         @click="connectGoogleCalendar"
       >
         <i class="bi bi-google me-2"></i> 🔗 綁定 Google 日曆
       </button>
-      <button v-else class="btn btn-success shadow-sm fw-bold" disabled>
+      <button v-else class="btn btn-success shadow-sm fw-bold calendar-connect-btn" disabled>
         <i class="bi bi-check-circle-fill me-2"></i> ✅ 已成功同步 Google 日曆 ({{ googleEvents.length }} 筆行程)
       </button>
     </div>
@@ -24,8 +24,8 @@
     <!-- 4 大 KPI 卡片區塊 (真實 SQL Server 資料庫數據) -->
     <div class="row g-3 mb-4">
       <!-- 卡片 1：待審核工單 (PENDING_REVIEW) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">待審核工單</div>
           <div class="h2 fw-bold text-dark mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
@@ -36,8 +36,8 @@
       </div>
 
       <!-- 卡片 2：處理中工單 (IN_PROGRESS) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">處理中工單</div>
           <div class="h2 fw-bold text-primary mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-primary me-1"></span>
@@ -48,8 +48,8 @@
       </div>
 
       <!-- 卡片 3：待驗收工單 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">待驗收工單</div>
           <div class="h2 fw-bold text-warning mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-warning me-1"></span>
@@ -60,8 +60,8 @@
       </div>
 
       <!-- 卡片 4：本月完成結案工單 (COMPLETED) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">本月完成結案</div>
           <div class="h2 fw-bold text-success mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-success me-1"></span>
@@ -77,11 +77,11 @@
       <!-- 左欄：📅 FullCalendar + Google 日曆整合 -->
       <div class="col-lg-8">
         <div class="card card-pad shadow-sm border-0 bg-white h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">📅 FullCalendar 整合行事曆</h5>
-            <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-primary">🔵 系統工單</span>
-              <span class="badge bg-success">🟢 Google 私人行程</span>
+          <div class="calendar-card-header">
+            <h5 class="fw-bold mb-0">📅 整合行事曆</h5>
+            <div class="calendar-legends">
+              <span class="badge bg-primary">系統工單</span>
+              <span class="badge bg-success">Google 行程</span>
             </div>
           </div>
 
@@ -316,7 +316,7 @@ const loadKpiStats = async () => {
 
       return {
         id: `ticket-${t.workOrderId || t.work_order_id}`,
-        title: `🔧 ${t.workOrderNo ? t.workOrderNo + ': ' : ''}${t.title}`,
+        title: t.title || '未命名工單',
         start: startDate,
         backgroundColor: color,
         borderColor: color,
@@ -358,9 +358,10 @@ const loadAnnouncements = async () => {
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
+  displayEventTime: false,
   height: 520,
   headerToolbar: {
-    left: 'prev,next today',
+    left: 'prev,today,next',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek'
   },
@@ -369,6 +370,13 @@ const calendarOptions = ref({
     month: '月視圖',
     week: '週視圖'
   },
+  eventTimeFormat: {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  },
+  dayMaxEvents: 2,
+  moreLinkText: (count) => `+${count}`,
   events: [],
   eventClick: (info) => {
     const ticket = info.event.extendedProps?.ticket
@@ -464,7 +472,7 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
       const endDate = item.end?.date || item.end?.dateTime
       return {
         id: item.id,
-        title: `🟢 ${item.summary || '私人行程'}`,
+        title: item.summary || '私人行程',
         start: startDate,
         end: endDate,
         allDay: !!item.start?.date,
@@ -499,6 +507,31 @@ onMounted(() => {
   border-radius: 12px;
   padding: 20px;
 }
+.dashboard-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+}
+.dashboard-intro {
+  min-width: 0;
+}
+.calendar-connect-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.calendar-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.calendar-legends {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .fullcalendar-wrap {
   min-height: 520px;
 }
@@ -512,5 +545,171 @@ onMounted(() => {
 :deep(.fc-button-primary:hover) {
   background-color: #1F4FBF !important;
   border-color: #1F4FBF !important;
+}
+:deep(.fc-daygrid-event) {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  margin-top: 2px;
+  padding: 2px 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px;
+  background: #fff !important;
+  color: var(--color-text) !important;
+  font-size: clamp(0.62rem, 1vw, 0.75rem);
+  line-height: 1.25;
+}
+:deep(.fc-daygrid-event .fc-event-main) {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit !important;
+}
+:deep(.fc-daygrid-event .fc-event-title),
+:deep(.fc-daygrid-event .fc-event-time) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:deep(.fc-daygrid-event .fc-event-time) {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+:deep(.fc-daygrid-event .fc-event-title) {
+  min-width: 0;
+  font-weight: 500;
+}
+:deep(.fc-daygrid-event-dot) {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .dashboard-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 16px;
+  }
+
+  .dashboard-intro {
+    width: 100%;
+  }
+
+  .dashboard-intro h1 {
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    white-space: nowrap;
+  }
+
+  .calendar-connect-btn {
+    width: fit-content;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .calendar-legends {
+    flex-wrap: wrap;
+  }
+
+  :deep(.fc .fc-header-toolbar) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    margin-bottom: 14px;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(1)) {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(2)) {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(3)) {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  :deep(.fc .fc-toolbar-title) {
+    font-size: clamp(1.15rem, 5vw, 1.45rem);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  :deep(.fc .fc-button) {
+    min-height: 34px;
+    padding: 0.4em 0.65em;
+    font-size: clamp(0.72rem, 2.8vw, 0.875rem);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-connect-btn {
+    width: 100%;
+  }
+
+  :deep(.fc .fc-header-toolbar) {
+    gap: 8px;
+  }
+
+  :deep(.fc .fc-button) {
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+  }
+
+  :deep(.fc-daygrid-day-events) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 4px;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event) {
+    display: block;
+    width: 8px;
+    min-width: 8px;
+    height: 8px;
+    min-height: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 50%;
+    background: transparent !important;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event-dot) {
+    display: block;
+    margin: 0;
+    border-width: 4px;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-main),
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-time),
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-title) {
+    display: none;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-more-link) {
+    padding: 0 2px;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
 }
 </style>
