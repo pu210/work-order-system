@@ -22,7 +22,7 @@ export function updateRepairCategoryStatus(id, status) {
   return api.patch(`/api/repair-categories/${id}/status`, null, { params: { status } }).then((res) => res.data)
 }
 
-// --- 報修子類 ---
+// --- 報修細項 ---
 export function getSubCategories(keyword) {
   return api.get('/api/sub-categories', { params: { keyword } }).then((res) => res.data)
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-container">
+  <div class="mt-page">
     <h2 class="page-title">報修大類管理</h2>
 
     <div class="action-bar">
@@ -33,7 +33,7 @@
             <td>
               <span class="badge-name">{{ item.name }}</span>
             </td>
-            <td>{{ item.defaultPriorityName || "無" }}</td>
+            <td>{{ item.defaultPriorityName || item.priorityName || item.priority?.name || "無" }}</td>
             <td>
               <label class="switch">
                 <input
@@ -51,13 +51,13 @@
             </td>
           </tr>
           <tr v-if="tableData.length === 0">
-            <td colspan="7" class="empty-row">目前沒有符合的資料</td>
+            <td colspan="5" class="empty-row">目前沒有符合的資料</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- 彈跳視窗 -->
+    <!-- 編輯/新增 表單彈跳視窗 -->
     <div
       v-if="isModalOpen"
       class="modal-overlay"
@@ -80,7 +80,7 @@
             <label>預設優先級：</label>
             <select v-model.number="form.defaultPriorityId" required class="form-select">
               <option disabled value="">請選擇優先級</option>
-              <option v-for="p in priorityList" :key="p.prioritiesId" :value="p.prioritiesId">
+              <option v-for="p in priorityList" :key="p.prioritiesId || p.id" :value="p.prioritiesId || p.id">
                 {{ p.name }} ({{ p.hours }}小時)
               </option>
             </select>
@@ -99,6 +99,23 @@
         </form>
       </div>
     </div>
+
+    <!-- 🌟 精美成功提示彈窗 (獨立提升 z-index 確保在最上層) -->
+    <div v-if="successModalOpen" class="modal-overlay success-overlay">
+      <div class="modal-card success-card">
+        <div class="success-icon-wrapper">
+          <svg class="success-check-icon" viewBox="0 0 24 24" width="48" height="48">
+            <circle cx="12" cy="12" r="11" fill="none" stroke="#22c55e" stroke-width="2"/>
+            <path fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 13l3 3 7-7"/>
+          </svg>
+        </div>
+        <h3 class="success-title">操作成功</h3>
+        <p class="success-desc">{{ successMessage }}</p>
+        <button class="btn-submit success-ok-btn" @click="successModalOpen = false">
+          OK
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -111,6 +128,7 @@ import {
   updateRepairCategoryStatus,
 } from "@/api/category.js";
 import { getActivePriorities } from "@/api/priority.js";
+import Swal from "sweetalert2";
 
 const keyword = ref("");
 const tableData = ref([]);
@@ -121,20 +139,35 @@ const isEditMode = ref(false);
 const currentEditId = ref(null);
 const form = ref({ name: "", defaultPriorityId: "" });
 
+const successModalOpen = ref(false);
+const successMessage = ref("");
+
 const fetchData = async () => {
   try {
     const res = await getRepairCategories(keyword.value); 
-    tableData.value = Array.isArray(res) ? res : (res.data || []);
+    console.log("【大類 API 完整原始回應】", res);
+
+    if (Array.isArray(res)) {
+      tableData.value = res;
+    } else if (res && Array.isArray(res.data)) {
+      tableData.value = res.data;
+    } else if (res && res.data && Array.isArray(res.data.data)) {
+      tableData.value = res.data.data;
+    } else if (res && res.data && Array.isArray(res.data.content)) {
+      tableData.value = res.data.content;
+    } else {
+      tableData.value = [];
+    }
   } catch (error) {
+    console.error("載入大類發生錯誤：", error);
     tableData.value = [];
   }
 };
 
 const fetchPriorities = async () => {
   try {
-    // 把原本的 getPriorities() 改成 getActivePriorities()
     const res = await getActivePriorities(); 
-    priorityList.value = Array.isArray(res) ? res : (res.data || []);
+    priorityList.value = Array.isArray(res) ? res : (res.data || res.data?.content || []);
   } catch (error) {
     priorityList.value = [];
   }
@@ -145,8 +178,22 @@ const handleStatusChange = async (item) => {
   try {
     await updateRepairCategoryStatus(item.repairCategoriesId, newStatus);
     item.status = newStatus;
+    // 🌟 狀態更新成功 Toast 提示
+    Swal.fire({
+      icon: "success",
+      title: "狀態更新成功",
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 1500,
+    });
   } catch (error) {
-    alert("狀態更新失敗");
+    item.status = !newStatus; // 失敗時還原狀態
+    Swal.fire({
+      icon: "error",
+      title: "錯誤",
+      text: "狀態更新失敗！",
+    });
   }
 };
 
@@ -159,10 +206,10 @@ const openCreateModal = () => {
 
 const openEditModal = (item) => {
   isEditMode.value = true;
-  currentEditId.value = item.repairCategoriesId;
+  currentEditId.value = item.repairCategoriesId || item.id;
   form.value = { 
     name: item.name, 
-    defaultPriorityId: item.defaultPriorityId 
+    defaultPriorityId: item.defaultPriorityId || item.prioritiesId || item.priorityId || item.priority?.prioritiesId || "" 
   };
   isModalOpen.value = true;
 };
@@ -171,13 +218,14 @@ const handleSubmit = async () => {
   try {
     if (isEditMode.value) {
       await updateRepairCategory(currentEditId.value, form.value);
-      alert("更新成功！");
+      successMessage.value = "報修大類更新成功！";
     } else {
       await createRepairCategory(form.value);
-      alert("新增成功！");
+      successMessage.value = "報修大類新增成功！";
     }
-    isModalOpen.value = false;
-    fetchData();
+    isModalOpen.value = false;      
+    successModalOpen.value = true;  
+    fetchData();                    
   } catch (error) {
     alert("操作失敗");
   }
@@ -190,7 +238,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.settings-container { padding: 24px; background-color: #f8fafc; min-height: calc(100vh - 64px); }
+.mt-page { padding: 24px; background-color: #f8fafc; min-height: calc(100vh - 64px); max-width: 1200px; margin: 0 auto; box-sizing: border-box; }
 .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
 .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .search-box { display: flex; align-items: center; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
@@ -204,9 +252,7 @@ onMounted(() => {
 .modern-table td { padding: 12px 16px; color: #334155; border-bottom: 1px solid #f1f5f9; }
 .modern-table tbody tr:hover { background-color: #f8fafc; }
 .empty-row { text-align: center; color: #94a3b8; padding: 32px !important; }
-.badge-name { font-weight: 600; color: #1e293b; }
-.badge-code { background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
-.time-text { color: #64748b; font-size: 13px; }
+.badge-name { font-weight: 650; color: #1e293b; }
 
 /* Switch 開關 */
 .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
@@ -216,9 +262,20 @@ onMounted(() => {
 input:checked + .slider { background-color: #2563eb; }
 input:checked + .slider:before { transform: translateX(18px); }
 
-/* Modal 視窗 */
-.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(15, 23, 42, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-card { background: #ffffff; width: 100%; max-width: 480px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); overflow: hidden; }
+/* Modal 視窗 (含滑順淡入與彈出動畫) */
+.modal-overlay { 
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+  background-color: rgba(15, 23, 42, 0.5); 
+  display: flex; justify-content: center; align-items: center; 
+  z-index: 1000; 
+  animation: fadeIn 0.25s ease-out forwards;
+}
+.modal-card { 
+  background: #ffffff; width: 100%; max-width: 480px; 
+  border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); 
+  overflow: hidden; 
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e2e8f0; }
 .modal-header h3 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 0; }
 .close-btn { background: none; border: none; font-size: 20px; color: #64748b; cursor: pointer; }
@@ -230,4 +287,54 @@ input:checked + .slider:before { transform: translateX(18px); }
 .btn-cancel { background-color: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; }
 .btn-submit { background-color: #2563eb; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; }
 .btn-submit:hover { background-color: #1d4ed8; }
+
+/* 🌟 精美成功彈窗專屬樣式與流暢動畫 */
+.success-overlay {
+  z-index: 2000;
+}
+.success-card {
+  text-align: center;
+  padding: 36px 28px;
+  max-width: 360px;
+}
+.success-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.success-check-icon {
+  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.success-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+.success-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+.success-ok-btn {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 15px;
+  border-radius: 8px;
+}
+
+/* 🎬 動畫關鍵影格定義 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes bounceIn {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
 </style>

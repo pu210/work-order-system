@@ -23,7 +23,7 @@ public class RepairCategoryService {
     @Autowired
     private PriorityRepository priorityRepository;
 
-    // Entity 轉 ResponseDto
+    // 1. Entity 轉 ResponseDto（雙保險確保一定抓得到 ID）
     public RepairCategoryResponseDto convertToResponseDto(RepairCategory category) {
         if (category == null) {
             return null;
@@ -36,23 +36,23 @@ public class RepairCategoryService {
         dto.setCreatedTime(category.getCreatedTime());
         dto.setUpdatedTime(category.getUpdatedTime());
 
-        // 帶出預設優先級的 ID 與名稱
+        // 🌟 直接抓 Entity 自身的 defaultPriorityId，並從關聯物件抓名稱
+        dto.setDefaultPriorityId(category.getDefaultPriorityId());
+
         if (category.getDefaultPriority() != null) {
-            dto.setDefaultPriorityId(category.getDefaultPriority().getPrioritiesId());
             dto.setDefaultPriorityName(category.getDefaultPriority().getName());
         }
 
         return dto;
     }
 
-    // 🌟 新增：專門給下拉選單過濾掉關閉的大類
     public List<RepairCategoryResponseDto> getActiveCategories() {
         return repairCategoryRepository.findByStatusTrue().stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
-    // 新增商業邏輯
+    // 2. 新增商業邏輯（加入 defaultPriorityId 的手動賦值）
     public RepairCategory createCategory(RepairCategoryRequestDto request) {
         RepairCategory category = new RepairCategory();
         category.setName(request.getName());
@@ -64,12 +64,13 @@ public class RepairCategoryService {
             Priority priority = priorityRepository.findById(request.getDefaultPriorityId())
                     .orElseThrow(() -> new RuntimeException("找不到指定的預設優先級 ID: " + request.getDefaultPriorityId()));
             category.setDefaultPriority(priority);
+            category.setDefaultPriorityId(request.getDefaultPriorityId()); // 🌟 關鍵：手動賦值
         }
 
         return repairCategoryRepository.save(category);
     }
 
-    // 修改商業邏輯
+    // 3. 修改商業邏輯（加入 defaultPriorityId 的手動賦值）
     public RepairCategory updateCategory(Integer repairCategoriesId, RepairCategoryRequestDto request) {
         RepairCategory category = repairCategoryRepository.findById(repairCategoriesId)
                 .orElseThrow(() -> new RuntimeException("找不到該報修大類 ID: " + repairCategoriesId));
@@ -84,6 +85,7 @@ public class RepairCategoryService {
             Priority priority = priorityRepository.findById(request.getDefaultPriorityId())
                     .orElseThrow(() -> new RuntimeException("找不到指定的預設優先級 ID: " + request.getDefaultPriorityId()));
             category.setDefaultPriority(priority);
+            category.setDefaultPriorityId(request.getDefaultPriorityId()); // 🌟 關鍵：手動賦值
         }
 
         return repairCategoryRepository.save(category);

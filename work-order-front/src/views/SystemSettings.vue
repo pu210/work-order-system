@@ -1,59 +1,83 @@
 <template>
-  <div class="settings-container">
-    <h2 class="page-title">系統基礎設定</h2>
-
-    <!-- 頁籤切換按鈕 (順序已調整) -->
-    <div class="action-bar" style="margin-bottom: 24px;">
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'target' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'target'"
-        >
-          報修設備管理
-        </button>
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'priority' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'priority'"
-        >
-          優先級管理
-        </button>
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'category' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'category'"
-        >
-          報修大類管理
-        </button>
-        <button 
-          class="btn-search" 
-          :style="activeTab === 'subCategory' ? '' : 'background-color: #f3f4f6; color: #4b5563; border-color: #d1d5db;'"
-          @click="activeTab = 'subCategory'"
-        >
-          報修子類管理
-        </button>
+  <div class="mt-page">
+    <div class="mt-page-header">
+      <div>
+        <span class="mt-eyebrow">SYSTEM SETTINGS</span>
+        <h1 class="mt-title">系統基礎設定</h1>
+        <p class="mt-subtitle">管理報修設備、優先級以及相關類別選項</p>
       </div>
     </div>
 
-    <!-- 1. 報修設備管理內容 -->
-    <div v-if="activeTab === 'target'">
-      <SettingTarget />
-    </div>
+    <div class="mt-card">
+      <!-- 頁籤切換：使用第一份的 mt-pill-tabs 樣式 -->
+      <div class="mt-toolbar">
+        <div class="mt-pill-tabs">
+          <button
+            type="button"
+            class="mt-pill-tab"
+            :class="{ active: activeTab === 'target' }"
+            @click="activeTab = 'target'"
+          >
+            報修設備管理
+          </button>
+          <button
+            type="button"
+            class="mt-pill-tab"
+            :class="{ active: activeTab === 'priority' }"
+            @click="activeTab = 'priority'"
+          >
+            優先級管理
+          </button>
+          <button
+            type="button"
+            class="mt-pill-tab"
+            :class="{ active: activeTab === 'category' }"
+            @click="activeTab = 'category'"
+          >
+            報修大類管理
+          </button>
+          <button
+            type="button"
+            class="mt-pill-tab"
+            :class="{ active: activeTab === 'subCategory' }"
+            @click="activeTab = 'subCategory'"
+          >
+            報修細項管理
+          </button>
+        </div>
+      </div>
 
-    <!-- 2. 優先級管理內容 -->
-    <div v-if="activeTab === 'priority'">
-      <SettingPriority />
-    </div>
+      <!-- 手機版下拉式選單（對應第一份的 mt-mobile-filter 概念） -->
+      <div class="mt-mobile-filter">
+        <select
+          v-model="activeTab"
+          class="mt-mobile-control"
+          aria-label="選擇設定分頁"
+        >
+          <option value="target">報修設備管理</option>
+          <option value="priority">優先級管理</option>
+          <option value="category">報修大類管理</option>
+          <option value="subCategory">報修細項管理</option>
+        </select>
+      </div>
 
-    <!-- 3. 報修大類管理內容 -->
-    <div v-if="activeTab === 'category'">
-      <SettingCategory />
-    </div>
-
-    <!-- 4. 報修子類管理內容 -->
-    <div v-if="activeTab === 'subCategory'">
-      <SettingSubCategory />
+      <!-- 內容區塊（加上 <transition> 實現絲滑切換動畫） -->
+      <div class="mt-setting-content">
+        <transition name="fade" mode="out-in">
+          <div v-if="activeTab === 'target'" key="target">
+            <SettingTarget />
+          </div>
+          <div v-else-if="activeTab === 'priority'" key="priority">
+            <SettingPriority />
+          </div>
+          <div v-else-if="activeTab === 'category'" key="category">
+            <SettingCategory />
+          </div>
+          <div v-else-if="activeTab === 'subCategory'" key="subCategory">
+            <SettingSubCategory />
+          </div>
+        </transition>
+      </div>
     </div>
   </div>
 </template>
@@ -70,42 +94,162 @@ const activeTab = ref("target");
 </script>
 
 <style scoped>
-.settings-container {
-  padding: 24px;
-  background-color: #f8fafc;
-  min-height: calc(100vh - 64px);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+.mt-page {
+  max-width: 1240px;
+  margin: 0 auto;
 }
 
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 20px;
-}
-
-.action-bar {
+/* ---------------------------------------------------------------------- */
+/* 頁首 */
+/* ---------------------------------------------------------------------- */
+.mt-page-header {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 22px;
   flex-wrap: wrap;
-  gap: 12px;
+}
+.mt-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.mt-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--color-ink);
+  margin: 0;
+}
+.mt-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
 }
 
-.btn-search {
-  background-color: #2563eb;
-  color: #ffffff;
-  border: 1px solid #2563eb;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 8px;
+/* ---------------------------------------------------------------------- */
+/* 卡片容器 */
+/* ---------------------------------------------------------------------- */
+.mt-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  padding: 20px 22px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 工具列與頁籤 (Pill Tabs) */
+/* ---------------------------------------------------------------------- */
+.mt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.mt-pill-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.mt-pill-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
   cursor: pointer;
-  transition: background-color 0.2s;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  transition: color 0.15s;
+}
+.mt-pill-tab:hover {
+  color: var(--color-primary);
+}
+.mt-pill-tab.active {
+  background: transparent;
+  color: var(--color-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
-.btn-search:hover {
-  background-color: #1d4ed8;
+.mt-mobile-filter {
+  display: none;
+}
+
+.mt-setting-content {
+  margin-top: 10px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 分頁切換絲滑動畫 (Fade & Slide) */
+/* ---------------------------------------------------------------------- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 響應式調整 (對應第一份的斷點設計) */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 850px) {
+  .mt-page-header {
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .mt-card {
+    padding: 14px 12px;
+  }
+  .mt-toolbar {
+    display: none;
+  }
+  .mt-mobile-filter {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .mt-mobile-control {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .mt-mobile-control:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+  }
 }
 </style>
