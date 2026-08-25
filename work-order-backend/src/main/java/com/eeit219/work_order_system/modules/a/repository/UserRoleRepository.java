@@ -17,6 +17,18 @@ public interface UserRoleRepository
     @Query("select ur.role.roleCode from UserRole ur where ur.user.userId = :userId")
     List<String> findRoleCodesByUserId(@Param("userId") Integer userId);
 
+    // D模組留言通知使用。
+    // 依角色代號與帳號狀態查詢使用者ID。工單尚未指定負責管理員時，會將查到的啟用中管理員加入通知對象。
+    @Query("""
+        select distinct ur.user.userId
+        from UserRole ur
+        where upper(ur.role.roleCode) = upper(:roleCode)
+          and ur.user.status = :status
+        """)
+    List<Integer> findUserIdsByRoleCodeAndStatus(
+            @Param("roleCode") String roleCode,
+            @Param("status") Byte status);
+
     @Query("select ur from UserRole ur join fetch ur.role where ur.user.userId in :userIds")
     List<UserRole> findWithRoleByUserIds(@Param("userIds") List<Integer> userIds);
 
