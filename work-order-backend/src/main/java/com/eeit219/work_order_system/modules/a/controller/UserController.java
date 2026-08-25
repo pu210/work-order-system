@@ -23,7 +23,7 @@ import com.eeit219.work_order_system.modules.a.dto.UserResponseDTO;
 import com.eeit219.work_order_system.modules.a.service.UserService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
         private final UserService userService;

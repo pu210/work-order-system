@@ -28,7 +28,7 @@ public class OAuthSessionController {
                 this.refreshTokenCookieUtility = refreshTokenCookieUtility;
         }
 
-        @GetMapping(value = "/auth/oauth2/session", produces = "application/json;charset=UTF-8")
+        @GetMapping(value = "/api/auth/oauth2/session", produces = "application/json;charset=UTF-8")
         public ResponseEntity<ApiResponse<LoginResponseDTO>> exchangeOAuthSession(
                         HttpServletRequest request,
                         HttpServletResponse response) {

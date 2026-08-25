@@ -1,54 +1,73 @@
 <template>
   <div class="dashboard-page">
     <!-- 頁面標題與問候區塊 -->
-    <div class="page-header d-flex justify-content-between align-items-end mb-4">
-      <div>
+    <div class="page-header dashboard-header mb-4">
+      <div class="dashboard-intro">
         <span class="eyebrow text-primary text-uppercase fw-bold">WELCOME BACK</span>
-        <h1 class="h3 fw-bold text-dark mb-1">哈囉！管理員 (王建宏)</h1>
+        <h1 class="h3 fw-bold text-dark mb-1">哈囉！{{ userDisplayName }}</h1>
         <p class="text-muted small mb-0">今天是 {{ todayFormatted }}，以下是今日工單狀況與 Google 行事曆總覽。</p>
       </div>
 
       <!-- Google 日曆綁定按鈕 -->
       <button 
         v-if="!isGoogleConnected" 
-        class="btn btn-outline-danger shadow-sm fw-bold" 
+        class="btn btn-outline-danger shadow-sm fw-bold calendar-connect-btn"
         @click="connectGoogleCalendar"
       >
         <i class="bi bi-google me-2"></i> 🔗 綁定 Google 日曆
       </button>
-      <button v-else class="btn btn-success shadow-sm fw-bold" disabled>
+      <button v-else class="btn btn-success shadow-sm fw-bold calendar-connect-btn" disabled>
         <i class="bi bi-check-circle-fill me-2"></i> ✅ 已成功同步 Google 日曆 ({{ googleEvents.length }} 筆行程)
       </button>
     </div>
 
-    <!-- 4 大 KPI 卡片區塊 -->
+    <!-- 4 大 KPI 卡片區塊 (真實 SQL Server 資料庫數據) -->
     <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
-          <div class="text-muted small fw-bold mb-1">待處理工單</div>
-          <div class="h2 fw-bold text-dark mb-0">4 筆</div>
-          <div class="small text-danger mt-1">需儘速指派工程師</div>
+      <!-- 卡片 1：待審核工單 (PENDING_REVIEW) -->
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
+          <div class="text-muted small fw-bold mb-1">待審核工單</div>
+          <div class="h2 fw-bold text-dark mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
+            <span v-else>{{ kpiStats.pendingReviewCount }}</span> 筆
+          </div>
+          <div class="small text-danger mt-1">需儘速審核與指派工程師</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+
+      <!-- 卡片 2：處理中工單 (IN_PROGRESS) -->
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">處理中工單</div>
-          <div class="h2 fw-bold text-primary mb-0">3 筆</div>
-          <div class="small text-muted mt-1">工程師維修中</div>
+          <div class="h2 fw-bold text-primary mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-primary me-1"></span>
+            <span v-else>{{ kpiStats.inProgressCount }}</span> 筆
+          </div>
+          <div class="small text-muted mt-1">工程師積極維修中</div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+
+      <!-- 卡片 3：待驗收工單 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE) -->
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
+          <div class="text-muted small fw-bold mb-1">待驗收工單</div>
+          <div class="h2 fw-bold text-warning mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-warning me-1"></span>
+            <span v-else>{{ kpiStats.pendingAcceptanceCount }}</span> 筆
+          </div>
+          <div class="small text-warning mt-1">等待使用者/管理員確認驗收</div>
+        </div>
+      </div>
+
+      <!-- 卡片 4：本月完成結案工單 (COMPLETED) -->
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">本月完成結案</div>
-          <div class="h2 fw-bold text-success mb-0">12 筆</div>
-          <div class="small text-success mt-1">結案率 85%</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
-          <div class="text-muted small fw-bold mb-1">逾期工單警報</div>
-          <div class="h2 fw-bold text-danger mb-0">2 筆</div>
-          <div class="small text-danger mt-1">已超出生效時效</div>
+          <div class="h2 fw-bold text-success mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-success me-1"></span>
+            <span v-else>{{ kpiStats.completedCount }}</span> 筆
+          </div>
+          <div class="small text-success mt-1">工單成功修復並歸檔</div>
         </div>
       </div>
     </div>
@@ -58,11 +77,11 @@
       <!-- 左欄：📅 FullCalendar + Google 日曆整合 -->
       <div class="col-lg-8">
         <div class="card card-pad shadow-sm border-0 bg-white h-100">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">📅 FullCalendar 整合行事曆</h5>
-            <div class="d-flex align-items-center gap-2">
-              <span class="badge bg-primary">🔵 系統工單</span>
-              <span class="badge bg-success">🟢 Google 私人行程</span>
+          <div class="calendar-card-header">
+            <h5 class="fw-bold mb-0">📅 整合行事曆</h5>
+            <div class="calendar-legends">
+              <span class="badge bg-primary">系統工單</span>
+              <span class="badge bg-success">Google 行程</span>
             </div>
           </div>
 
@@ -114,16 +133,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/plugins/axios.js'
 import plainAxios from 'axios'
 import Swal from 'sweetalert2'
+
+import { useAuthStore } from '@/stores/auth.js'
+
+// 📌 匯入 API 模組
+import { getWorkOrderList } from '@/api/workOrder.js'
+import { getAnnouncements } from '@/api/announcement.js'
 
 // 匯入 FullCalendar 組件與外掛
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+// 使用者動態顯示名稱
+const userDisplayName = computed(() => {
+  if (authStore.name) {
+    const roles = authStore.roleCodes || []
+    let roleText = '使用者'
+    if (roles.includes('ADMIN')) roleText = '管理員'
+    else if (roles.includes('HANDLER') || roles.includes('ENGINEER')) roleText = '工程師'
+    return `${roleText} (${authStore.name})`
+  }
+  return authStore.account || '使用者'
+})
 
 // Client ID
 const GOOGLE_CLIENT_ID = '810812971350-qkc6j8tv3d36qskh1as240ho18b386s8.apps.googleusercontent.com'
@@ -136,10 +177,166 @@ const todayYMD = now.toISOString().split('T')[0]
 // 狀態變數
 const isGoogleConnected = ref(false)
 const googleEvents = ref([])
+const realWorkOrderEvents = ref([])
 
-// 1. 公告 API 連線
+// 工單狀態對應色彩與文字
+const STATUS_COLOR_MAP = {
+  PENDING_REVIEW: '#6c757d',          // 灰色 - 待審核
+  IN_PROGRESS: '#2F6FED',             // 藍色 - 處理中
+  PENDING_USER_ACCEPTANCE: '#ffc107', // 黃色 - 待使用者驗收
+  PENDING_ADMIN_ACCEPTANCE: '#fd7e14',// 橘色 - 待管理員驗收
+  COMPLETED: '#198754',               // 綠色 - 已完成
+  CANCELLED: '#dc3545'                // 紅色 - 已取消
+}
+
+const STATUS_TEXT_MAP = {
+  PENDING_REVIEW: '待審核',
+  IN_PROGRESS: '處理中',
+  PENDING_USER_ACCEPTANCE: '待使用者驗收',
+  PENDING_ADMIN_ACCEPTANCE: '待管理員驗收',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消'
+}
+
+// -------------------------------------------------------------
+// 🛠️ FullCalendar 時間格式化專用防呆函式 (ISO 8601 標準相容)
+// -------------------------------------------------------------
+const formatFullCalendarDate = (dateVal) => {
+  if (!dateVal) return null
+
+  // 情況 1：若後端回傳的是陣列格式 [2026, 8, 22, 14, 30]
+  if (Array.isArray(dateVal)) {
+    const [y, m, d, h = 0, min = 0, s = 0] = dateVal
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${y}-${pad(m)}-${pad(d)}T${pad(h)}:${pad(min)}:${pad(s)}`
+  }
+
+  // 情況 2：若後端回傳的是字串 (例如 "2026-08-22T11:30:00" 或 "2026-08-22 11:30:00")
+  if (typeof dateVal === 'string') {
+    const cleaned = dateVal.trim().replace(' ', 'T')
+    if (cleaned.includes('T')) {
+      return cleaned.substring(0, 19)
+    }
+    return cleaned.substring(0, 10)
+  }
+
+  // 情況 3：若已是 Date 物件
+  if (dateVal instanceof Date) {
+    return dateVal.toISOString().substring(0, 19)
+  }
+
+  return null
+}
+
+// -------------------------------------------------------------
+// 📊 1. 4 大 KPI 卡片區塊 + 依角色分流整合至 FullCalendar
+// -------------------------------------------------------------
+const kpiStats = ref({
+  pendingReviewCount: 0,      // 待審核工單筆數 (PENDING_REVIEW)
+  inProgressCount: 0,         // 處理中工單筆數 (IN_PROGRESS)
+  pendingAcceptanceCount: 0,  // 待驗收工單筆數 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE)
+  completedCount: 0,          // 完成結案筆數 (COMPLETED)
+  loading: true
+})
+
+// 更新 FullCalendar 的總事件列表 (整合真實系統工單 + Google 日曆行程)
+const updateCalendarEvents = () => {
+  calendarOptions.value = {
+    ...calendarOptions.value,
+    events: [
+      ...realWorkOrderEvents.value,
+      ...googleEvents.value
+    ]
+  }
+}
+
+// 載入 4 大 KPI 統計數據與真實工單資料 (含角色分流邏輯)
+const loadKpiStats = async () => {
+  try {
+    kpiStats.value.loading = true
+
+    // 1. 發送 API 請求，抓取資料庫真實工單清單
+    const response = await getWorkOrderList({ page: 0, size: 1000 })
+    const allTickets = response?.content || [] // 拿到完整的工單陣列
+
+    // 2. 角色權限分流判斷
+    const currentUserId = authStore.userId
+    const currentUserName = authStore.name
+    const roleCodes = authStore.roleCodes || []
+
+    const isAdmin = roleCodes.includes('ADMIN')
+    const isHandler = roleCodes.includes('HANDLER') || roleCodes.includes('ENGINEER')
+
+    let userFilteredTickets = []
+
+    if (isAdmin) {
+      // 👑 管理員 (ADMIN)：可以看到全部的單 (權限最大)
+      userFilteredTickets = allTickets
+    } else if (isHandler) {
+      // 🛠️ 工程師 (HANDLER / ENGINEER)：看自己建立的單 或 指派給自己的單
+      userFilteredTickets = allTickets.filter(t => {
+        const creatorId = t.creatorId ?? t.creatorUserId ?? t.creator?.userId
+        const handlerId = t.assignedHandlerId ?? t.assigned_handler_id ?? t.assignedHandler?.userId
+
+        // 雙層比對：先比對 ID (若有)，備用比對 Name
+        const isCreatorById = creatorId != null && currentUserId != null && creatorId === currentUserId
+        const isHandlerById = handlerId != null && currentUserId != null && handlerId === currentUserId
+
+        const isCreatorByName = Boolean(t.creatorName && currentUserName && t.creatorName === currentUserName)
+        const isHandlerByName = Boolean(t.assignedHandlerName && currentUserName && t.assignedHandlerName === currentUserName)
+
+        return isCreatorById || isHandlerById || isCreatorByName || isHandlerByName
+      })
+    } else {
+      // 👤 一般使用者 / 員工 (EMPLOYEE / USER)：依照建立者分流 (如同 my-tickets.vue)
+      userFilteredTickets = allTickets.filter(t => {
+        const creatorId = t.creatorId ?? t.creatorUserId ?? t.creator?.userId
+        const isCreatorById = creatorId != null && currentUserId != null && creatorId === currentUserId
+        const isCreatorByName = Boolean(t.creatorName && currentUserName && t.creatorName === currentUserName)
+
+        return isCreatorById || isCreatorByName
+      })
+    }
+
+    console.log(`🔒 [Dashboard 權限分流] 當前角色: [${roleCodes.join(', ')}], 使用者 ID: ${currentUserId}, 過濾後展示筆數: ${userFilteredTickets.length} / 全部總筆數: ${allTickets.length}`)
+
+    // 3. 依據分流後的 userFilteredTickets 計算 4 大 KPI 卡片資料
+    kpiStats.value.pendingReviewCount = userFilteredTickets.filter(t => t.status === 'PENDING_REVIEW').length
+    kpiStats.value.inProgressCount = userFilteredTickets.filter(t => t.status === 'IN_PROGRESS').length
+    kpiStats.value.pendingAcceptanceCount = userFilteredTickets.filter(
+      t => t.status === 'PENDING_USER_ACCEPTANCE' || t.status === 'PENDING_ADMIN_ACCEPTANCE'
+    ).length
+    kpiStats.value.completedCount = userFilteredTickets.filter(t => t.status === 'COMPLETED').length
+
+    // 4. 轉譯分流後的工單陣列為 FullCalendar 相容的事件格式
+    realWorkOrderEvents.value = userFilteredTickets.map(t => {
+      const rawTime = t.createdTime || t.created_time || t.dueTime || t.due_time
+      const startDate = formatFullCalendarDate(rawTime) || todayYMD
+      const color = STATUS_COLOR_MAP[t.status] || '#2F6FED'
+
+      return {
+        id: `ticket-${t.workOrderId || t.work_order_id}`,
+        title: t.title || '未命名工單',
+        start: startDate,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: {
+          ticket: t
+        }
+      }
+    })
+
+    // 5. 更新日曆事件
+    updateCalendarEvents()
+  } catch (error) {
+    console.error('❌ 載入工單數據失敗：', error)
+  } finally {
+    kpiStats.value.loading = false
+  }
+}
+
+// 2. 公告 API 連線
 const announcements = ref([])
-const API_BASE = '/api/announcements'
 
 // 時間格式化相容
 const formatCreatedTime = (a) => {
@@ -149,28 +346,22 @@ const formatCreatedTime = (a) => {
 
 const loadAnnouncements = async () => {
   try {
-    const response = await axios.get(API_BASE)
-    console.log('✅ 讀取後端公告成功：', response.data)
-    announcements.value = response.data || []
+    const data = await getAnnouncements()
+    console.log('✅ 讀取後端公告成功：', data)
+    announcements.value = data || []
   } catch (error) {
     console.error('❌ 載入公告失敗：', error)
   }
 }
 
-// 2. 預設系統報修工單 (使用當前真實日期)
-const systemWorkOrderEvents = [
-  { id: 'wo-1', title: '🔧 WO-001: 3樓冷氣維修', start: todayYMD, backgroundColor: '#2F6FED', borderColor: '#2F6FED' },
-  { id: 'wo-2', title: '🔧 WO-002: 電腦無法開機', start: todayYMD, backgroundColor: '#2F6FED', borderColor: '#2F6FED' },
-  { id: 'wo-3', title: '🔧 WO-003: 印表機卡紙檢修', start: todayYMD, backgroundColor: '#D64545', borderColor: '#D64545' }
-]
-
-// 3. FullCalendar 官方 Vue 3 建議 ref 結構
+// 3. FullCalendar 官方 Vue 3 配置
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
+  displayEventTime: false,
   height: 520,
   headerToolbar: {
-    left: 'prev,next today',
+    left: 'prev,today,next',
     center: 'title',
     right: 'dayGridMonth,timeGridWeek'
   },
@@ -179,14 +370,50 @@ const calendarOptions = ref({
     month: '月視圖',
     week: '週視圖'
   },
-  events: [...systemWorkOrderEvents],
+  eventTimeFormat: {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  },
+  dayMaxEvents: 2,
+  moreLinkText: (count) => `+${count}`,
+  events: [],
   eventClick: (info) => {
-    Swal.fire({
-      title: info.event.title,
-      text: `日期：${info.event.startStr}`,
-      icon: 'info',
-      confirmButtonText: '確定'
-    })
+    const ticket = info.event.extendedProps?.ticket
+    if (ticket) {
+      const statusText = STATUS_TEXT_MAP[ticket.status] || ticket.status
+      const timeStr = formatFullCalendarDate(ticket.createdTime || ticket.created_time) || '—'
+      Swal.fire({
+        title: info.event.title,
+        html: `
+          <div class="text-start fs-6">
+            <p class="mb-2"><b>工單編號：</b>${ticket.workOrderNo || '無'}</p>
+            <p class="mb-2"><b>工單標題：</b>${ticket.title || '無'}</p>
+            <p class="mb-2"><b>報修類別：</b>${ticket.categoryName || '無'}</p>
+            <p class="mb-2"><b>當前狀態：</b><span class="badge bg-primary">${statusText}</span></p>
+            <p class="mb-2"><b>建立時間：</b>${timeStr.replace('T', ' ')}</p>
+            ${ticket.description ? `<p class="mb-1"><b>工單描述：</b>${ticket.description}</p>` : ''}
+          </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '前往工單詳情 ➔',
+        cancelButtonText: '關閉',
+        confirmButtonColor: '#2F6FED'
+      }).then((result) => {
+        if (result.isConfirmed && (ticket.workOrderId || ticket.work_order_id)) {
+          const id = ticket.workOrderId || ticket.work_order_id
+          router.push({ name: 'ticket-detail', params: { id } })
+        }
+      })
+    } else {
+      Swal.fire({
+        title: info.event.title,
+        text: `日期：${info.event.startStr}`,
+        icon: 'info',
+        confirmButtonText: '確定'
+      })
+    }
   }
 })
 
@@ -216,7 +443,6 @@ const connectGoogleCalendar = () => {
 const fetchGoogleCalendarEvents = async (accessToken) => {
   try {
     const currentDate = new Date()
-    // 設定查詢時間範圍：前 1 個月 到 未來 12 個月 (精準捕捉當前日曆畫面上的所有行程)
     const timeMin = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1).toISOString()
     const timeMax = new Date(currentDate.getFullYear() + 1, 11, 31).toISOString()
 
@@ -239,16 +465,14 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
     const rawItems = res.data.items || []
     console.log('✅ Google API 抓取到的近期行程：', rawItems)
 
-    // 1. 過濾掉已取消 (cancelled) 以及沒有開始時間的無效行程
     const validItems = rawItems.filter(item => item.status !== 'cancelled' && (item.start?.date || item.start?.dateTime))
 
-    // 2. 轉換成 FullCalendar 標準格式
     googleEvents.value = validItems.map(item => {
       const startDate = item.start?.date || item.start?.dateTime
       const endDate = item.end?.date || item.end?.dateTime
       return {
         id: item.id,
-        title: `🟢 ${item.summary || '私人行程'}`,
+        title: item.summary || '私人行程',
         start: startDate,
         end: endDate,
         allDay: !!item.start?.date,
@@ -257,16 +481,8 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
       }
     })
 
-    console.log('✅ 轉換成 FullCalendar 的近距離行程：', googleEvents.value)
-
-    // 3. 動態替換 FullCalendar 的 events 陣列
-    calendarOptions.value = {
-      ...calendarOptions.value,
-      events: [
-        ...systemWorkOrderEvents,
-        ...googleEvents.value
-      ]
-    }
+    // 動態更新包含 Google 日曆行程的總事件陣列
+    updateCalendarEvents()
 
     Swal.fire('同步完成', `已成功為您載入近期 ${googleEvents.value.length} 筆 Google 日曆私人行程！`, 'success')
   } catch (error) {
@@ -275,9 +491,10 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
   }
 }
 
-// 組件掛載
+// 組件掛載 (頁面開啟時自動執行)
 onMounted(() => {
-  loadAnnouncements()
+  loadAnnouncements() // 載入公告列表
+  loadKpiStats()      // 載入 4 大 KPI 統計數據並渲染真實工單至 FullCalendar
 })
 </script>
 
@@ -289,6 +506,31 @@ onMounted(() => {
 .card-pad {
   border-radius: 12px;
   padding: 20px;
+}
+.dashboard-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+}
+.dashboard-intro {
+  min-width: 0;
+}
+.calendar-connect-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.calendar-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.calendar-legends {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .fullcalendar-wrap {
   min-height: 520px;
@@ -303,5 +545,171 @@ onMounted(() => {
 :deep(.fc-button-primary:hover) {
   background-color: #1F4FBF !important;
   border-color: #1F4FBF !important;
+}
+:deep(.fc-daygrid-event) {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  margin-top: 2px;
+  padding: 2px 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px;
+  background: #fff !important;
+  color: var(--color-text) !important;
+  font-size: clamp(0.62rem, 1vw, 0.75rem);
+  line-height: 1.25;
+}
+:deep(.fc-daygrid-event .fc-event-main) {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit !important;
+}
+:deep(.fc-daygrid-event .fc-event-title),
+:deep(.fc-daygrid-event .fc-event-time) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:deep(.fc-daygrid-event .fc-event-time) {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+:deep(.fc-daygrid-event .fc-event-title) {
+  min-width: 0;
+  font-weight: 500;
+}
+:deep(.fc-daygrid-event-dot) {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .dashboard-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 16px;
+  }
+
+  .dashboard-intro {
+    width: 100%;
+  }
+
+  .dashboard-intro h1 {
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    white-space: nowrap;
+  }
+
+  .calendar-connect-btn {
+    width: fit-content;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .calendar-legends {
+    flex-wrap: wrap;
+  }
+
+  :deep(.fc .fc-header-toolbar) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    margin-bottom: 14px;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(1)) {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(2)) {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  :deep(.fc .fc-toolbar-chunk:nth-child(3)) {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  :deep(.fc .fc-toolbar-title) {
+    font-size: clamp(1.15rem, 5vw, 1.45rem);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  :deep(.fc .fc-button) {
+    min-height: 34px;
+    padding: 0.4em 0.65em;
+    font-size: clamp(0.72rem, 2.8vw, 0.875rem);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-connect-btn {
+    width: 100%;
+  }
+
+  :deep(.fc .fc-header-toolbar) {
+    gap: 8px;
+  }
+
+  :deep(.fc .fc-button) {
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+  }
+
+  :deep(.fc-daygrid-day-events) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 2px 4px;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event) {
+    display: block;
+    width: 8px;
+    min-width: 8px;
+    height: 8px;
+    min-height: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    border-radius: 50%;
+    background: transparent !important;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event-dot) {
+    display: block;
+    margin: 0;
+    border-width: 4px;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-main),
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-time),
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-event .fc-event-title) {
+    display: none;
+  }
+
+  :deep(.fc-daygrid-day-frame > .fc-daygrid-day-events .fc-daygrid-more-link) {
+    padding: 0 2px;
+    font-size: 0.7rem;
+    line-height: 1;
+  }
 }
 </style>

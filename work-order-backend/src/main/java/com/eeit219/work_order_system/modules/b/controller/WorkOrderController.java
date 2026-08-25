@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.common.response.PageResponse;
-import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.repository.UserRepository;
+import com.eeit219.work_order_system.common.security.CurrentUserProvider;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderListItemResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderResponse;
@@ -36,20 +34,21 @@ public class WorkOrderController {
 
     private final WorkOrderService workOrderService;
     private final WorkOrderCreationCoordinator workOrderCreationCoordinator;
-    private final UserRepository userRepository;
+    private final CurrentUserProvider currentUserProvider;
 
     public WorkOrderController(WorkOrderService workOrderService,
             WorkOrderCreationCoordinator workOrderCreationCoordinator,
-            UserRepository userRepository) {
+            CurrentUserProvider currentUserProvider) {
         this.workOrderService = workOrderService;
         this.workOrderCreationCoordinator = workOrderCreationCoordinator;
-        this.userRepository = userRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
     // 重試邏輯 WorkOrderCreationCoordinator
     @PostMapping
     public ResponseEntity<ApiResponse<WorkOrderResponse>> create(@Valid @RequestBody WorkOrderCreateRequest request) {
-        WorkOrderResponse response = workOrderCreationCoordinator.createWithRetry(request, currentUser());
+        WorkOrderResponse response = workOrderCreationCoordinator.createWithRetry(request,
+                currentUserProvider.getUser());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "工單建立成功", response));
     }
@@ -93,19 +92,9 @@ public class WorkOrderController {
             @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size) {
         Pageable pageable = WorkOrderPageableFactory.of(page, size);
         Page<WorkOrderListItemResponse> response = workOrderService.listMySubmissions(keyword, status,
-                currentUserId(), pageable);
+                currentUserProvider.getUserId(), pageable);
         return ResponseEntity
                 .ok(ApiResponse.success(HttpStatus.OK.value(), "成功", PageResponse.from(response)));
-    }
-
-    private User currentUser() {
-        String account = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByAccount(account)
-                .orElseThrow(() -> new IllegalStateException("找不到登入使用者：" + account));
-    }
-
-    private Integer currentUserId() {
-        return currentUser().getUserId();
     }
 
 }

@@ -35,7 +35,7 @@ public class LoginController {
                 this.refreshTokenCookieUtility = refreshTokenCookieUtility;
         }
 
-        @PostMapping("/auth/login")
+        @PostMapping("/api/auth/login")
         public ResponseEntity<ApiResponse<LoginResponseDTO>> login(
                         @RequestBody LoginRequestDTO request,
                         HttpServletResponse response) {

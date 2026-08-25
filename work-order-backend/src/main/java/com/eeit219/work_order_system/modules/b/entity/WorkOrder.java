@@ -94,4 +94,5 @@ public class WorkOrder {
     @Version
     @Column(name = "version", nullable = false)
     private Integer version = 0;
+
 }

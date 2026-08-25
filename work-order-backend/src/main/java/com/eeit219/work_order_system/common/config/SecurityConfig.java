@@ -41,11 +41,6 @@ public class SecurityConfig {
         }
 
         @Bean
-        public WebSecurityCustomizer webSecurityCustomizer() {
-                return (web) -> web.ignoring().requestMatchers("/ws/**", "/ws/notifications");
-        }
-
-        @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 .cors(cors -> {
@@ -55,9 +50,10 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout",
-                                                                "/auth/register",
-                                                                "/auth/forgot-password", "/auth/reset-password",
+                                                .requestMatchers("/api/auth/login", "/api/auth/refresh",
+                                                                "/api/auth/logout",
+                                                                "/api/auth/register",
+                                                                "/api/auth/forgot-password", "/api/auth/reset-password",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
                                                                 "/ws/**",
@@ -66,13 +62,16 @@ public class SecurityConfig {
                                                 // 首次登入修改密碼：只需要登入，不限制角色
                                                 .requestMatchers(
                                                                 HttpMethod.PATCH,
-                                                                "/account/initial-password")
+                                                                "/api/account/initial-password")
                                                 .authenticated()
-                                                .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
+                                                .requestMatchers(HttpMethod.POST, "/api/users",
+                                                                "/api/repair-categories/**",
                                                                 "/api/priorities/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.PATCH, "/users/**").hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
+                                                                "/api/reports/**")
+                                                .hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oauth2SuccessHandler)

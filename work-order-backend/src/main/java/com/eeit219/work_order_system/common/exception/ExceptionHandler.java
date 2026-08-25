@@ -109,23 +109,12 @@ public class ExceptionHandler {
 
         // log.error("未預期的伺服器錯誤", exception);
 
-        // return ResponseEntity.status(
-        // HttpStatus.INTERNAL_SERVER_ERROR)
-        // .body(ApiResponse.error(
-        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
-        // "伺服器發生未預期錯誤"));
+        //         return ResponseEntity.status(
+        //                         HttpStatus.INTERNAL_SERVER_ERROR)
+        //                         .body(ApiResponse.error(
+        //                                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
+        //                                         "伺服器發生未預期錯誤"));
         // }
-
-        // 403 沒有權限 Forbidden
-        @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
-        public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
-                        AccessDeniedException exception) {
-
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(ApiResponse.error(
-                                                HttpStatus.FORBIDDEN.value(),
-                                                exception.getMessage()));
-        }
 
         // 409 樂觀鎖發生衝突
         @org.springframework.web.bind.annotation.ExceptionHandler(OptimisticLockingFailureException.class)
@@ -139,57 +128,39 @@ public class ExceptionHandler {
                                                 HttpStatus.CONFLICT.value(),
                                                 "工單已被其他人修改，請重新載入最新資料"));
         }
-
-        @org.springframework.web.bind.annotation.ExceptionHandler(EditSessionLockedException.class)
-        public ResponseEntity<ApiResponse<Void>> handleEditSessionLocked(
-                        EditSessionLockedException exception) {
-
-                return ResponseEntity.status(HttpStatus.LOCKED)
-                                .body(ApiResponse.error(
-                                                HttpStatus.LOCKED.value(),
-                                                exception.getMessage()));
-        }
-
-        @org.springframework.web.bind.annotation.ExceptionHandler(InvalidEditSessionException.class)
-        public ResponseEntity<ApiResponse<Void>> handleInvalidEditSession(
-                        InvalidEditSessionException exception) {
-
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                                .body(ApiResponse.error(
-                                                HttpStatus.CONFLICT.value(),
-                                                exception.getMessage()));
-        }
         // return ResponseEntity.status(
         // HttpStatus.INTERNAL_SERVER_ERROR)
         // .body(ApiResponse.error(
         // HttpStatus.INTERNAL_SERVER_ERROR.value(),
         // "伺服器發生未預期錯誤"));
         // }
-        // return ResponseEntity.status(
-        // HttpStatus.INTERNAL_SERVER_ERROR)
-        // .body(ApiResponse.error(
-        // HttpStatus.INTERNAL_SERVER_ERROR.value(),
-        // "伺服器發生未預期錯誤"));
-        // }
+//                return ResponseEntity.status(
+//                                HttpStatus.INTERNAL_SERVER_ERROR)
+//                                .body(ApiResponse.error(
+//                                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+//                                                "伺服器發生未預期錯誤"));
+//        }
 
         // D Module 無權查看403
-        // @org.springframework.web.bind.annotation.ExceptionHandler(AccessDeniedException.class)
-        // public ResponseEntity<ApiResponse<Void>>
-        // handleAccessDenied(AccessDeniedException e) {
+        @org.springframework.web.bind.annotation.ExceptionHandler(
+                AccessDeniedException.class)
+        public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e){
 
-        // return ResponseEntity.status(HttpStatus.FORBIDDEN)
-        // .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(),
-        // e.getMessage()));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(),
+                                e.getMessage()));
 
-        // }
+        }
 
         @org.springframework.web.bind.annotation.ExceptionHandler(EntityNotFoundException.class)
         public ResponseEntity<ApiResponse<Void>> EntityNotFound(EntityNotFoundException e) {
 
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                .body(ApiResponse.error(
-                                                HttpStatus.NOT_FOUND.value(),
-                                                e.getMessage()));
+                        .body(ApiResponse.error(
+                                HttpStatus.NOT_FOUND.value(),
+                                e.getMessage()
+                        ));
+
 
         }
 }
