@@ -36,9 +36,19 @@ public class WorkOrderAttachmentService {
         this.userRepository = userRepository;
     }
 
+    // 保留B模組原有的工單附件上傳方式。
+    @Transactional
+    public WorkOrderAttachmentResponse upload(
+            WorkOrder workOrder,
+            MultipartFile file,
+            User uploadedUser
+    ) {
+        return upload(workOrder, file, uploadedUser, null);
+    }
+
     // 上傳單一附件：限圖片、10MB 上限，通過驗證才寫入 DB
     @Transactional
-    public WorkOrderAttachmentResponse upload(WorkOrder workOrder, MultipartFile file, User uploadedUser) {
+    public WorkOrderAttachmentResponse upload(WorkOrder workOrder, MultipartFile file, User uploadedUser,Integer contactRecordId) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("上傳檔案不可為空");
         }
@@ -67,6 +77,7 @@ public class WorkOrderAttachmentService {
 
         WorkOrderAttachment attachment = new WorkOrderAttachment();
         attachment.setWorkOrder(workOrder);
+        attachment.setContactRecordId(contactRecordId);
         attachment.setOriginalFileName(file.getOriginalFilename());
         attachment.setContentType(file.getContentType());
         attachment.setFileSize((int) file.getSize());
@@ -96,6 +107,20 @@ public class WorkOrderAttachmentService {
     // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見 WorkOrderAttachmentRepository 註解）
     public List<WorkOrderAttachmentResponse> listByWorkOrder(Integer workOrderId) {
         return workOrderAttachmentRepository.findByWorkOrder_WorkOrderId(workOrderId);
+    }
+
+    // D模新增：查詢指定聯繫紀錄附帶的圖片
+    @Transactional(readOnly = true)
+    public List<WorkOrderAttachmentResponse> listByContactRecordId(
+            Integer contactRecordId
+    ) {
+        return workOrderAttachmentRepository
+                .findByContactRecordIdOrderByCreatedTimeAscAttachmentIdAsc(
+                        contactRecordId
+                )
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     // 取得單筆附件完整資料（含 fileData），給 controller 組 inline 預覽回應

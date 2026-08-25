@@ -404,3 +404,8 @@ CREATE INDEX IX_notifications_is_read
 
 CREATE INDEX IX_system_announcements_pinned_created
     ON system_announcements(is_pinned DESC, created_time DESC);
+
+-- 留言附圖查詢用（work_order_attachments.contact_record_id 非 null 才算留言附圖）
+CREATE INDEX IX_work_order_attachments_contact_record_id
+    ON work_order_attachments(contact_record_id)
+    WHERE contact_record_id IS NOT NULL;

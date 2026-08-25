@@ -3,10 +3,12 @@ package com.eeit219.work_order_system.modules.b.controller;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,7 @@ import com.eeit219.work_order_system.common.security.CurrentUserProvider;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
+import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.b.service.WorkOrderAttachmentService;
 import com.eeit219.work_order_system.modules.b.service.WorkOrderService;
 
@@ -64,9 +67,15 @@ public class WorkOrderAttachmentController {
         public ResponseEntity<byte[]> view(@PathVariable Integer attachmentId) {
                 WorkOrderAttachment attachment = workOrderAttachmentService.view(attachmentId);
 
-                String encodedFileName = java.net.URLEncoder
-                                .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)
-                                .replace("+", "%20");
+        // 留言圖片必須由 D 模組驗證工單與留言的查看權限。
+        // 若從 B 的原始附件預覽端點請求，統一回傳 404，避免繞過權限檢查。
+        if (attachment.getContactRecordId() != null) {
+            throw new EntityNotFoundException("找不到附件：" + attachmentId);
+        }
+
+        String encodedFileName = java.net.URLEncoder
+                .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
 
                 return ResponseEntity.ok()
                                 .contentType(attachment.getContentType() != null

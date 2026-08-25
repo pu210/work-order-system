@@ -71,6 +71,7 @@ class WorkOrderDetailServiceTest {
 
                 when(workOrder.getWorkOrderId()).thenReturn(workOrderId);
                 when(workOrder.getWorkOrderNo()).thenReturn("WO-2026-0001");
+                when(workOrder.getVersion()).thenReturn(3);
                 when(workOrderDetailRepository.findDetailById(workOrderId))
                                 .thenReturn(Optional.of(workOrder));
 
@@ -78,6 +79,7 @@ class WorkOrderDetailServiceTest {
 
                 assertEquals(workOrderId, result.getWorkOrderId());
                 assertEquals("WO-2026-0001", result.getWorkOrderNo());
+                assertEquals(3,result.getVersion());
                 verify(workOrderAuthorizationService).validateAuthenticated(currentUser);
                 verify(workOrderAuthorizationService).validateViewPermission(workOrder, currentUser);
                 verifyNoMoreInteractions(workOrderAuthorizationService);
