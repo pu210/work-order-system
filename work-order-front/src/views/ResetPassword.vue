@@ -110,7 +110,7 @@ async function handleSubmit() {
 
   try {
     const response = await axios.post(
-      "/auth/reset-password",
+      "/api/auth/reset-password",
       {
         token,
         password: password.value,

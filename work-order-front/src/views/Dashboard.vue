@@ -358,6 +358,7 @@ const loadAnnouncements = async () => {
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
+  displayEventTime: false,
   height: 520,
   headerToolbar: {
     left: 'prev,today,next',

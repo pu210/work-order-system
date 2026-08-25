@@ -321,7 +321,7 @@ async function handleProfileSubmit() {
 
     notify.success("個人資料更新成功");
   } catch (error) {
-    profileError.value = getErrorMessage(error, "個人資料更新失敗");
+    notify.error(getErrorMessage(error, "個人資料更新失敗"));
   } finally {
     isSavingProfile.value = false;
   }
@@ -362,7 +362,7 @@ async function handlePasswordSubmit() {
 
     notify.success("密碼修改成功");
   } catch (error) {
-    passwordError.value = getErrorMessage(error, "密碼修改失敗");
+    notify.error(getErrorMessage(error, "密碼修改失敗"));
   } finally {
     isChangingPassword.value = false;
   }
