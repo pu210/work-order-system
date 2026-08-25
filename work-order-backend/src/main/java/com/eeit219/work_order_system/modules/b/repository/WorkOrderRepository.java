@@ -77,7 +77,36 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   @Param("status") WorkOrderState status,
                   @Param("creatorId") Integer creatorId,
                   Pageable pageable);
-                  
+
+      // HANDLER 視角列表：只回「自己建立」或「被指派」的工單。用在 WorkOrderService.list() 依角色縮限範圍，
+      // 讓 GET /api/work-orders 對非管理員也是後端真正把關，不是只靠前端過濾
+      @Query(value = "SELECT w FROM WorkOrder w " +
+                  "JOIN FETCH w.subCategory sc " +
+                  "JOIN FETCH sc.repairCategory " +
+                  "JOIN FETCH w.priority " +
+                  "JOIN FETCH w.creator " +
+                  "LEFT JOIN FETCH w.assignedHandler " +
+                  "WHERE (w.creator.userId = :userId OR w.assignedHandler.userId = :userId) " +
+                  "AND (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
+                  +
+                  "AND (:status IS NULL OR w.status = :status) " +
+                  "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
+                  "AND (:categoryId IS NULL OR sc.repairCategory.repairCategoriesId = :categoryId)", countQuery = "SELECT COUNT(w) FROM WorkOrder w "
+                              +
+                              "JOIN w.subCategory sc " +
+                              "WHERE (w.creator.userId = :userId OR w.assignedHandler.userId = :userId) " +
+                              "AND (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
+                              +
+                              "AND (:status IS NULL OR w.status = :status) " +
+                              "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
+                              "AND (:categoryId IS NULL OR sc.repairCategory.repairCategoriesId = :categoryId)")
+      Page<WorkOrder> findRelevantToUser(@Param("keyword") String keyword,
+                  @Param("status") WorkOrderState status,
+                  @Param("priorityId") Integer priorityId,
+                  @Param("categoryId") Integer categoryId,
+                  @Param("userId") Integer userId,
+                  Pageable pageable);
+
       //在工單找出逾期且沒被標記的工單
       List<WorkOrder> findAllByDueTimeBeforeAndIsOverdueFalseAndStatusNotIn(
                   LocalDateTime now,

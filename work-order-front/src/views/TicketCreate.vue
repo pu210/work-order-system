@@ -105,7 +105,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
-import { createWorkOrder, uploadAttachments } from '@/api/workOrder.js'
+import { createWorkOrder } from '@/api/workOrder.js'
 import { getRepairCategories, getSubCategories } from '@/api/category.js'
 
 const router = useRouter()
@@ -184,28 +184,18 @@ async function handleSubmit() {
   errorMessage.value = ''
   submitting.value = true
   try {
-    const created = await createWorkOrder({
-      title: form.value.title,
-      subCategoryId: form.value.subCategoryId,
-      locationDetail: form.value.locationDetail,
-      contactPhone: form.value.contactPhone || undefined,
-      description: form.value.description || undefined,
-    })
-
-    // 建單與附件上傳非同一交易：單已建立成功，附件失敗只提示不擋流程
-    if (selectedFiles.value.length) {
-      try {
-        await uploadAttachments(created.workOrderId, selectedFiles.value.map((item) => item.file))
-      } catch (uploadError) {
-        await Swal.fire({
-          icon: 'warning',
-          title: `工單建立成功（${created.workOrderNo}）`,
-          text: `但附件上傳失敗：${uploadError.response?.data?.message || '請稍後至工單詳情頁重新上傳'}`,
-        })
-        router.push({ name: 'my-tickets' })
-        return
-      }
-    }
+    // 工單與附件同一次送出、同一個交易：後端任一張附件驗證失敗就整個 rollback，
+    // 不會出現「工單建立成功但附件缺漏」的情況；失敗時留在原頁面，選好的檔案不會被清空，可直接重試
+    const created = await createWorkOrder(
+      {
+        title: form.value.title,
+        subCategoryId: form.value.subCategoryId,
+        locationDetail: form.value.locationDetail,
+        contactPhone: form.value.contactPhone || undefined,
+        description: form.value.description || undefined,
+      },
+      selectedFiles.value.map((item) => item.file),
+    )
 
     await Swal.fire({
       icon: 'success',

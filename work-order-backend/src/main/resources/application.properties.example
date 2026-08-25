@@ -1,5 +1,9 @@
 spring.application.name=repair-system
 
+# Multipart 上傳（附件），沒設定時 Spring Boot 預設只有 1MB
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=15MB
+
 #JWT token expire time (minutes)
 jwt.token.expire=10
 # HS512 至少需要 64 bytes；正式環境請由環境變數提供，不要提交真實密鑰

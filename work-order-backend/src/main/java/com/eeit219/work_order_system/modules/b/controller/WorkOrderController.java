@@ -1,18 +1,22 @@
 package com.eeit219.work_order_system.modules.b.controller;
 
+import java.util.List;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.common.response.PageResponse;
@@ -44,11 +48,14 @@ public class WorkOrderController {
         this.currentUserProvider = currentUserProvider;
     }
 
-    // 重試邏輯 WorkOrderCreationCoordinator
-    @PostMapping
-    public ResponseEntity<ApiResponse<WorkOrderResponse>> create(@Valid @RequestBody WorkOrderCreateRequest request) {
+    // 建單與附件改成同一支 API、同一個交易：request 走 JSON part，files 走檔案 part（可不帶）。
+    // 重試邏輯見 WorkOrderCreationCoordinator（只重試工單編號撞號，附件驗證失敗不重試、直接失敗）
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<WorkOrderResponse>> create(
+            @Valid @RequestPart("request") WorkOrderCreateRequest request,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         WorkOrderResponse response = workOrderCreationCoordinator.createWithRetry(request,
-                currentUserProvider.getUser());
+                currentUserProvider.getUser(), files);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "工單建立成功", response));
     }
@@ -79,7 +86,7 @@ public class WorkOrderController {
         Pageable pageable = WorkOrderPageableFactory.of(page, size, sort);
         Page<WorkOrderListItemResponse> response = workOrderService.list(keyword, status, priorityId,
                 categoryId,
-                assignedHandlerId, pageable);
+                assignedHandlerId, currentUserProvider.getUserId(), pageable);
         return ResponseEntity
                 .ok(ApiResponse.success(HttpStatus.OK.value(), "成功", PageResponse.from(response)));
     }

@@ -6,12 +6,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
 
 public interface WorkOrderAttachmentRepository extends JpaRepository<WorkOrderAttachment, Integer> {
 
-    @Query("SELECT a FROM WorkOrderAttachment a " +
-            "JOIN FETCH a.uploadedUser " +
+    // 直接投影成 DTO、不 select fileData：這個 LOB 欄位沒設 lazy fetch（專案沒裝 bytecode enhancement，
+    // JPA 對 byte[] 預設就是 eager），原本「SELECT a FROM ...」查列表會把整張圖片的二進位內容都撈進 JVM，
+    // 但回應的 WorkOrderAttachmentResponse 根本不含 fileData，等於每次列附件都白白搬一次大檔案
+    @Query("SELECT new com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse(" +
+            "a.attachmentId, a.originalFileName, a.contentType, a.fileSize, a.createdTime, " +
+            "a.uploadedUser.name, a.uploadedUser.userId) " +
+            "FROM WorkOrderAttachment a " +
             "WHERE a.workOrder.workOrderId = :workOrderId")
-    List<WorkOrderAttachment> findByWorkOrder_WorkOrderId(@Param("workOrderId") Integer workOrderId);
+    List<WorkOrderAttachmentResponse> findByWorkOrder_WorkOrderId(@Param("workOrderId") Integer workOrderId);
 }

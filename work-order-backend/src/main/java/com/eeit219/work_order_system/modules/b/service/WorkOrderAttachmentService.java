@@ -93,11 +93,9 @@ public class WorkOrderAttachmentService {
                 .collect(Collectors.toList());
     }
 
-    // 查詢某工單的附件中繼資料列表（不含二進位檔案內容）
+    // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見 WorkOrderAttachmentRepository 註解）
     public List<WorkOrderAttachmentResponse> listByWorkOrder(Integer workOrderId) {
-        return workOrderAttachmentRepository.findByWorkOrder_WorkOrderId(workOrderId).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return workOrderAttachmentRepository.findByWorkOrder_WorkOrderId(workOrderId);
     }
 
     // 取得單筆附件完整資料（含 fileData），給 controller 組 inline 預覽回應

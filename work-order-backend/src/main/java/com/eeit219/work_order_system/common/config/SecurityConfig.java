@@ -71,6 +71,13 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**")
                                                 .hasRole("ADMIN")
+
+                                                .requestMatchers(HttpMethod.POST, "/api/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER", "EMPLOYEE")
+                                                // 注意：GET /api/work-orders（完整工單列表）這裡沒有限制角色，
+                                                // 但範圍已經在 WorkOrderService.list() 依角色縮限（ADMIN 全部／HANDLER 自己相關／EMPLOYEE 自己建立的），
+                                                // 是後端資料層真的把關，不是只靠前端過濾；Dashboard.vue 三個角色都會呼叫這支，
+                                                // 拿到的就是各自角色該看到的範圍，不用另外在這裡加角色限制
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oauth2SuccessHandler)
