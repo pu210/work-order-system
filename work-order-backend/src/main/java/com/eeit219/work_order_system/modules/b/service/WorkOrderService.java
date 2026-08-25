@@ -124,8 +124,9 @@ public class WorkOrderService {
     // 這支同時餵給 TicketList.vue（管理員頁面）跟 Dashboard.vue（三個角色都會呼叫），
     // 範圍限縮直接做在後端，不是只靠前端過濾——避免非管理員繞過前端直接打 API 拿到全公司工單
     public Page<WorkOrderListItemResponse> list(String keyword, WorkOrderState status, Integer priorityId,
-            Integer categoryId, Integer assignedHandlerId, Integer currentUserId, Pageable pageable) {
-        List<String> roleCodes = userRoleRepository.findRoleCodesByUserId(currentUserId).stream()
+            Integer categoryId, Integer assignedHandlerId, Integer currentUserId, List<String> callerRoleCodes,
+            Pageable pageable) {
+        List<String> roleCodes = callerRoleCodes.stream()
                 .map(code -> code.trim().toUpperCase())
                 .toList();
 

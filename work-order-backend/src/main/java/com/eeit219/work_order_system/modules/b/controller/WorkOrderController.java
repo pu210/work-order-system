@@ -86,7 +86,7 @@ public class WorkOrderController {
         Pageable pageable = WorkOrderPageableFactory.of(page, size, sort);
         Page<WorkOrderListItemResponse> response = workOrderService.list(keyword, status, priorityId,
                 categoryId,
-                assignedHandlerId, currentUserProvider.getUserId(), pageable);
+                assignedHandlerId, currentUserProvider.getUserId(), currentUserProvider.getRoleCodes(), pageable);
         return ResponseEntity
                 .ok(ApiResponse.success(HttpStatus.OK.value(), "成功", PageResponse.from(response)));
     }
