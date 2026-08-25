@@ -24,8 +24,8 @@
     <!-- 4 大 KPI 卡片區塊 (真實 SQL Server 資料庫數據) -->
     <div class="row g-3 mb-4">
       <!-- 卡片 1：待審核工單 (PENDING_REVIEW) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">待審核工單</div>
           <div class="h2 fw-bold text-dark mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
@@ -36,8 +36,8 @@
       </div>
 
       <!-- 卡片 2：處理中工單 (IN_PROGRESS) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">處理中工單</div>
           <div class="h2 fw-bold text-primary mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-primary me-1"></span>
@@ -48,8 +48,8 @@
       </div>
 
       <!-- 卡片 3：待驗收工單 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">待驗收工單</div>
           <div class="h2 fw-bold text-warning mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-warning me-1"></span>
@@ -60,8 +60,8 @@
       </div>
 
       <!-- 卡片 4：本月完成結案工單 (COMPLETED) -->
-      <div class="col-md-3">
-        <div class="card card-pad shadow-sm border-0 bg-white">
+      <div class="col-md-3 d-flex">
+        <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
           <div class="text-muted small fw-bold mb-1">本月完成結案</div>
           <div class="h2 fw-bold text-success mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-success me-1"></span>
