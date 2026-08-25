@@ -18,4 +18,8 @@ public interface RepairCategoryRepository extends JpaRepository<RepairCategory, 
             "CONCAT(c.createdTime, '') LIKE :keyword OR " +
             "CONCAT(c.updatedTime, '') LIKE :keyword")
     List<RepairCategory> searchByKeyword(@Param("keyword") String keyword);
+
+    // B 模組用：新增工單頁下拉選單只要啟用中的大類，獨立一支查詢，跟上面給設定頁用的 searchByKeyword/findAll 分開，
+    // 避免 F 模組之後調整那些查詢邏輯時，連帶把新增工單頁的下拉選單改壞
+    List<RepairCategory> findByStatusTrue();
 }

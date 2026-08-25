@@ -106,7 +106,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
 import { createWorkOrder } from '@/api/workOrder.js'
-import { getRepairCategories, getSubCategories } from '@/api/category.js'
+import { getActiveRepairCategories, getActiveSubCategories } from '@/api/category.js'
 
 const router = useRouter()
 
@@ -142,8 +142,8 @@ watch(selectedCategoryId, () => {
 onMounted(async () => {
   try {
     const [categoryList, subCategoryList] = await Promise.all([
-      getRepairCategories(),
-      getSubCategories(),
+      getActiveRepairCategories(),
+      getActiveSubCategories(),
     ])
     categories.value = categoryList
     subCategories.value = subCategoryList

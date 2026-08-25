@@ -24,4 +24,8 @@ public interface SubCategoryRepository extends JpaRepository<SubCategory, Intege
                         + "s.overridePriorityName LIKE %:keyword% OR " // 優先級名稱模糊搜尋
                         + "str(s.subCategoriesId) = :keyword") // 只有在輸入精確 ID 時才撈 ID
         List<SubCategory> searchByKeyword(@Param("keyword") String keyword); // 註：保持你原本的方法名稱
+
+        // B 模組用：新增工單頁下拉選單只要啟用中的細項，獨立一支查詢，跟上面給設定頁用的查詢分開，
+        // 避免 F 模組之後調整查詢邏輯時，連帶把新增工單頁的下拉選單也改掉。
+        List<SubCategory> findByStatusTrue();
 }
