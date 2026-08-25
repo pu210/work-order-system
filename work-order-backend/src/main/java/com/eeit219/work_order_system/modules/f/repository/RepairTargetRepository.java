@@ -11,7 +11,6 @@ import com.eeit219.work_order_system.modules.f.entity.RepairTarget;
 public interface RepairTargetRepository extends JpaRepository<RepairTarget, Integer> {
 
     @Query("SELECT t FROM RepairTarget t WHERE " +
-            "str(t.targetId) = :keyword OR " + // 讓數字 ID 支援精準比對 (輸入 3 找 ID=3)
             "t.targetNo LIKE CONCAT('%', :keyword, '%') OR " +
             "t.name LIKE CONCAT('%', :keyword, '%') OR " +
             "t.model LIKE CONCAT('%', :keyword, '%')")

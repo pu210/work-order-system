@@ -11,7 +11,6 @@ import com.eeit219.work_order_system.modules.f.entity.Priority;
 public interface PriorityRepository extends JpaRepository<Priority, Integer> {
 
     @Query("SELECT p FROM Priority p WHERE "
-            + "CAST(p.prioritiesId AS string) LIKE %:keyword% OR "
             + "p.name LIKE %:keyword% OR "
             + "CAST(p.hours AS string) LIKE %:keyword%")
     List<Priority> searchByKeyword(@Param("keyword") String keyword);

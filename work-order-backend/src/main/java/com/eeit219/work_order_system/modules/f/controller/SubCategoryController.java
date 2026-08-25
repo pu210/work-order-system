@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.common.response.ApiResponse; // 引入統一回應類別
 import com.eeit219.work_order_system.modules.f.dto.SubCategoryRequestDto;
 import com.eeit219.work_order_system.modules.f.dto.SubCategoryResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
@@ -36,14 +37,14 @@ public class SubCategoryController {
     private RepairCategoryRepository repairCategoryRepository;
 
     @Autowired
-    private PriorityRepository priorityRepository; // 用來查優先級中文名稱
+    private PriorityRepository priorityRepository;
 
     @Autowired
     private SubCategoryService subCategoryService;
 
     // 取得所有資料，或透過 keyword 進行模糊搜尋
     @GetMapping
-    public List<SubCategoryResponseDto> getAllSubCategories(
+    public ApiResponse<List<SubCategoryResponseDto>> getAllSubCategories(
             @RequestParam(required = false) String keyword) {
 
         List<SubCategory> list;
@@ -53,13 +54,15 @@ public class SubCategoryController {
             list = subCategoryRepository.findAll();
         }
 
-        return list.stream()
+        List<SubCategoryResponseDto> result = list.stream()
                 .map(subCategoryService::convertToResponseDto)
                 .collect(Collectors.toList());
+
+        return ApiResponse.success(200, "查詢成功", result);
     }
 
     @PostMapping
-    public SubCategory createSubCategory(@RequestBody SubCategoryRequestDto request) {
+    public ApiResponse<SubCategory> createSubCategory(@RequestBody SubCategoryRequestDto request) {
         SubCategory sub = new SubCategory();
         sub.setCategoryId(request.getCategoryId());
         sub.setName(request.getName());
@@ -77,11 +80,12 @@ public class SubCategoryController {
         sub.setCreatedTime(LocalDateTime.now());
         sub.setUpdatedTime(LocalDateTime.now());
 
-        return subCategoryRepository.save(sub);
+        SubCategory saved = subCategoryRepository.save(sub);
+        return ApiResponse.success(200, "新增報修細分成功", saved);
     }
 
     @PutMapping("/{subCategoriesId}")
-    public SubCategory updateSubCategory(@PathVariable Integer subCategoriesId,
+    public ApiResponse<SubCategory> updateSubCategory(@PathVariable Integer subCategoriesId,
             @RequestBody SubCategoryRequestDto request) {
         SubCategory sub = subCategoryRepository.findById(subCategoriesId)
                 .orElseThrow(() -> new RuntimeException("找不到該報修細分 ID: " + subCategoriesId));
@@ -107,17 +111,19 @@ public class SubCategoryController {
 
         sub.setUpdatedTime(LocalDateTime.now());
 
-        return subCategoryRepository.save(sub);
+        SubCategory updated = subCategoryRepository.save(sub);
+        return ApiResponse.success(200, "更新報修細分成功", updated);
     }
 
     @PatchMapping("/{subCategoriesId}/status")
-    public SubCategory updateStatus(@PathVariable Integer subCategoriesId, @RequestParam Boolean status) {
+    public ApiResponse<SubCategory> updateStatus(@PathVariable Integer subCategoriesId, @RequestParam Boolean status) {
         SubCategory sub = subCategoryRepository.findById(subCategoriesId)
                 .orElseThrow(() -> new RuntimeException("找不到該報修細分 ID: " + subCategoriesId));
 
         sub.setStatus(status);
         sub.setUpdatedTime(LocalDateTime.now());
 
-        return subCategoryRepository.save(sub);
+        SubCategory updated = subCategoryRepository.save(sub);
+        return ApiResponse.success(200, "更新報修細分狀態成功", updated);
     }
 }

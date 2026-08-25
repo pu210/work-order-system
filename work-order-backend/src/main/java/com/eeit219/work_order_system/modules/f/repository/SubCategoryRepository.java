@@ -21,7 +21,6 @@ public interface SubCategoryRepository extends JpaRepository<SubCategory, Intege
         @Query("SELECT s FROM SubCategory s LEFT JOIN s.repairCategory c WHERE "
                         + "s.name LIKE %:keyword% OR " // 子類名稱模糊搜尋
                         + "c.name LIKE %:keyword% OR " // 大類名稱模糊搜尋
-                        + "s.overridePriorityName LIKE %:keyword% OR " // 優先級名稱模糊搜尋
-                        + "str(s.subCategoriesId) = :keyword") // 只有在輸入精確 ID 時才撈 ID
+                        + "s.overridePriorityName LIKE %:keyword%") // 優先級名稱模糊搜尋
         List<SubCategory> searchByKeyword(@Param("keyword") String keyword); // 註：保持你原本的方法名稱
 }

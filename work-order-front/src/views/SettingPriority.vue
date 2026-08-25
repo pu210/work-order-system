@@ -14,45 +14,72 @@
       <button class="btn-create" @click="openCreateModal">+ 新增優先級</button>
     </div>
 
-    <div class="table-card">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>優先級別</th>
-            <th>處理時數</th>
-            <th>狀態</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in tableData" :key="item.prioritiesId">
-            <td>{{ item.prioritiesId }}</td>
-            <td>
-              <span class="badge-name">{{ item.name }}</span>
-            </td>
-            <td>{{ item.hours }} 小時</td>
-            <td>
-              <label class="switch">
-                <input
-                  type="checkbox"
-                  :checked="item.status"
-                  @change="handleStatusChange(item)"
-                />
-                <span class="slider"></span>
-              </label>
-            </td>
-            <td>
-              <button class="btn-edit" @click="openEditModal(item)">
-                編輯
-              </button>
-            </td>
-          </tr>
-          <tr v-if="tableData.length === 0">
-            <td colspan="5" class="empty-row">目前沒有符合的資料</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- 🌟 加上轉場動畫的容器，以 currentPage 作為 key 觸發滑順切換 -->
+    <transition name="fade" mode="out-in">
+      <div class="table-card" :key="currentPage">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>優先級別</th>
+              <th>處理時數</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 🌟 跨頁連續流水號公式 -->
+            <tr v-for="(item, index) in tableData" :key="item.prioritiesId || index">
+              <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
+              <td>
+                <span class="badge-name">{{ item.name }}</span>
+              </td>
+              <td>{{ item.hours }} 小時</td>
+              <td>
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    :checked="item.status"
+                    @change="handleStatusChange(item)"
+                  />
+                  <span class="slider"></span>
+                </label>
+              </td>
+              <td>
+                <button class="btn-edit" @click="openEditModal(item)">
+                  編輯
+                </button>
+              </td>
+            </tr>
+            <tr v-if="tableData.length === 0">
+              <td colspan="5" class="empty-row">目前沒有符合的資料</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </transition>
+
+    <!-- 🌟 分頁按鈕與資訊列 -->
+    <div class="pagination-bar" v-if="totalPages > 1">
+      <button 
+        class="page-btn" 
+        :disabled="currentPage === 1" 
+        @click="changePage(currentPage - 1)"
+      >
+        上一頁
+      </button>
+      
+      <span class="page-info">
+        第 {{ currentPage }} 頁 / 共 {{ totalPages }} 頁 (總計 {{ totalItems }} 筆)
+      </span>
+
+      <button 
+        class="page-btn" 
+        :disabled="currentPage === totalPages" 
+        @click="changePage(currentPage + 1)"
+      >
+        下一頁
+      </button>
     </div>
 
     <!-- 編輯/新增 表單彈跳視窗 -->
@@ -70,12 +97,18 @@
         </div>
         <form @submit.prevent="handleSubmit" class="modal-form">
           <div class="form-group">
-            <label>名稱：</label>
+            <label>名稱：<span style="color: red;">*</span></label>
             <input v-model="form.name" required placeholder="請輸入名稱" />
           </div>
           <div class="form-group">
-            <label>處理時數 (Hours)：</label>
-            <input v-model.number="form.hours" type="number" required />
+            <label>處理時數 (Hours)：<span style="color: red;">*</span></label>
+            <input 
+              v-model.number="form.hours" 
+              type="number" 
+              min="1" 
+              required 
+              placeholder="請輸入處理時數" 
+            />
           </div>
           <div class="modal-footer">
             <button
@@ -90,28 +123,11 @@
         </form>
       </div>
     </div>
-
-    <!-- 🌟 精美成功提示彈窗 (獨立提升 z-index 確保在最上層) -->
-    <div v-if="successModalOpen" class="modal-overlay success-overlay">
-      <div class="modal-card success-card">
-        <div class="success-icon-wrapper">
-          <svg class="success-check-icon" viewBox="0 0 24 24" width="48" height="48">
-            <circle cx="12" cy="12" r="11" fill="none" stroke="#22c55e" stroke-width="2"/>
-            <path fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 13l3 3 7-7"/>
-          </svg>
-        </div>
-        <h3 class="success-title">操作成功</h3>
-        <p class="success-desc">{{ successMessage }}</p>
-        <button class="btn-submit success-ok-btn" @click="successModalOpen = false">
-          OK
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   getPriorities,
   createPriority,
@@ -121,23 +137,53 @@ import {
 import Swal from "sweetalert2";
 
 const keyword = ref("");
-const tableData = ref([]);
+const allTableData = ref([]); // 🌟 儲存從後端抓回來的完整原始資料
+const tableData = ref([]);    // 🌟 當前畫面實際顯示的 10 筆資料
+
+// 🌟 分頁相關變數
+const currentPage = ref(1);
+const pageSize = ref(10);
+
+const totalItems = computed(() => allTableData.value.length);
+
+// 🌟 計算總頁數
+const totalPages = computed(() => {
+  return Math.ceil(totalItems.value / pageSize.value) || 1;
+});
+
 const isModalOpen = ref(false);
 const isEditMode = ref(false);
 const currentEditId = ref(null);
 const form = ref({ name: "", hours: 8 });
 
-// 🌟 成功彈窗狀態變數
-const successModalOpen = ref(false);
-const successMessage = ref("");
-
+// 🌟 1. 抓取全部資料並快取在前端
 const fetchData = async () => {
   try {
     const res = await getPriorities(keyword.value);
-    tableData.value = Array.isArray(res) ? res : (res.data || []);
+    const rawData = Array.isArray(res) ? res : (res.data || []);
+    
+    allTableData.value = rawData;
+    currentPage.value = 1; // 搜尋或重新載入時回到第一頁
+    updatePageData();
+
   } catch (error) {
+    allTableData.value = [];
     tableData.value = [];
   }
+};
+
+// 🌟 2. 純粹用記憶體切片產生當頁資料
+const updatePageData = () => {
+  const startIndex = (currentPage.value - 1) * pageSize.value;
+  const endIndex = startIndex + pageSize.value;
+  tableData.value = allTableData.value.slice(startIndex, endIndex);
+};
+
+// 🌟 3. 切換頁碼（不發送 API，達到秒切）
+const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  updatePageData();
 };
 
 const handleStatusChange = async (item) => {
@@ -145,7 +191,6 @@ const handleStatusChange = async (item) => {
   try {
     await updatePriorityStatus(item.prioritiesId, newStatus);
     item.status = newStatus;
-    // 🌟 狀態更新成功 Toast 提示
     Swal.fire({
       icon: "success",
       title: "狀態更新成功",
@@ -179,19 +224,38 @@ const openEditModal = (item) => {
 };
 
 const handleSubmit = async () => {
+  if (form.value.hours <= 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "格式錯誤",
+      text: "處理時數必須大於 0 小時！",
+    });
+    return;
+  }
+
   try {
     if (isEditMode.value) {
       await updatePriority(currentEditId.value, form.value);
-      successMessage.value = "優先級更新成功！";
     } else {
       await createPriority(form.value);
-      successMessage.value = "優先級新增成功！";
     }
-    isModalOpen.value = false;      // 關閉表單視窗
-    successModalOpen.value = true;  // 打開精美成功提示彈窗
-    fetchData();                    // 重新載入列表
+    
+    isModalOpen.value = false;      
+    
+    await Swal.fire({
+      icon: "success",
+      title: isEditMode.value ? "優先級更新成功！" : "優先級新增成功！",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+
+    fetchData();                    
   } catch (error) {
-    alert("操作失敗");
+    Swal.fire({
+      icon: "error",
+      title: "操作失敗",
+      text: "請稍後再試或檢查輸入內容。",
+    });
   }
 };
 
@@ -219,6 +283,47 @@ onMounted(() => {
 .badge-code { background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
 .time-text { color: #64748b; font-size: 13px; }
 
+/* 🌟 表格轉場動畫樣式 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* 分頁按鈕列樣式 */
+.pagination-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+.page-btn {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 6px 14px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.page-btn:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  color: #475569;
+}
+
 /* Switch 開關 */
 .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -227,7 +332,7 @@ onMounted(() => {
 input:checked + .slider { background-color: #2563eb; }
 input:checked + .slider:before { transform: translateX(18px); }
 
-/* Modal 視窗 (含滑順淡入與彈出動畫) */
+/* Modal 視窗 */
 .modal-overlay { 
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
   background-color: rgba(15, 23, 42, 0.5); 
@@ -253,42 +358,6 @@ input:checked + .slider:before { transform: translateX(18px); }
 .btn-submit { background-color: #2563eb; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; }
 .btn-submit:hover { background-color: #1d4ed8; }
 
-/* 🌟 精美成功彈窗專屬樣式與流暢動畫 */
-.success-overlay {
-  z-index: 2000;
-}
-.success-card {
-  text-align: center;
-  padding: 36px 28px;
-  max-width: 360px;
-}
-.success-icon-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-.success-check-icon {
-  animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-.success-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-.success-desc {
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 24px;
-}
-.success-ok-btn {
-  width: 100%;
-  padding: 10px 0;
-  font-size: 15px;
-  border-radius: 8px;
-}
-
-/* 🎬 動畫關鍵影格定義 */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -296,10 +365,5 @@ input:checked + .slider:before { transform: translateX(18px); }
 @keyframes scaleUp {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
 }
 </style>

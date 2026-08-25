@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.common.response.ApiResponse; // 引入統一回應類別
 import com.eeit219.work_order_system.modules.f.dto.RepairCategoryRequestDto;
 import com.eeit219.work_order_system.modules.f.dto.RepairCategoryResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.RepairCategory;
@@ -27,36 +28,42 @@ public class RepairCategoryController {
     private RepairCategoryRepository repairCategoryRepository;
 
     @Autowired
-    private RepairCategoryService repairCategoryService; // 注入 Service
+    private RepairCategoryService repairCategoryService;
 
     @GetMapping
-    public List<RepairCategory> getAllOrSearchCategories(@RequestParam(required = false) String keyword) {
+    public ApiResponse<List<RepairCategory>> getAllOrSearchCategories(@RequestParam(required = false) String keyword) {
+        List<RepairCategory> result;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return repairCategoryRepository.searchByKeyword(keyword);
+            result = repairCategoryRepository.searchByKeyword(keyword);
         } else {
-            return repairCategoryRepository.findAll();
+            result = repairCategoryRepository.findAll();
         }
+        return ApiResponse.success(200, "查詢成功", result);
     }
 
     // 🌟 專門給細項下拉選單用的 API（透過 Service 回傳 DTO）
     @GetMapping("/active")
-    public List<RepairCategoryResponseDto> getActiveCategories() {
-        return repairCategoryService.getActiveCategories();
+    public ApiResponse<List<RepairCategoryResponseDto>> getActiveCategories() {
+        List<RepairCategoryResponseDto> result = repairCategoryService.getActiveCategories();
+        return ApiResponse.success(200, "查詢啟用中的報修大類成功", result);
     }
 
     @PostMapping
-    public RepairCategory createCategory(@RequestBody RepairCategoryRequestDto request) {
-        return repairCategoryService.createCategory(request);
+    public ApiResponse<RepairCategory> createCategory(@RequestBody RepairCategoryRequestDto request) {
+        RepairCategory saved = repairCategoryService.createCategory(request);
+        return ApiResponse.success(200, "新增報修大類成功", saved);
     }
 
     @PutMapping("/{repairCategoriesId}")
-    public RepairCategory updateCategory(@PathVariable Integer repairCategoriesId,
+    public ApiResponse<RepairCategory> updateCategory(@PathVariable Integer repairCategoriesId,
             @RequestBody RepairCategoryRequestDto request) {
-        return repairCategoryService.updateCategory(repairCategoriesId, request);
+        RepairCategory updated = repairCategoryService.updateCategory(repairCategoriesId, request);
+        return ApiResponse.success(200, "更新報修大類成功", updated);
     }
 
     @PatchMapping("/{repairCategoriesId}/status")
-    public RepairCategory updateStatus(@PathVariable Integer repairCategoriesId, @RequestParam Boolean status) {
+    public ApiResponse<RepairCategory> updateStatus(@PathVariable Integer repairCategoriesId,
+            @RequestParam Boolean status) {
         RepairCategory category = repairCategoryRepository.findById(repairCategoriesId)
                 .orElseThrow(() -> new RuntimeException("找不到該報修大類 ID: " + repairCategoriesId));
 
@@ -64,6 +71,8 @@ public class RepairCategoryController {
         category.setUpdatedTime(java.time.LocalDateTime.now());
 
         RepairCategory saved = repairCategoryRepository.save(category);
-        return repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
+        RepairCategory result = repairCategoryRepository.findById(saved.getRepairCategoriesId()).orElse(saved);
+
+        return ApiResponse.success(200, "更新報修大類狀態成功", result);
     }
 }
