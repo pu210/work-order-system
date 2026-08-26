@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.eeit219.work_order_system.common.response.ApiResponse; // 引入統一回應類別
+import com.eeit219.work_order_system.modules.f.dto.PriorityResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
 import com.eeit219.work_order_system.modules.f.repository.PriorityRepository;
+import com.eeit219.work_order_system.modules.f.service.PriorityService;
 
 @RestController
 @RequestMapping("/api/priorities")
@@ -22,26 +25,38 @@ public class PriorityController {
 
     @Autowired
     private PriorityRepository priorityRepository;
+    @Autowired
+    private PriorityService priorityService;
 
     @GetMapping
-    public List<Priority> getAllOrSearchPriorities(@RequestParam(required = false) String keyword) {
+    public ApiResponse<List<Priority>> getAllOrSearchPriorities(@RequestParam(required = false) String keyword) {
+        List<Priority> result;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return priorityRepository.searchByKeyword(keyword);
+            result = priorityRepository.searchByKeyword(keyword);
         } else {
-            return priorityRepository.findAll();
+            result = priorityRepository.findAll();
         }
+        return ApiResponse.success(200, "查詢成功", result);
+    }
+
+    @GetMapping("/active")
+    public ApiResponse<List<PriorityResponseDto>> getActivePriorities() {
+        List<PriorityResponseDto> result = priorityService.getActivePriorities();
+        return ApiResponse.success(200, "查詢啟用中的優先級成功", result);
     }
 
     @PostMapping
-    public Priority createPriority(@RequestBody Priority priority) {
+    public ApiResponse<Priority> createPriority(@RequestBody Priority priority) {
         if (priority.getStatus() == null) {
             priority.setStatus(true);
         }
-        return priorityRepository.save(priority);
+        Priority saved = priorityRepository.save(priority);
+        return ApiResponse.success(200, "新增優先級成功", saved);
     }
 
     @PutMapping("/{prioritiesId}")
-    public Priority updatePriority(@PathVariable Integer prioritiesId, @RequestBody Priority priorityDetails) {
+    public ApiResponse<Priority> updatePriority(@PathVariable Integer prioritiesId,
+            @RequestBody Priority priorityDetails) {
         Priority priority = priorityRepository.findById(prioritiesId)
                 .orElseThrow(() -> new RuntimeException("找不到該優先級 ID: " + prioritiesId));
 
@@ -53,15 +68,17 @@ public class PriorityController {
             priority.setStatus(priorityDetails.getStatus());
         }
 
-        return priorityRepository.save(priority);
+        Priority updated = priorityRepository.save(priority);
+        return ApiResponse.success(200, "更新優先級成功", updated);
     }
 
     @PatchMapping("/{prioritiesId}/status")
-    public Priority updateStatus(@PathVariable Integer prioritiesId, @RequestParam Boolean status) {
+    public ApiResponse<Priority> updateStatus(@PathVariable Integer prioritiesId, @RequestParam Boolean status) {
         Priority priority = priorityRepository.findById(prioritiesId)
                 .orElseThrow(() -> new RuntimeException("找不到該優先級 ID: " + prioritiesId));
 
         priority.setStatus(status);
-        return priorityRepository.save(priority);
+        Priority updated = priorityRepository.save(priority);
+        return ApiResponse.success(200, "更新優先級狀態成功", updated);
     }
 }

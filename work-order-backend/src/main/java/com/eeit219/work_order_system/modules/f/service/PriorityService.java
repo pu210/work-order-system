@@ -1,5 +1,8 @@
 package com.eeit219.work_order_system.modules.f.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +29,14 @@ public class PriorityService {
         dto.setStatus(priority.getStatus());
         return dto;
 
+    }
+
+    // 👇 新增的方法：專門給下拉選單過濾掉關閉的項目
+    // ==========================================
+    public List<PriorityResponseDto> getActivePriorities() {
+        return priorityRepository.findByStatusTrue().stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
     }
 
     // 商業邏輯：新增

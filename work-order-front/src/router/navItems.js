@@ -74,4 +74,11 @@ export const NAV_ITEMS = [
     roles: ["ADMIN"],
     enabled: true,
   },
+  {
+    key: "system-settings",
+    label: "設備維修管理",
+    path: "/system-settings",
+    roles: ["ADMIN", "HANDLER"],
+    enabled: true,
+  },
 ];

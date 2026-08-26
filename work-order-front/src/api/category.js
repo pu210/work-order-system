@@ -5,10 +5,14 @@ export function getRepairCategories(keyword) {
   return api.get('/api/repair-categories', { params: { keyword } }).then((res) => res.data)
 }
 
-// B 模組用：新增工單頁下拉選單，只拿啟用中的大類，跟上面給設定頁用的 getRepairCategories() 分開。
+
 export function getActiveRepairCategories() {
-  return api.get('/api/repair-categories/active').then((res) => res.data.data)
+  return api.get('/api/repair-categories/active').then((res) => res.data)
 }
+// B 模組用：新增工單頁下拉選單，只拿啟用中的大類，跟上面給設定頁用的 getRepairCategories() 分開。
+// export function getActiveRepairCategories() {
+//   return api.get('/api/repair-categories/active').then((res) => res.data.data)
+// }
 
 // B 模組用：需要「全部大類」的地方（例如工單列表篩選下拉選單）改打這支，不要打 getRepairCategories()。
 export function getAllRepairCategoriesWithPriority() {
@@ -28,7 +32,7 @@ export function updateRepairCategoryStatus(id, status) {
   return api.patch(`/api/repair-categories/${id}/status`, null, { params: { status } }).then((res) => res.data)
 }
 
-// --- 報修子類 ---
+// --- 報修細項 ---
 export function getSubCategories(keyword) {
   return api.get('/api/sub-categories', { params: { keyword } }).then((res) => res.data)
 }
