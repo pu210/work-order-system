@@ -1,4 +1,6 @@
 .m2/
+.codex-temp/
+.m2-repository/
 ### OS generated files  ###
 .DS_Store
 **/.DS_Store

@@ -64,16 +64,35 @@ public class SecurityConfig {
                                                                 HttpMethod.PATCH,
                                                                 "/api/account/initial-password")
                                                 .authenticated()
+                                                // 管理員權限
                                                 .requestMatchers(HttpMethod.POST, "/api/users",
                                                                 "/api/repair-categories/**",
-                                                                "/api/priorities/**")
+                                                                "/api/priorities/**",
+                                                                "/api/work-orders/*/review/**",
+                                                                "/api/work-orders/*/admin-check/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**",
+                                                                "/api/work-orders/*/review/edit-session/heartbeat")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE,
+                                                                "/api/work-orders/*/review/edit-session")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
+                                                                "/api/reports/**")
                                                 .hasRole("ADMIN")
 
                                                 .requestMatchers(HttpMethod.POST, "/api/work-orders")
                                                 .hasAnyRole("ADMIN", "HANDLER", "EMPLOYEE")
+                                                // 工程師權限
+                                                .requestMatchers(HttpMethod.POST, "/api/work-orders/*/progress/**")
+                                                .hasRole("HANDLER")
+                                                // 工程師跟管理員權限
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/equipment/*/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER")
+                                                // 全用戶
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oauth2SuccessHandler)
