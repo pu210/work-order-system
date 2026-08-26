@@ -26,6 +26,7 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "JOIN FETCH sc.repairCategory " +
                   "JOIN FETCH w.priority " +
                   "JOIN FETCH w.creator " +
+                  "LEFT JOIN FETCH w.admin " +
                   "LEFT JOIN FETCH w.assignedHandler " +
                   "WHERE w.workOrderId = :workOrderId")
       Optional<WorkOrder> findByIdWithDetails(@Param("workOrderId") Integer workOrderId);
@@ -35,6 +36,7 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "JOIN FETCH sc.repairCategory " +
                   "JOIN FETCH w.priority " +
                   "JOIN FETCH w.creator " +
+                  "LEFT JOIN FETCH w.admin " +
                   "LEFT JOIN FETCH w.assignedHandler " +
                   "WHERE (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
                   +
@@ -63,6 +65,7 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "JOIN FETCH sc.repairCategory " +
                   "JOIN FETCH w.priority " +
                   "JOIN FETCH w.creator " +
+                  "LEFT JOIN FETCH w.admin " +
                   "LEFT JOIN FETCH w.assignedHandler " +
                   "WHERE w.creator.userId = :creatorId " +
                   "AND (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
@@ -77,10 +80,15 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   @Param("status") WorkOrderState status,
                   @Param("creatorId") Integer creatorId,
                   Pageable pageable);
-                  
-      //在工單找出逾期且沒被標記的工單
+
+      // 在工單找出逾期且沒被標記的工單
       List<WorkOrder> findAllByDueTimeBeforeAndIsOverdueFalseAndStatusNotIn(
                   LocalDateTime now,
                   Collection<WorkOrderState> excludedStates);
+
+      // qrcode 歷史紀錄查詢
+      Page<WorkOrder> findByRepairTarget_TargetNoOrderByCreatedTimeDesc(
+                  String targetNo,
+                  Pageable pageable);
 
 }

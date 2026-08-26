@@ -27,7 +27,10 @@ export function getMySubmissions(params) {
 
 export function startEditSession(workOrderId) {
   return api
-    .post(`/api/work-orders/${workOrderId}/review/edit-session`)
+    .post(`/api/work-orders/${workOrderId}/review/edit-session`, null, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -40,6 +43,8 @@ export function editSessionHeartbeat(workOrderId, sessionToken) {
         headers: {
           "X-Edit-Session-Token": sessionToken,
         },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
       },
     )
     .then((res) => res.data.data);
@@ -51,6 +56,8 @@ export function releaseEditSession(workOrderId, sessionToken) {
       headers: {
         "X-Edit-Session-Token": sessionToken,
       },
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
     })
     .then((res) => res.data.data);
 }
@@ -58,22 +65,30 @@ export function releaseEditSession(workOrderId, sessionToken) {
 // 管理員初審／派工
 
 export function reviewAccept(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? {
+        headers: { "X-Edit-Session-Token": sessionToken },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+      }
+    : { skipGlobalError: true, skipForbiddenRedirect: true };
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, config)
     .then((res) => res.data.data);
 }
 
 export function reviewReject(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? {
+        headers: { "X-Edit-Session-Token": sessionToken },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+      }
+    : { skipGlobalError: true, skipForbiddenRedirect: true };
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, config)
     .then((res) => res.data.data);
 }
 
@@ -81,13 +96,19 @@ export function reviewReject(workOrderId, payload, sessionToken) {
 
 export function progressAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/progress/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/progress/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
 export function progressReject(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/progress/reject`, payload)
+    .post(`/api/work-orders/${workOrderId}/progress/reject`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -95,7 +116,10 @@ export function progressReject(workOrderId, payload) {
 
 export function userCheckAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/user-check/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/user-check/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -103,13 +127,19 @@ export function userCheckAccept(workOrderId, payload) {
 
 export function adminCheckAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
 export function adminCheckReject(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload)
+    .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
