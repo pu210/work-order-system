@@ -16,8 +16,6 @@ import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
 public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
-      boolean existsByWorkOrderNo(String workOrderNo);
-
       Optional<WorkOrder> findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(String prefix);
 
       @Query("SELECT w FROM WorkOrder w " +
@@ -48,7 +46,8 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "AND (:status IS NULL OR w.status = :status) " +
                   "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
                   "AND (:categoryId IS NULL OR sc.repairCategory.repairCategoriesId = :categoryId) " +
-                  "AND (:assignedHandlerId IS NULL OR w.assignedHandler.userId = :assignedHandlerId)", countQuery = "SELECT COUNT(w) FROM WorkOrder w "
+                  "AND (:assignedHandlerId IS NULL OR w.assignedHandler.userId = :assignedHandlerId) " +
+                  "AND (:adminUserId IS NULL OR w.admin.userId = :adminUserId)", countQuery = "SELECT COUNT(w) FROM WorkOrder w "
                               +
                               "JOIN w.subCategory sc " +
                               "WHERE (:restrictToUserId IS NULL OR w.creator.userId = :restrictToUserId OR w.assignedHandler.userId = :restrictToUserId) "
@@ -59,12 +58,14 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                               "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
                               "AND (:categoryId IS NULL OR sc.repairCategory.repairCategoriesId = :categoryId) "
                               +
-                              "AND (:assignedHandlerId IS NULL OR w.assignedHandler.userId = :assignedHandlerId)")
+                              "AND (:assignedHandlerId IS NULL OR w.assignedHandler.userId = :assignedHandlerId) " +
+                              "AND (:adminUserId IS NULL OR w.admin.userId = :adminUserId)")
       Page<WorkOrder> search(@Param("keyword") String keyword,
                   @Param("status") WorkOrderState status,
                   @Param("priorityId") Integer priorityId,
                   @Param("categoryId") Integer categoryId,
                   @Param("assignedHandlerId") Integer assignedHandlerId,
+                  @Param("adminUserId") Integer adminUserId,
                   @Param("restrictToUserId") Integer restrictToUserId,
                   Pageable pageable);
 

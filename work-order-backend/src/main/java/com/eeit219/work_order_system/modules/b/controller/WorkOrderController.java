@@ -70,13 +70,12 @@ public class WorkOrderController {
         // 前端已無呼叫端（改走 D 模組 GET /api/work-orders/{id}/detail，該端點有做權限檢查）。
         // 這支目前沒有權限檢查，任何登入者帶 id 都能查到工單完整內容，屬於已知缺口；
         // 模組範圍外，本次不處理，先記錄不展開。
-        // @GetMapping("/{id}")
-        // public ResponseEntity<ApiResponse<WorkOrderResponse>> getById(@PathVariable
-        // Integer id) {
-        // WorkOrderResponse response = workOrderService.getById(id);
-        // return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功",
-        // response));
-        // }
+        @GetMapping("/{id}")
+        public ResponseEntity<ApiResponse<WorkOrderResponse>> getById(@PathVariable Integer id) {
+                WorkOrderResponse response = workOrderService.getById(id);
+                return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功",
+                                response));
+        }
 
         // 角色範圍限縮邏輯見 WorkOrderService.list()：ADMIN 看全部、HANDLER 看自己相關、EMPLOYEE 只看自己建立的。
         @GetMapping
@@ -86,19 +85,22 @@ public class WorkOrderController {
                         @RequestParam(required = false) Integer priorityId,
                         @RequestParam(required = false) Integer categoryId,
                         @RequestParam(required = false) Integer assignedHandlerId,
+                        @RequestParam(required = false) Integer adminUserId,
                         @RequestParam(required = false) String sort,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size) {
                 Pageable pageable = WorkOrderPageableFactory.of(page, size, sort);
                 Page<WorkOrderListItemResponse> response = workOrderService.list(keyword, status, priorityId,
                                 categoryId,
-                                assignedHandlerId, currentUserProvider.getUserId(), currentUserProvider.getRoleCodes(),
+                                assignedHandlerId, adminUserId, currentUserProvider.getUserId(),
+                                currentUserProvider.getRoleCodes(),
                                 pageable);
                 return ResponseEntity
                                 .ok(ApiResponse.success(HttpStatus.OK.value(), "成功", PageResponse.from(response)));
         }
 
-        // 固定用 currentUserProvider.getUserId()，不接受外部指定 userId，只查自己建立的工單，見 WorkOrderService.listMySubmissions()
+        // 固定用 currentUserProvider.getUserId()，不接受外部指定 userId，只查自己建立的工單，見
+        // WorkOrderService.listMySubmissions()
         @GetMapping("/my-submissions")
         public ResponseEntity<ApiResponse<PageResponse<WorkOrderListItemResponse>>> mySubmissions(
                         @RequestParam(required = false) String keyword,

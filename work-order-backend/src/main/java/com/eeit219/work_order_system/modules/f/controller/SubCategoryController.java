@@ -64,9 +64,9 @@ public class SubCategoryController {
     }
 
     // B 模組用：新增工單頁的細項下拉選單，只回傳啟用中（status = true）的資料。
-    // 獨立一支端點，跟上面給系統設定頁用的 getAllSubCategories() 分開，F 模組調整那支時不會影響到這裡。
-    @GetMapping("/active")
-    public ApiResponse<List<SubCategoryResponseDto>> getActiveSubCategories() {
+    // 路徑加 -for-b 後綴，跟 RepairCategoryController 那支一致，避免以後 F 模組也做一支 /active 撞名
+    @GetMapping("/active-for-b")
+    public ApiResponse<List<SubCategoryResponseDto>> getActiveSubCategoriesForB() {
         List<SubCategoryResponseDto> data = subCategoryRepository.findByStatusTrue().stream()
                 .map(subCategoryService::convertToResponseDto)
                 .collect(Collectors.toList());
