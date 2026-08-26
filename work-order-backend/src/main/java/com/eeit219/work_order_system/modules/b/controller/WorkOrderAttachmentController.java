@@ -39,23 +39,30 @@ public class WorkOrderAttachmentController {
                 this.currentUserProvider = currentUserProvider;
         }
 
-        // 事後補上傳附件（建單流程本身不夾帶檔案）。前端建單頁面若同時選了圖片，UX 上看起來是同一次送出，
-        // 但實際是建單成功拿到 workOrderId 後才呼叫這支，兩者非同一交易，這支失敗不會讓工單本體跟著回滾
-        @PostMapping(value = "/api/work-orders/{workOrderId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        public ResponseEntity<ApiResponse<List<WorkOrderAttachmentResponse>>> upload(@PathVariable Integer workOrderId,
-                        @RequestPart("files") List<MultipartFile> files) {
-                WorkOrder workOrder = workOrderService.getWorkOrderEntity(workOrderId);
+        // 建單流程已改成 WorkOrderController.create() 同一支 API、同一交易帶附件，前端已無呼叫端（見 workOrder.js
+        // uploadAttachments）。
+        // @PostMapping(value = "/api/work-orders/{workOrderId}/attachments", consumes =
+        // MediaType.MULTIPART_FORM_DATA_VALUE)
+        // public ResponseEntity<ApiResponse<List<WorkOrderAttachmentResponse>>>
+        // upload(@PathVariable Integer workOrderId,
+        // @RequestPart("files") List<MultipartFile> files) {
+        // WorkOrder workOrder = workOrderService.getWorkOrderEntity(workOrderId);
+        //
+        // List<WorkOrderAttachmentResponse> response =
+        // workOrderAttachmentService.uploadAll(workOrder, files,
+        // currentUserProvider.getUserId());
+        // return ResponseEntity.status(HttpStatus.CREATED)
+        // .body(ApiResponse.success(HttpStatus.CREATED.value(), "附件上傳成功",
+        // response));
+        // }
 
-                List<WorkOrderAttachmentResponse> response = workOrderAttachmentService.uploadAll(workOrder, files,
-                                currentUserProvider.getUserId());
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(ApiResponse.success(HttpStatus.CREATED.value(), "附件上傳成功",
-                                                response));
-        }
-
-        // 查詢某工單的附件列表
+        // 查詢某工單的附件列表：僅限 ADMIN、該工單建立者、被指派工程師查看
         @GetMapping("/api/work-orders/{workOrderId}/attachments")
         public ResponseEntity<ApiResponse<List<WorkOrderAttachmentResponse>>> list(@PathVariable Integer workOrderId) {
+                WorkOrder workOrder = workOrderService.getWorkOrderEntity(workOrderId);
+                workOrderAttachmentService.validateViewPermission(workOrder, currentUserProvider.getUserId(),
+                                currentUserProvider.getRoleCodes());
+
                 List<WorkOrderAttachmentResponse> response = workOrderAttachmentService.listByWorkOrder(workOrderId);
                 return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功", response));
         }
@@ -70,6 +77,10 @@ public class WorkOrderAttachmentController {
                 if (attachment.getContactRecordId() != null) {
                         throw new EntityNotFoundException("找不到附件：" + attachmentId);
                 }
+
+                // 一般工單附件：僅限 ADMIN、該工單建立者、被指派工程師查看
+                workOrderAttachmentService.validateViewPermission(attachment.getWorkOrder(),
+                                currentUserProvider.getUserId(), currentUserProvider.getRoleCodes());
 
                 String encodedFileName = java.net.URLEncoder
                                 .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)

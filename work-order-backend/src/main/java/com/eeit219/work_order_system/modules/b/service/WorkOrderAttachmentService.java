@@ -4,10 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.eeit219.work_order_system.common.exception.AuthenticatedUserNotFoundException;
 import com.eeit219.work_order_system.common.exception.ResourceConflictException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
@@ -41,14 +44,14 @@ public class WorkOrderAttachmentService {
     public WorkOrderAttachmentResponse upload(
             WorkOrder workOrder,
             MultipartFile file,
-            User uploadedUser
-    ) {
+            User uploadedUser) {
         return upload(workOrder, file, uploadedUser, null);
     }
 
     // 上傳單一附件：限圖片、10MB 上限，通過驗證才寫入 DB
     @Transactional
-    public WorkOrderAttachmentResponse upload(WorkOrder workOrder, MultipartFile file, User uploadedUser,Integer contactRecordId) {
+    public WorkOrderAttachmentResponse upload(WorkOrder workOrder, MultipartFile file, User uploadedUser,
+            Integer contactRecordId) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("上傳檔案不可為空");
         }
@@ -104,20 +107,35 @@ public class WorkOrderAttachmentService {
                 .collect(Collectors.toList());
     }
 
-    // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見 WorkOrderAttachmentRepository 註解）
+    // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見
+    // WorkOrderAttachmentRepository 註解）
     public List<WorkOrderAttachmentResponse> listByWorkOrder(Integer workOrderId) {
         return workOrderAttachmentRepository.findByWorkOrder_WorkOrderId(workOrderId);
+    }
+
+    // 附件查看權限：ADMIN，或該附件所屬工單的建立者／被指派工程師，其餘一律拒絕。
+    // 只給 WorkOrderAttachmentController 的 list()/view() 用；D 模組留言圖片走自己的
+    // WorkOrderAuthorizationService，那條路徑已經驗證過，不重複呼叫這支。
+    public void validateViewPermission(WorkOrder workOrder, Integer currentUserId, List<String> roleCodes) {
+        boolean isAdmin = roleCodes != null
+                && roleCodes.stream().anyMatch(Role.ADMIN::equalsIgnoreCase);
+        boolean isCreator = workOrder.getCreator() != null
+                && Objects.equals(workOrder.getCreator().getUserId(), currentUserId);
+        boolean isAssignedHandler = workOrder.getAssignedHandler() != null
+                && Objects.equals(workOrder.getAssignedHandler().getUserId(), currentUserId);
+
+        if (!isAdmin && !isCreator && !isAssignedHandler) {
+            throw new AccessDeniedException("你沒有權限查看此工單的附件");
+        }
     }
 
     // D模新增：查詢指定聯繫紀錄附帶的圖片
     @Transactional(readOnly = true)
     public List<WorkOrderAttachmentResponse> listByContactRecordId(
-            Integer contactRecordId
-    ) {
+            Integer contactRecordId) {
         return workOrderAttachmentRepository
                 .findByContactRecordIdOrderByCreatedTimeAscAttachmentIdAsc(
-                        contactRecordId
-                )
+                        contactRecordId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
