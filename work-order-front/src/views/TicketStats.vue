@@ -556,16 +556,19 @@ const chartData = computed(() => {
   // 3. 根據標籤數量截取對應數量的顏色
   const colors = paletteColors.slice(0, labels.length)
 
-  // 4. 組合成 Chart.js 要求的標準資料格式，傳給 HTML 的 <Pie :data="chartData" /> 繪製
+  // 4. 當只有 1 個項目 (100%) 時，動態將分隔邊界設為 0，避免在圓餅圖上方留下白色的縫隙切線
+  const isSingleSlice = labels.length <= 1 || counts.filter(c => c > 0).length <= 1
+
+  // 5. 組合成 Chart.js 要求的標準資料格式，傳給 HTML 的 <Pie :data="chartData" /> 繪製
   return {
     labels,
     datasets: [
       {
-        backgroundColor: colors,        // 各扇形區塊背景顏色
-        hoverBackgroundColor: colors,   // 滑鼠移入時的懸浮背景顏色
-        borderWidth: 2,                 // 扇形邊框粗細
-        borderColor: '#ffffff',         // 扇形白色分割線
-        data: counts                    // 填入真正的工單筆數數字
+        backgroundColor: colors,                          // 各扇形區塊背景顏色
+        hoverBackgroundColor: colors,                     // 滑鼠移入時的懸浮背景顏色
+        borderWidth: isSingleSlice ? 0 : 2,               // 100% 時無邊框，多區塊時為 2px 白邊
+        borderColor: isSingleSlice ? 'transparent' : '#ffffff', // 100% 時透明，多區塊時為白色分割線
+        data: counts                                      // 填入真正的工單筆數數字
       }
     ]
   }
