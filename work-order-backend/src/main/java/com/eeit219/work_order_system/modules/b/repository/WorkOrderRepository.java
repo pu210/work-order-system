@@ -30,8 +30,6 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
 
       // 統一給 ADMIN／HANDLER 兩種視角用：restrictToUserId 是 null 時等同「查全部」（ADMIN），
       // 有帶值時限定「建立者或被指派工程師 = 這個人」（HANDLER）。
-      // 原本 search()／findRelevantToUser() 兩支查詢除了這個限定條件，其餘 JOIN FETCH 跟篩選子句完全一樣，
-      // 合併成一支，避免以後加篩選欄位要同時改兩份幾乎一樣的 JPQL
       @Query(value = "SELECT w FROM WorkOrder w " +
                   "JOIN FETCH w.subCategory sc " +
                   "JOIN FETCH sc.repairCategory " +

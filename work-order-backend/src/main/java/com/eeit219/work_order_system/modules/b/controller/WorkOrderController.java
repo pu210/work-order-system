@@ -48,7 +48,7 @@ public class WorkOrderController {
                 this.currentUserProvider = currentUserProvider;
         }
 
-        // 建單與附件改成同一支 API、同一個交易：request 走 JSON part，files 走檔案 part（可不帶）。
+        // 建單與附件同一支 API、同一個交易：request 走 JSON part，files 走檔案 part（可不帶）。
         // 重試邏輯見 WorkOrderCreationCoordinator（只重試工單編號撞號，附件驗證失敗不重試、直接失敗）
         @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<ApiResponse<WorkOrderResponse>> create(
