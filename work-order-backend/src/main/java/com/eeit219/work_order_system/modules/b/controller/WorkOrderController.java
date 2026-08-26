@@ -67,12 +67,12 @@ public class WorkOrderController {
                                 .body(ApiResponse.error(HttpStatus.CONFLICT.value(), "工單編號產生衝突，請重新嘗試"));
         }
 
-        // 前端已無呼叫端（改走 D 模組 GET /api/work-orders/{id}/detail，該端點有做權限檢查）。
-        // 這支目前沒有權限檢查，任何登入者帶 id 都能查到工單完整內容，屬於已知缺口；
-        // 模組範圍外，本次不處理，先記錄不展開。
+        // 僅限 ADMIN、建立者、被指派工程師查看，跟附件的權限規則一致（見 WorkOrderService.getById）。
+        // 前端主要走 D 模組的 /detail 端點，這支保留給直接呼叫的情況。
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<WorkOrderResponse>> getById(@PathVariable Integer id) {
-                WorkOrderResponse response = workOrderService.getById(id);
+                WorkOrderResponse response = workOrderService.getById(id, currentUserProvider.getUserId(),
+                                currentUserProvider.getRoleCodes());
                 return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功",
                                 response));
         }

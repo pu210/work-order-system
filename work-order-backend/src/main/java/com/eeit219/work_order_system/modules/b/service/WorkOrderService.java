@@ -102,10 +102,13 @@ public class WorkOrderService {
         return toResponse(saved, subCategory, priority, creator, attachments);
     }
 
-    // 查詢工單詳情
-    public WorkOrderResponse getById(Integer workOrderId) {
+    // 查詢工單詳情：僅限 ADMIN、該工單建立者、被指派工程師查看，跟附件的權限規則一致（見
+    // WorkOrderAttachmentService.validateViewPermission）
+    public WorkOrderResponse getById(Integer workOrderId, Integer currentUserId, List<String> callerRoleCodes) {
         WorkOrder workOrder = workOrderRepository.findByIdWithDetails(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單：" + workOrderId));
+
+        workOrderAttachmentService.validateViewPermission(workOrder, currentUserId, callerRoleCodes);
 
         List<WorkOrderAttachmentResponse> attachments = workOrderAttachmentService.listByWorkOrder(workOrderId);
 
