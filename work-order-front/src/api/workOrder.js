@@ -1,8 +1,18 @@
 import api from "@/plugins/axios.js";
 
 // WorkOrderController 回應包在 ApiResponse { code, message, data } 裡，這裡直接解出 data 方便呼叫端使用
-export function createWorkOrder(payload) {
-  return api.post("/api/work-orders", payload).then((res) => res.data.data);
+//
+// 建單與附件現在是同一個 API、同一個交易：request 欄位包成 JSON Blob 塞進 "request" part，
+// files 逐一塞進 "files" part（可不帶）。任一張附件驗證失敗，後端會連工單本體一起 rollback，
+// 不會出現「工單建立成功但附件缺漏」的情況。
+export function createWorkOrder(payload, files = []) {
+  const formData = new FormData();
+  formData.append(
+    "request",
+    new Blob([JSON.stringify(payload)], { type: "application/json" }),
+  );
+  files.forEach((file) => formData.append("files", file));
+  return api.post("/api/work-orders", formData).then((res) => res.data.data);
 }
 
 export function getWorkOrderById(id) {
@@ -27,7 +37,10 @@ export function getMySubmissions(params) {
 
 export function startEditSession(workOrderId) {
   return api
-    .post(`/api/work-orders/${workOrderId}/review/edit-session`)
+    .post(`/api/work-orders/${workOrderId}/review/edit-session`, null, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -40,6 +53,8 @@ export function editSessionHeartbeat(workOrderId, sessionToken) {
         headers: {
           "X-Edit-Session-Token": sessionToken,
         },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
       },
     )
     .then((res) => res.data.data);
@@ -51,6 +66,8 @@ export function releaseEditSession(workOrderId, sessionToken) {
       headers: {
         "X-Edit-Session-Token": sessionToken,
       },
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
     })
     .then((res) => res.data.data);
 }
@@ -58,22 +75,30 @@ export function releaseEditSession(workOrderId, sessionToken) {
 // 管理員初審／派工
 
 export function reviewAccept(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? {
+        headers: { "X-Edit-Session-Token": sessionToken },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+      }
+    : { skipGlobalError: true, skipForbiddenRedirect: true };
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/accept`, payload, config)
     .then((res) => res.data.data);
 }
 
 export function reviewReject(workOrderId, payload, sessionToken) {
+  const config = sessionToken
+    ? {
+        headers: { "X-Edit-Session-Token": sessionToken },
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+      }
+    : { skipGlobalError: true, skipForbiddenRedirect: true };
+
   return api
-    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, {
-      headers: {
-        "X-Edit-Session-Token": sessionToken,
-      },
-    })
+    .post(`/api/work-orders/${workOrderId}/review/reject`, payload, config)
     .then((res) => res.data.data);
 }
 
@@ -81,13 +106,19 @@ export function reviewReject(workOrderId, payload, sessionToken) {
 
 export function progressAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/progress/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/progress/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
 export function progressReject(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/progress/reject`, payload)
+    .post(`/api/work-orders/${workOrderId}/progress/reject`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -95,7 +126,10 @@ export function progressReject(workOrderId, payload) {
 
 export function userCheckAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/user-check/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/user-check/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
@@ -103,24 +137,30 @@ export function userCheckAccept(workOrderId, payload) {
 
 export function adminCheckAccept(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload)
+    .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
 export function adminCheckReject(workOrderId, payload) {
   return api
-    .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload)
+    .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload, {
+      skipGlobalError: true,
+      skipForbiddenRedirect: true,
+    })
     .then((res) => res.data.data);
 }
 
-// 圖片限定、單檔 10MB，後端欄位名固定叫 files；不手動設 Content-Type，讓瀏覽器自動帶 boundary
-export function uploadAttachments(workOrderId, files) {
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
-  return api
-    .post(`/api/work-orders/${workOrderId}/attachments`, formData)
-    .then((res) => res.data.data);
-}
+// 建單流程已改成 WorkOrderController.create() 同一支 API、同一交易帶附件，這支事後補上傳沒有呼叫端了。
+// export function uploadAttachments(workOrderId, files) {
+//   const formData = new FormData();
+//   files.forEach((file) => formData.append("files", file));
+//   return api
+//     .post(`/api/work-orders/${workOrderId}/attachments`, formData)
+//     .then((res) => res.data.data);
+// }
 
 export function getAttachments(workOrderId) {
   return api

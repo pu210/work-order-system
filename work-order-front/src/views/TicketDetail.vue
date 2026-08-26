@@ -383,12 +383,6 @@
                 </div>
               </form>
 
-              <div v-if="actionMessage" class="alert alert-success py-2">
-                {{ actionMessage }}
-              </div>
-              <div v-if="actionError" class="alert alert-danger py-2">
-                {{ actionError }}
-              </div>
             </div>
           </div>
         </div>
@@ -441,17 +435,10 @@
                     {{ ticket.contactPhone || "—" }}
                   </div>
                 </div>
-                <!-- 驗收按鈕 -->
-                <div v-if="canAccept" class="border-top pt-3">
-                  <button
-                    type="button"
-                    class="btn btn-primary w-100 fw-semibold"
-                    :disabled="accepting"
-                    @click="handleAccept"
-                  >
-                    {{ accepting ? "處理中…" : "確認驗收" }}
-                  </button>
-                </div>
+                <WorkOrderActionPanel
+                  :work-order="ticket"
+                  @updated="handleWorkflowUpdated"
+                />
               </div>
             </div>
           </div>
@@ -508,13 +495,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
-import {
-  userCheckAccept,
-  getAttachments,
-  getAttachmentPreview,
-} from "@/api/workOrder.js";
+import { getAttachments, getAttachmentPreview } from "@/api/workOrder.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { getWorkOrderDetail } from "@/api/workOrderDetail.js";
+import WorkOrderActionPanel from "@/components/work-order/WorkOrderActionPanel.vue";
 import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
 import { userRoleLabel } from "@/constants/userRole.js";
 import {
@@ -528,9 +512,6 @@ const authStore = useAuthStore();
 const ticket = ref(null);
 const loading = ref(true);
 const errorMessage = ref("");
-const accepting = ref(false);
-const actionMessage = ref("");
-const actionError = ref("");
 const attachments = ref([]);
 const attachmentsLoading = ref(false);
 const previewUrls = ref({});
@@ -551,7 +532,12 @@ const visibleContactRecords = computed(() =>
 const hasMoreContactRecords = computed(
   () => contactRecords.value.length > visibleContactRecordCount.value
 );
-const VALID_BACK_TARGETS = ["ticket-list", "my-tickets"];
+const VALID_BACK_TARGETS = [
+  "ticket-list",
+  "my-tickets",
+  "ticket-assign",
+  "handler-workbench",
+];
 const backTarget = computed(() =>
   VALID_BACK_TARGETS.includes(route.query.from)
     ? route.query.from
@@ -625,13 +611,6 @@ function formatDateTimeToMinute(value) {
   if (!value) return "—";
   return value.replace("T", " ").slice(0, 16);
 }
-
-const canAccept = computed(
-  () =>
-    ticket.value &&
-    ticket.value.creatorUserId === authStore.userId &&
-    ticket.value.status === "PENDING_USER_ACCEPTANCE"
-);
 
 const canViewPriority = computed(
   () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER")
@@ -768,19 +747,8 @@ onUnmounted(() => {
   revokeCommentPreviewUrls();
 });
 
-async function handleAccept() {
-  accepting.value = true;
-  actionMessage.value = "";
-  actionError.value = "";
-  try {
-    await userCheckAccept(route.params.id, { feedback: null });
-    await loadTicket();
-    actionMessage.value = "工單已驗收完成";
-  } catch (error) {
-    actionError.value = error.response?.data?.message || "驗收失敗，請稍後再試";
-  } finally {
-    accepting.value = false;
-  }
+async function handleWorkflowUpdated() {
+  await loadTicket();
 }
 // 選擇並驗證尚未送出的留言圖片
 function handleCommentFilesChange(event) {

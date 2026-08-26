@@ -3,14 +3,17 @@ package com.eeit219.work_order_system.modules.b.service;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.eeit219.work_order_system.common.exception.BusinessRuleViolationException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
@@ -47,9 +50,11 @@ public class WorkOrderService {
         this.userRoleRepository = userRoleRepository;
     }
 
-    // 建立工單：解析優先級、寫入工單本體，附件於建單當下不夾帶（走獨立端點事後上傳）。
+    // 建立工單：解析優先級、寫入工單本體，附件在同一個交易內一併驗證與寫入——
+    // 只要其中一張附件驗證失敗（格式/大小/損毀），整個方法會拋出例外，工單本體連同已寫入的附件一起 rollback，
+    // 不會留下「工單建立成功但附件缺漏」的髒資料。
     @Transactional
-    public WorkOrderResponse create(WorkOrderCreateRequest request, User creator) {
+    public WorkOrderResponse create(WorkOrderCreateRequest request, User creator, List<MultipartFile> files) {
         SubCategory subCategory = subCategoryRepository.findByIdWithPriorityDetails(request.getSubCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("找不到子類別：" + request.getSubCategoryId()));
 
@@ -87,7 +92,14 @@ public class WorkOrderService {
             );
         }
 
-        return toResponse(saved, subCategory, priority, creator, List.of());
+        List<WorkOrderAttachmentResponse> attachments = List.of();
+        if (files != null && !files.isEmpty()) {
+            attachments = files.stream()
+                    .map(file -> workOrderAttachmentService.upload(saved, file, creator))
+                    .collect(Collectors.toList());
+        }
+
+        return toResponse(saved, subCategory, priority, creator, attachments);
     }
 
     // 查詢工單詳情
@@ -107,10 +119,26 @@ public class WorkOrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單：" + workOrderId));
     }
 
-    // 管理員視角列表：關鍵字/狀態/優先級/類別/指派工程師皆可選填篩選
+    // 依呼叫者角色縮限範圍：ADMIN 看全部（可用 assignedHandlerId 篩特定工程師）；
+    // HANDLER 只看「自己建立」或「被指派」的；EMPLOYEE 只看自己建立的。
+    // 這支同時餵給 TicketList.vue（管理員頁面）跟 Dashboard.vue（三個角色都會呼叫），
+    // 範圍限縮直接做在後端，不是只靠前端過濾——避免非管理員繞過前端直接打 API 拿到全公司工單
     public Page<WorkOrderListItemResponse> list(String keyword, WorkOrderState status, Integer priorityId,
-            Integer categoryId, Integer assignedHandlerId, Pageable pageable) {
-        return workOrderRepository.search(keyword, status, priorityId, categoryId, assignedHandlerId, pageable)
+            Integer categoryId, Integer assignedHandlerId, Integer currentUserId, List<String> callerRoleCodes,
+            Pageable pageable) {
+        List<String> roleCodes = callerRoleCodes.stream()
+                .map(code -> code.trim().toUpperCase())
+                .toList();
+
+        if (roleCodes.contains(Role.ADMIN)) {
+            return workOrderRepository.search(keyword, status, priorityId, categoryId, assignedHandlerId, null,
+                    pageable).map(this::toListItem);
+        }
+        if (roleCodes.contains(Role.HANDLER)) {
+            return workOrderRepository.search(keyword, status, priorityId, categoryId, null, currentUserId,
+                    pageable).map(this::toListItem);
+        }
+        return workOrderRepository.findMySubmissions(keyword, status, currentUserId, pageable)
                 .map(this::toListItem);
     }
 
@@ -164,6 +192,13 @@ public class WorkOrderService {
                 .status(workOrder.getStatus().name())
                 .createdTime(workOrder.getCreatedTime())
                 .creatorName(creator.getName())
+                .adminUserId(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getUserId()
+                        : null)
+                .adminName(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getName()
+                        : null)
+                .isOverdue(workOrder.getIsOverdue())
                 .attachments(attachments)
                 .build();
     }
@@ -183,6 +218,14 @@ public class WorkOrderService {
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()
                         : null)
+                .adminUserId(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getUserId()
+                        : null)
+                .adminName(workOrder.getAdmin() != null
+                        ? workOrder.getAdmin().getName()
+                        : null)
+                .dueTime(workOrder.getDueTime())
+                .isOverdue(workOrder.getIsOverdue())
                 .createdTime(workOrder.getCreatedTime())
                 .build();
     }

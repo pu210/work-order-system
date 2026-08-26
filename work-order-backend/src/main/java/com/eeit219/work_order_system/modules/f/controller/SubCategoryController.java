@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.eeit219.work_order_system.common.response.ApiResponse; // 引入統一回應類別
+import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.f.dto.SubCategoryRequestDto;
 import com.eeit219.work_order_system.modules.f.dto.SubCategoryResponseDto;
 import com.eeit219.work_order_system.modules.f.entity.Priority;
@@ -59,6 +61,16 @@ public class SubCategoryController {
                 .collect(Collectors.toList());
 
         return ApiResponse.success(200, "查詢成功", result);
+    }
+
+    // B 模組用：新增工單頁的細項下拉選單，只回傳啟用中（status = true）的資料。
+    // 獨立一支端點，跟上面給系統設定頁用的 getAllSubCategories() 分開，F 模組調整那支時不會影響到這裡。
+    @GetMapping("/active")
+    public ApiResponse<List<SubCategoryResponseDto>> getActiveSubCategories() {
+        List<SubCategoryResponseDto> data = subCategoryRepository.findByStatusTrue().stream()
+                .map(subCategoryService::convertToResponseDto)
+                .collect(Collectors.toList());
+        return ApiResponse.success(HttpStatus.OK.value(), "成功", data);
     }
 
     @PostMapping

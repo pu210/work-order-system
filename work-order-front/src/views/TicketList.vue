@@ -112,7 +112,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getWorkOrderList } from '@/api/workOrder.js'
-import { getRepairCategories } from '@/api/category.js'
+import { getAllRepairCategoriesWithPriority } from '@/api/category.js'
 import { getPriorities } from '@/api/priority.js'
 import { getUsers } from '@/api/user.js'
 import {
@@ -187,7 +187,7 @@ function goToPage(target) {
 onMounted(async () => {
   try {
     const [categoryList, priorityList, handlerPage] = await Promise.all([
-      getRepairCategories(),
+      getAllRepairCategoriesWithPriority(),
       getPriorities(),
       getUsers({ roleCode: 'HANDLER', status: 1, size: 100 }),
     ])

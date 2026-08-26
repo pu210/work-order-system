@@ -1,6 +1,5 @@
 package com.eeit219.work_order_system.modules.b.dto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -15,6 +14,5 @@ public class WorkOrderResponse extends WorkOrderSummary {
     private String locationDetail;
     private String contactPhone;
     private String description;
-    private LocalDateTime dueTime;
     private List<WorkOrderAttachmentResponse> attachments;
 }

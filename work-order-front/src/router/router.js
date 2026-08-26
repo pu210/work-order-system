@@ -28,6 +28,7 @@ import ForgotPassword from "@/views/ForgotPassword.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import InitialPassword from "@/views/InitialPassword.vue";
 import Register from "@/views/Register.vue";
+import EquipmentHistory from "@/views/EquipmentHistory.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -102,6 +103,12 @@ const routes = [
         meta: { roles: rolesFor("my-tickets") },
       },
       { path: "tickets/:id", name: "ticket-detail", component: TicketDetail },
+      {
+        path: "equipment/:targetNo/history",
+        name: "equipment-history",
+        component: EquipmentHistory,
+        meta: { roles: ["ADMIN", "HANDLER"] },
+      },
       {
         path: "ticket-create",
         name: "ticket-create",
