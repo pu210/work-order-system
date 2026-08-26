@@ -4,64 +4,43 @@
       <div>
         <span class="mt-eyebrow">SYSTEM SETTINGS</span>
         <h1 class="mt-title">系統基礎設定</h1>
-        <p class="mt-subtitle">管理報修設備、優先級以及相關類別選項</p>
+        <p class="mt-subtitle">
+          {{ isTechnician ? '管理報修設備' : '管理報修設備、優先級以及相關類別選項' }}
+        </p>
       </div>
     </div>
 
     <div class="mt-card">
-      <!-- 頁籤切換：使用第一份的 mt-pill-tabs 樣式 -->
-      <div class="mt-toolbar">
+      <!-- 頁籤切換：改用 v-for 動態渲染可用分頁 -->
+      <div class="mt-toolbar" v-if="availableTabs.length > 1">
         <div class="mt-pill-tabs">
           <button
+            v-for="tab in availableTabs"
+            :key="tab.key"
             type="button"
             class="mt-pill-tab"
-            :class="{ active: activeTab === 'target' }"
-            @click="activeTab = 'target'"
+            :class="{ active: activeTab === tab.key }"
+            @click="activeTab = tab.key"
           >
-            報修設備管理
-          </button>
-          <button
-            type="button"
-            class="mt-pill-tab"
-            :class="{ active: activeTab === 'priority' }"
-            @click="activeTab = 'priority'"
-          >
-            優先級管理
-          </button>
-          <button
-            type="button"
-            class="mt-pill-tab"
-            :class="{ active: activeTab === 'category' }"
-            @click="activeTab = 'category'"
-          >
-            報修大類管理
-          </button>
-          <button
-            type="button"
-            class="mt-pill-tab"
-            :class="{ active: activeTab === 'subCategory' }"
-            @click="activeTab = 'subCategory'"
-          >
-            報修細項管理
+            {{ tab.label }}
           </button>
         </div>
       </div>
 
-      <!-- 手機版下拉式選單（對應第一份的 mt-mobile-filter 概念） -->
-      <div class="mt-mobile-filter">
+      <!-- 手機版下拉式選單：同樣改用 v-for 動態渲染 -->
+      <div class="mt-mobile-filter" v-if="availableTabs.length > 1">
         <select
           v-model="activeTab"
           class="mt-mobile-control"
           aria-label="選擇設定分頁"
         >
-          <option value="target">報修設備管理</option>
-          <option value="priority">優先級管理</option>
-          <option value="category">報修大類管理</option>
-          <option value="subCategory">報修細項管理</option>
+          <option v-for="tab in availableTabs" :key="tab.key" :value="tab.key">
+            {{ tab.label }}
+          </option>
         </select>
       </div>
 
-      <!-- 內容區塊（加上 <transition> 實現絲滑切換動畫） -->
+      <!-- 內容區塊 -->
       <div class="mt-setting-content">
         <transition name="fade" mode="out-in">
           <div v-if="activeTab === 'target'" key="target">
@@ -83,11 +62,34 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth.js"; // 1. 引入 auth store
 import SettingCategory from "@/views/SettingCategory.vue";
 import SettingSubCategory from "@/views/SettingSubCategory.vue";
 import SettingPriority from "@/views/SettingPriority.vue";
 import SettingTarget from "@/views/SettingTarget.vue";
+
+const authStore = useAuthStore();
+
+// 2. 檢查是否為工程師/維修人員 (對應您專案的角色代碼 'HANDLER')
+const isTechnician = computed(() => 
+  authStore.hasRole('HANDLER') || authStore.hasRole('TECH')
+);
+
+// 3. 根據角色決定能看到哪些分頁
+const availableTabs = computed(() => {
+  if (isTechnician.value) {
+    // 工程師只保留「報修設備管理」
+    return [{ key: "target", label: "報修設備管理" }];
+  }
+  // 管理員看全部 4 個
+  return [
+    { key: "target", label: "報修設備管理" },
+    { key: "priority", label: "優先級管理" },
+    { key: "category", label: "報修大類管理" },
+    { key: "subCategory", label: "報修細項管理" },
+  ];
+});
 
 // 預設開啟報修設備管理
 const activeTab = ref("target");
