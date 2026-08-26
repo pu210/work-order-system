@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
@@ -65,6 +66,15 @@ public class WorkOrderController {
         public ResponseEntity<ApiResponse<Void>> handleCreateConflict(DataIntegrityViolationException exception) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                                 .body(ApiResponse.error(HttpStatus.CONFLICT.value(), "工單編號產生衝突，請重新嘗試"));
+        }
+
+        // 整個 multipart 請求（JSON + 所有附件加總）超過 spring.servlet.multipart.max-request-size 時，
+        // Spring 會在還沒進到 create() 前就丟這個例外；沒接住的話連線會直接中斷、前端只看得到「無法連線」，
+        // 接住後才回得了正常的 413 + 訊息。
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseEntity<ApiResponse<Void>> handleUploadTooLarge(MaxUploadSizeExceededException exception) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                                .body(ApiResponse.error(HttpStatus.PAYLOAD_TOO_LARGE.value(), "附件圖片總大小超過上限（10MB）"));
         }
 
         // 僅限 ADMIN、建立者、被指派工程師查看，跟附件的權限規則一致（見 WorkOrderService.getById）。

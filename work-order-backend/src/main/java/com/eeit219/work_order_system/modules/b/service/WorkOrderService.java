@@ -34,6 +34,10 @@ import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 @Service
 public class WorkOrderService {
 
+        // 建單附件上限：不是限制單一檔案大小（那是 WorkOrderAttachmentService.MAX_FILE_SIZE 的事），
+        // 是限制這次一起送出的所有圖片加總不能超過這個數字
+        private static final long MAX_ATTACHMENTS_TOTAL_SIZE = 10L * 1024 * 1024;
+
         private final WorkOrderRepository workOrderRepository;
         private final SubCategoryRepository subCategoryRepository;
         private final WorkOrderAttachmentService workOrderAttachmentService;
@@ -56,6 +60,8 @@ public class WorkOrderService {
         // 只要其中一張附件驗證失敗（格式/大小/損毀），整個方法會拋出例外，工單本體連同已寫入的附件一起 rollback，
         @Transactional
         public WorkOrderResponse create(WorkOrderCreateRequest request, User creator, List<MultipartFile> files) {
+                validateAttachmentsTotalSize(files);
+
                 SubCategory subCategory = subCategoryRepository.findByIdWithPriorityDetails(request.getSubCategoryId())
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "找不到子類別：" + request.getSubCategoryId()));
@@ -97,6 +103,16 @@ public class WorkOrderService {
                 }
 
                 return toResponse(saved, subCategory, priority, creator, attachments);
+        }
+
+        private void validateAttachmentsTotalSize(List<MultipartFile> files) {
+                if (files == null || files.isEmpty()) {
+                        return;
+                }
+                long totalSize = files.stream().mapToLong(MultipartFile::getSize).sum();
+                if (totalSize > MAX_ATTACHMENTS_TOTAL_SIZE) {
+                        throw new IllegalArgumentException("附件圖片總大小超過上限（10MB）");
+                }
         }
 
         private void notifyAdmins(List<UserRole> adminRoles, WorkOrder saved, User creator) {

@@ -56,7 +56,7 @@
           </div>
 
           <div class="tc-field">
-            <label class="tc-label">附件（限圖片，單檔 10MB 以內）</label>
+            <label class="tc-label">附件（限圖片，全部圖片總量 10MB 以內）</label>
             <input ref="fileInputRef" type="file" accept="image/*" multiple class="d-none"
               @change="handleFilesSelected" />
             <div class="attachment-grid">
@@ -110,7 +110,7 @@ import { getActiveRepairCategories, getActiveSubCategories } from '@/api/categor
 
 const router = useRouter()
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_TOTAL_ATTACHMENT_SIZE = 10 * 1024 * 1024
 
 const categories = ref([])
 const subCategories = ref([])
@@ -155,17 +155,23 @@ onMounted(async () => {
 function handleFilesSelected(event) {
   fileError.value = ''
   const files = Array.from(event.target.files || [])
-  const invalid = files.find((f) => !f.type.startsWith('image/') || f.size > MAX_FILE_SIZE)
-  if (invalid) {
-    fileError.value = `「${invalid.name}」不是圖片或超過 10MB，請重新選擇`
+  const invalidType = files.find((f) => !f.type.startsWith('image/'))
+  if (invalidType) {
+    fileError.value = `「${invalidType.name}」不是圖片，請重新選擇`
   } else {
-    selectedFiles.value.push(
-      ...files.map((file) => ({
-        id: nextFileId++,
-        file,
-        previewUrl: URL.createObjectURL(file),
-      }))
-    )
+    const existingTotal = selectedFiles.value.reduce((sum, item) => sum + item.file.size, 0)
+    const incomingTotal = files.reduce((sum, file) => sum + file.size, 0)
+    if (existingTotal + incomingTotal > MAX_TOTAL_ATTACHMENT_SIZE) {
+      fileError.value = '圖片附件總大小超過上限（10MB），請減少張數或縮小圖片後再試'
+    } else {
+      selectedFiles.value.push(
+        ...files.map((file) => ({
+          id: nextFileId++,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }))
+      )
+    }
   }
   // 清空原生 input，讓下一次選檔（含選到同一個檔案）都會觸發 change，且不留原生「已選擇 N 個檔案」殘留字樣
   event.target.value = ''
