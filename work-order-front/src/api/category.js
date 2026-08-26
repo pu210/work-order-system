@@ -1,18 +1,16 @@
 import api from '@/plugins/axios.js'
 
 // --- 報修大類 ---
+// F 模組把這支後端改成包 ApiResponse 了，要多解一層 res.data.data
 export function getRepairCategories(keyword) {
-  return api.get('/api/repair-categories', { params: { keyword } }).then((res) => res.data)
+  return api.get('/api/repair-categories', { params: { keyword } }).then((res) => res.data.data)
 }
 
-
-export function getActiveRepairCategories() {
-  return api.get('/api/repair-categories/active').then((res) => res.data)
-}
 // B 模組用：新增工單頁下拉選單，只拿啟用中的大類，跟上面給設定頁用的 getRepairCategories() 分開。
-// export function getActiveRepairCategories() {
-//   return api.get('/api/repair-categories/active').then((res) => res.data.data)
-// }
+// 路徑改成 /active-for-b，跟 F 模組自己的 /active 撞名分開了
+export function getActiveRepairCategories() {
+  return api.get('/api/repair-categories/active-for-b').then((res) => res.data.data)
+}
 
 // B 模組用：需要「全部大類」的地方（例如工單列表篩選下拉選單）改打這支，不要打 getRepairCategories()。
 export function getAllRepairCategoriesWithPriority() {
@@ -33,14 +31,14 @@ export function updateRepairCategoryStatus(id, status) {
 }
 
 // --- 報修細項 ---
+// F 模組把這支後端改成包 ApiResponse 了，要多解一層 res.data.data
 export function getSubCategories(keyword) {
-  return api.get('/api/sub-categories', { params: { keyword } }).then((res) => res.data)
+  return api.get('/api/sub-categories', { params: { keyword } }).then((res) => res.data.data)
 }
 
 // B 模組用：新增工單頁下拉選單，只拿啟用中的細項，跟上面給設定頁用的 getSubCategories() 分開。
-// 這支後端包了 ApiResponse，要多解一層 res.data.data，跟這支檔案其他函式的解包方式不一樣
 export function getActiveSubCategories() {
-  return api.get('/api/sub-categories/active').then((res) => res.data.data)
+  return api.get('/api/sub-categories/active-for-b').then((res) => res.data.data)
 }
 
 export function createSubCategory(payload) {

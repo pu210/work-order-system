@@ -15,10 +15,6 @@
           placeholder="搜尋標題"
           @keyup.enter="reload"
         />
-        <select v-model="statusFilter" class="tl-input" @change="reload">
-          <option value="">全部狀態</option>
-          <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
-        </select>
         <select v-model="categoryFilter" class="tl-input" @change="reload">
           <option value="">全部分類</option>
           <option v-for="c in categories" :key="c.repairCategoriesId" :value="c.repairCategoriesId">
@@ -29,6 +25,16 @@
           <option value="">全部優先級</option>
           <option v-for="p in priorities" :key="p.prioritiesId" :value="p.prioritiesId">
             {{ p.name }}
+          </option>
+        </select>
+        <select v-model="statusFilter" class="tl-input" @change="reload">
+          <option value="">全部狀態</option>
+          <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
+        </select>
+        <select v-model="adminFilter" class="tl-input" @change="reload">
+          <option value="">全部管理員</option>
+          <option v-for="a in admins" :key="a.userId" :value="a.userId">
+            {{ a.name }}
           </option>
         </select>
         <select v-model="handlerFilter" class="tl-input" @change="reload">
@@ -61,6 +67,7 @@
               <th>優先級</th>
               <th>狀態</th>
               <th>建立人</th>
+              <th>負責管理員</th>
               <th>處理人</th>
               <th>建立時間</th>
             </tr>
@@ -78,6 +85,7 @@
               <td>{{ t.priorityName }}</td>
               <td><span :class="['tl-badge', statusBadgeClass(t.status)]">{{ statusLabel(t.status) }}</span></td>
               <td>{{ t.creatorName || '—' }}</td>
+              <td>{{ t.adminName || '—' }}</td>
               <td>{{ t.assignedHandlerName || '—' }}</td>
               <td>{{ formatTime(t.createdTime) }}</td>
             </tr>
@@ -113,7 +121,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getWorkOrderList } from '@/api/workOrder.js'
 import { getAllRepairCategoriesWithPriority } from '@/api/category.js'
-import { getPriorities } from '@/api/priority.js'
+import { getActivePrioritiesForB } from '@/api/priority.js'
 import { getUsers } from '@/api/user.js'
 import {
   WORK_ORDER_STATUS_OPTIONS,
@@ -129,11 +137,13 @@ const tickets = ref([])
 const categories = ref([])
 const priorities = ref([])
 const handlers = ref([])
+const admins = ref([])
 const keyword = ref('')
 const statusFilter = ref('')
 const categoryFilter = ref('')
 const priorityFilter = ref('')
 const handlerFilter = ref('')
+const adminFilter = ref('')
 const page = ref(0)
 const totalPages = ref(0)
 const loading = ref(false)
@@ -154,6 +164,7 @@ async function fetchTickets() {
       categoryId: categoryFilter.value || undefined,
       priorityId: priorityFilter.value || undefined,
       assignedHandlerId: handlerFilter.value || undefined,
+      adminUserId: adminFilter.value || undefined,
       page: page.value,
     })
     tickets.value = result.content
@@ -176,6 +187,7 @@ function resetFilters() {
   categoryFilter.value = ''
   priorityFilter.value = ''
   handlerFilter.value = ''
+  adminFilter.value = ''
   reload()
 }
 
@@ -186,16 +198,18 @@ function goToPage(target) {
 
 onMounted(async () => {
   try {
-    const [categoryList, priorityList, handlerPage] = await Promise.all([
+    const [categoryList, priorityList, handlerPage, adminPage] = await Promise.all([
       getAllRepairCategoriesWithPriority(),
-      getPriorities(),
+      getActivePrioritiesForB(),
       getUsers({ roleCode: 'HANDLER', status: 1, size: 100 }),
+      getUsers({ roleCode: 'ADMIN', status: 1, size: 100 }),
     ])
     categories.value = categoryList
     priorities.value = priorityList
     handlers.value = handlerPage.content
+    admins.value = adminPage.content
   } catch (error) {
-    errorMessage.value = '無法載入分類/優先級/工程師選項，請確認後端已啟動'
+    errorMessage.value = '無法載入分類/優先級/工程師/管理員選項，請確認後端已啟動'
   }
   fetchTickets()
 })
