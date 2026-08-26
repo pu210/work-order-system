@@ -81,6 +81,9 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
                                                                 "/api/reports/**")
                                                 .hasRole("ADMIN")
+
+                                                .requestMatchers(HttpMethod.POST, "/api/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER", "EMPLOYEE")
                                                 // 工程師權限
                                                 .requestMatchers(HttpMethod.POST, "/api/work-orders/*/progress/**")
                                                 .hasRole("HANDLER")

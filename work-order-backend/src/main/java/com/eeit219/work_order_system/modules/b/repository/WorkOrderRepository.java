@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,6 +30,10 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "WHERE w.workOrderId = :workOrderId")
       Optional<WorkOrder> findByIdWithDetails(@Param("workOrderId") Integer workOrderId);
 
+      // 統一給 ADMIN／HANDLER 兩種視角用：restrictToUserId 是 null 時等同「查全部」（ADMIN），
+      // 有帶值時限定「建立者或被指派工程師 = 這個人」（HANDLER）。
+      // 原本 search()／findRelevantToUser() 兩支查詢除了這個限定條件，其餘 JOIN FETCH 跟篩選子句完全一樣，
+      // 合併成一支，避免以後加篩選欄位要同時改兩份幾乎一樣的 JPQL
       @Query(value = "SELECT w FROM WorkOrder w " +
                   "JOIN FETCH w.subCategory sc " +
                   "JOIN FETCH sc.repairCategory " +
@@ -38,7 +41,9 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "JOIN FETCH w.creator " +
                   "LEFT JOIN FETCH w.admin " +
                   "LEFT JOIN FETCH w.assignedHandler " +
-                  "WHERE (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
+                  "WHERE (:restrictToUserId IS NULL OR w.creator.userId = :restrictToUserId OR w.assignedHandler.userId = :restrictToUserId) "
+                  +
+                  "AND (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
                   +
                   "AND (:status IS NULL OR w.status = :status) " +
                   "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
@@ -46,7 +51,9 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   "AND (:assignedHandlerId IS NULL OR w.assignedHandler.userId = :assignedHandlerId)", countQuery = "SELECT COUNT(w) FROM WorkOrder w "
                               +
                               "JOIN w.subCategory sc " +
-                              "WHERE (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
+                              "WHERE (:restrictToUserId IS NULL OR w.creator.userId = :restrictToUserId OR w.assignedHandler.userId = :restrictToUserId) "
+                              +
+                              "AND (:keyword IS NULL OR w.workOrderNo LIKE %:keyword% OR w.title LIKE %:keyword% OR w.locationDetail LIKE %:keyword%) "
                               +
                               "AND (:status IS NULL OR w.status = :status) " +
                               "AND (:priorityId IS NULL OR w.priority.prioritiesId = :priorityId) " +
@@ -58,6 +65,7 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   @Param("priorityId") Integer priorityId,
                   @Param("categoryId") Integer categoryId,
                   @Param("assignedHandlerId") Integer assignedHandlerId,
+                  @Param("restrictToUserId") Integer restrictToUserId,
                   Pageable pageable);
 
       @Query(value = "SELECT w FROM WorkOrder w " +

@@ -46,6 +46,13 @@ mkdir -p docker/jenkins/ssh
 ssh-keygen -t ed25519 -f docker/jenkins/ssh/jenkins_deploy_key -N "" -C "jenkins-deploy"
 ```
 
+Windows
+
+```bash
+New-Item -ItemType Directory -Force docker/jenkins/ssh
+ssh-keygen -t ed25519 -f docker/jenkins/ssh/jenkins_deploy_key -N '""' -C "jenkins-deploy"
+```
+
 （這個資料夾已經被 `.gitignore` 排除，私鑰不會進版控）
 
 ---
@@ -70,6 +77,7 @@ Restart-Service sshd
 ```
 
 **如果你的帳號不是系統管理員**，改成一般路徑就好：
+
 ```powershell
 Add-Content -Path "$env:USERPROFILE\.ssh\authorized_keys" -Value $pubKey
 ```
