@@ -35,8 +35,9 @@
             <tr v-for="(item, index) in tableData" :key="item.localId || index">
               <td>{{ (currentPage - 1) * pageSize + index + 1 }}</td>
               <td>
-                <span class="badge-name">{{ item.name }}</span>
-              </td>
+<router-link :to="`/equipment/${item.targetNo}/history`" class="badge-name clickable-name">
+    {{ item.name }}
+  </router-link>              </td>
               <td>
                 <span class="badge-code">{{ item.targetNo }}</span>
               </td>
@@ -293,7 +294,39 @@ onMounted(() => {
 .modern-table td { padding: 12px 16px; color: #334155; border-bottom: 1px solid #f1f5f9; }
 .modern-table tbody tr:hover { background-color: #f8fafc; }
 .empty-row { text-align: center; color: #94a3b8; padding: 32px !important; }
-.badge-name { font-weight: 650; color: #1e293b; }
+/* 
+.badge-name.clickable-name {
+  text-decoration: none;
+  color: #1e293b;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.badge-name.clickable-name:hover {color: #2563eb;text-decoration: underline;} */
+
+
+
+/* 設備名稱原本的樣式 */
+.badge-name { 
+  font-weight: 650; 
+  color: #1e293b; 
+  display: inline-block; /* 必須加上這個，放大效果才會順暢 */
+  transition: transform 0.2s ease, color 0.2s ease, font-weight 0.2s ease; /* 增加過渡動畫 */
+}
+
+/* 滑鼠移上去時的互動樣式 */
+.badge-name.clickable-name {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.badge-name.clickable-name:hover {
+  color: #2563eb;          /* 變成藍色 */
+  font-weight: 800;        /* 字體變粗 */
+  transform: scale(1.05);  /* 稍微放大 5% */
+}
+
+
 .badge-code { background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
 
 /* 🌟 表格轉場動畫樣式 */
