@@ -43,7 +43,7 @@
       </div>
 
       <!-- 表格內容 -->
-      <div class="table-responsive">
+      <div class="table-responsive d-none d-md-block">
         <table class="table users-table table-hover align-middle mb-0">
           <thead class="table-light extra-small text-secondary">
             <tr>
@@ -156,6 +156,118 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- 手機版使用者卡片 -->
+      <div class="user-mobile-list d-md-none">
+        <article
+          v-for="user in users"
+          :key="`mobile-${user.userId}`"
+          class="user-mobile-card"
+          :class="{ 'user-mobile-card-disabled': user.status === 0 }"
+        >
+          <!-- 姓名與狀態 -->
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+              <div class="user-avatar">
+                {{ user.name?.charAt(0) || "?" }}
+              </div>
+
+              <div class="min-w-0">
+                <div class="fw-semibold text-dark text-truncate">
+                  {{ user.name }}
+                </div>
+
+                <div class="user-mobile-email">
+                  {{ user.email }}
+                </div>
+              </div>
+            </div>
+
+            <span
+              class="badge status-badge rounded-pill flex-shrink-0"
+              :class="statusBadgeClass(user.status)"
+            >
+              <span class="status-dot"></span>
+              {{ statusLabels[user.status] ?? "未知狀態" }}
+            </span>
+          </div>
+
+          <!-- 角色 -->
+          <div class="user-mobile-roles">
+            <div class="d-flex flex-wrap gap-1">
+              <span
+                v-for="roleCode in user.roleCodes"
+                :key="roleCode"
+                class="badge bg-light text-secondary border rounded-pill px-2 py-1 fw-normal"
+              >
+                {{ roleLabels[roleCode] ?? roleCode }}
+              </span>
+
+              <span
+                v-if="!user.roleCodes?.length"
+                class="extra-small text-muted"
+              >
+                尚未指派
+              </span>
+            </div>
+          </div>
+
+          <!-- 操作 -->
+          <div class="user-mobile-actions">
+            <button
+              v-if="user.status === 2"
+              type="button"
+              class="btn btn-sm btn-primary"
+              @click="openReview(user)"
+            >
+              <i class="bi bi-person-check-fill me-1"></i>
+              審核
+            </button>
+
+            <template v-else-if="user.status === 0 || user.status === 1">
+              <router-link
+                :to="{
+                  name: 'user-edit',
+                  params: { id: user.userId },
+                }"
+                class="btn btn-sm btn-outline-secondary"
+              >
+                <i class="bi bi-pencil-square me-1"></i>
+                編輯
+              </router-link>
+
+              <button
+                v-if="user.status === 1"
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                :disabled="updatingUserId === user.userId"
+                @click="toggleStatus(user)"
+              >
+                <span
+                  v-if="updatingUserId === user.userId"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                <i v-else class="bi bi-person-x me-1"></i>
+                停用
+              </button>
+
+              <button
+                v-else
+                type="button"
+                class="btn btn-sm btn-outline-success"
+                :disabled="updatingUserId === user.userId"
+                @click="toggleStatus(user)"
+              >
+                <span
+                  v-if="updatingUserId === user.userId"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                <i v-else class="bi bi-person-check me-1"></i>
+                啟用
+              </button>
+            </template>
+          </div>
+        </article>
       </div>
 
       <!-- 頁尾分頁列 -->
@@ -687,5 +799,81 @@ async function toggleStatus(user) {
   color: #0369a1;
   background-color: #f0f9ff;
   border: 1px solid #bae6fd;
+}
+.min-w-0 {
+  min-width: 0;
+}
+
+.user-mobile-list {
+  background-color: #f8fafc;
+}
+
+.user-mobile-card {
+  padding: 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.user-mobile-card:last-child {
+  border-bottom: 0;
+}
+
+.user-mobile-card-disabled {
+  background-color: #f8fafc;
+}
+
+.user-mobile-card-disabled .user-avatar,
+.user-mobile-card-disabled .user-mobile-email,
+.user-mobile-card-disabled .fw-semibold {
+  opacity: 0.55;
+}
+
+.user-mobile-email {
+  margin-top: 0.15rem;
+  color: #1e3a8a;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.user-mobile-roles {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.user-mobile-label {
+  min-width: 2.5rem;
+  padding-top: 0.2rem;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.user-mobile-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.user-mobile-actions .btn {
+  min-width: 72px;
+}
+
+@media (max-width: 576px) {
+  .users-page {
+    padding: 0;
+  }
+
+  .search-input-group {
+    max-width: none;
+  }
+
+  .user-mobile-card {
+    padding: 0.875rem;
+  }
 }
 </style>
