@@ -352,11 +352,14 @@
                         </span>
 
                         <span
-                          v-for="roleCode in record.authorRoleCodes || []"
-                          :key="`${record.recordId}-${roleCode}`"
+                          v-if="commentAuthorRoleCode(record.authorRoleCodes)"
                           class="badge rounded-pill text-bg-light border text-secondary fw-normal contact-role-badge"
                         >
-                          {{ userRoleLabel(roleCode) }}
+                          {{
+                            userRoleLabel(
+                              commentAuthorRoleCode(record.authorRoleCodes)
+                            )
+                          }}
                         </span>
                       </div>
 
@@ -775,6 +778,17 @@ function formatTime(value) {
 function formatDateTimeToMinute(value) {
   if (!value) return "—";
   return value.replace("T", " ").slice(0, 16);
+}
+
+// 留言作者只顯示一個主要身份，避免多角色管理員同時出現管理員與工程師標籤。
+function commentAuthorRoleCode(roleCodes = []) {
+  const displayPriority = ["ADMIN", "HANDLER", "EMPLOYEE"];
+
+  return (
+    displayPriority.find((roleCode) => roleCodes.includes(roleCode)) ||
+    roleCodes[0] ||
+    ""
+  );
 }
 
 // 將後端退回類型轉換為畫面顯示文字
