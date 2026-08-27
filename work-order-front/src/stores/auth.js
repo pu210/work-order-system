@@ -35,6 +35,15 @@ export const useAuthStore = defineStore("auth", () => {
     roleCodes.value = data.roleCodes || [];
     mustChangePassword.value = data.mustChangePassword ?? false;
   }
+  function resetAuthState() {
+    token.value = null;
+    userId.value = null;
+    account.value = null;
+    name.value = null;
+    email.value = null;
+    roleCodes.value = [];
+    mustChangePassword.value = false;
+  }
 
   async function logout() {
     try {
@@ -44,14 +53,15 @@ export const useAuthStore = defineStore("auth", () => {
       });
     } finally {
       clearAuth();
-
-      token.value = null;
-      userId.value = null;
-      account.value = null;
-      name.value = null;
-      email.value = null;
-      roleCodes.value = [];
+      resetAuthState();
     }
+  }
+  function completeInitialPasswordChange() {
+    mustChangePassword.value = false;
+
+    updateCurrentUser({
+      mustChangePassword: false,
+    });
   }
 
   function syncProfile(data) {
@@ -75,6 +85,7 @@ export const useAuthStore = defineStore("auth", () => {
     hasRole,
     login,
     logout,
+    completeInitialPasswordChange,
     syncProfile,
   };
 });

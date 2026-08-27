@@ -273,6 +273,9 @@ public class UserService {
         if (request.password() == null || request.password().isBlank()) {
             throw new IllegalArgumentException("password為必填");
         }
+        if (request.password().length() < 8) {
+            throw new IllegalArgumentException("密碼至少需要 8 個字元");
+        }
         if (request.roleCodes() == null || request.roleCodes().isEmpty()) {
             throw new IllegalArgumentException("roleCodes為必填");
         }

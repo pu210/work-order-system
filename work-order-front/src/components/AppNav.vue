@@ -126,7 +126,6 @@ async function handleLogout() {
 
   await authStore.logout();
   await router.replace({ name: "Login" });
-  notify.success("已成功登出");
 }
 
 function handleClickOutside(event) {

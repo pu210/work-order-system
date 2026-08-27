@@ -103,11 +103,11 @@ instance.interceptors.response.use(
     if (status === 403) {
       if (code === "PASSWORD_CHANGE_REQUIRED") {
         if (window.location.pathname !== "/account/initial-password") {
-          window.location.assign("/account/initial-password");
+          window.location.replace("/account/initial-password");
         }
       } else if (!config.skipForbiddenRedirect) {
         if (window.location.pathname !== "/forbidden") {
-          window.location.assign("/forbidden");
+          window.location.replace("/forbidden");
         }
       }
 

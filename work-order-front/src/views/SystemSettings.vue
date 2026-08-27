@@ -3,7 +3,7 @@
     <div class="mt-page-header">
       <div>
         <span class="mt-eyebrow">SYSTEM SETTINGS</span>
-        <h1 class="mt-title">系統基礎設定</h1>
+        <h1 class="mt-title">設備維修管理</h1>
         <p class="mt-subtitle">
           {{ isTechnician ? '管理報修設備' : '管理報修設備、優先級以及相關類別選項' }}
         </p>
@@ -72,18 +72,18 @@ import SettingTarget from "@/views/SettingTarget.vue";
 const authStore = useAuthStore();
 
 // 2. 檢查是否為工程師/維修人員 (對應您專案的角色代碼 'HANDLER')
-const isTechnician = computed(() => 
-  authStore.hasRole('HANDLER') || authStore.hasRole('TECH')
-);
+const isTechnician = computed(() => {
+  if (authStore.hasRole('ADMIN')) return false; 
+  return authStore.hasRole('HANDLER') || authStore.hasRole('TECH');
+});
 
 // 3. 根據角色決定能看到哪些分頁
 const availableTabs = computed(() => {
   if (isTechnician.value) {
-    // 工程師只保留「報修設備管理」
     return [{ key: "target", label: "報修設備管理" }];
   }
   // 管理員看全部 4 個
-  return [
+return [
     { key: "target", label: "報修設備管理" },
     { key: "priority", label: "優先級管理" },
     { key: "category", label: "報修大類管理" },
