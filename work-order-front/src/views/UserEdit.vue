@@ -78,7 +78,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              電子郵件信箱 <span class="text-danger">*</span>
+              電子郵件 <span class="text-danger">*</span>
             </label>
             <input
               type="email"
@@ -199,7 +199,7 @@ const isLastActiveAdmin = ref(false);
 
 const roleOptions = [
   { value: "EMPLOYEE", label: "一般員工" },
-  { value: "HANDLER", label: "維修人員" },
+  { value: "HANDLER", label: "工程師" },
   { value: "ADMIN", label: "管理員" },
 ];
 
