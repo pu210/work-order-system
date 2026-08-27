@@ -163,6 +163,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { createUser } from "@/api/user.js";
+import { notify } from "@/plugins/notify.js";
 
 const router = useRouter();
 
@@ -206,17 +207,17 @@ const handleSubmit = async () => {
   const accountPattern = /^[A-Za-z0-9]+$/;
 
   if (!accountPattern.test(form.value.account)) {
-    alert("帳號只能輸入英文字母與數字");
+    notify.warning("帳號只能輸入英文字母與數字");
     return;
   }
 
   if (form.value.roleCodes.length === 0) {
-    alert("請至少選擇一個使用者角色");
+    notify.warning("請至少選擇一個使用者角色");
     return;
   }
 
   if (form.value.password.length < 8) {
-    alert("密碼至少需要 8 個字元");
+    notify.warning("密碼至少需要 8 個字元");
     return;
   }
 
@@ -231,13 +232,12 @@ const handleSubmit = async () => {
     };
 
     await createUser(payload);
-
-    alert("使用者新增成功！");
     router.push({ name: "user-management" });
+    notify.success("使用者新增成功！");
   } catch (error) {
     console.error("新增失敗：", error);
 
-    alert(
+    notify.error(
       error.response?.data?.message || "建立失敗，請確認欄位是否填寫正確！",
     );
   }
