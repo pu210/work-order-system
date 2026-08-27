@@ -121,7 +121,9 @@
                 type="text"
                 v-model="form.password"
                 class="form-control extra-small"
-                placeholder="請設定預設密碼"
+                placeholder="請設定至少 8 個字元的預設密碼"
+                minlength="8"
+                autocomplete="new-password"
                 required
               />
               <button
@@ -132,6 +134,7 @@
                 隨機產生
               </button>
             </div>
+            <div class="form-text extra-small">密碼至少需要 8 個字元</div>
           </div>
         </div>
 
@@ -209,6 +212,11 @@ const handleSubmit = async () => {
 
   if (form.value.roleCodes.length === 0) {
     alert("請至少選擇一個使用者角色");
+    return;
+  }
+
+  if (form.value.password.length < 8) {
+    alert("密碼至少需要 8 個字元");
     return;
   }
 
