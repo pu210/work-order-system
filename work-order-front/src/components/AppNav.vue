@@ -3,7 +3,9 @@
     <div class="wo-nav-inner">
       <router-link to="/dashboard" class="wo-logo">
         <img src="/favicon.ico" alt="logo" class="wo-logo-img" />
-        <div class="wo-logo-text">Gongxiahuei<small>WORK ORDER SYSTEM</small></div>
+        <div class="wo-logo-text">
+          Gongxiahuei<small>WORK ORDER SYSTEM</small>
+        </div>
       </router-link>
 
       <div class="wo-nav-links">
@@ -127,7 +129,6 @@ async function handleLogout() {
 
   await authStore.logout();
   await router.replace({ name: "Login" });
-  notify.success("已成功登出");
 }
 
 function handleClickOutside(event) {

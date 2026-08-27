@@ -163,7 +163,6 @@ onMounted(async () => {
     authStore.login(data);
 
     await router.replace("/dashboard");
-    notify.success("登入成功");
   } catch (error) {
     notify.error(
       error.response?.data?.message || "無法取得 Google 登入結果，請重新登入",
@@ -209,7 +208,6 @@ async function handleLogin() {
         ? route.query.returnUrl
         : "/dashboard";
     await router.replace(returnUrl);
-    notify.success("登入成功");
   } catch (error) {
     notify.error(
       error.response?.data?.message || "無法登入，請確認後端服務與帳號密碼",
