@@ -53,10 +53,14 @@ public class RepairTargetService {
                 .collect(Collectors.toList());
     }
 
-    // 新增商業邏輯 (預設 status 若沒傳則給 true)
+    // 新增商業邏輯 (自動產生 10 位數亂碼作為設備編號)
     public RepairTarget createRepairTarget(RepairTargetRequestDto request) {
         RepairTarget target = new RepairTarget();
-        target.setTargetNo(request.getTargetNo());
+
+        // 核心修改：自動產生 10 位數隨機亂碼並賦值
+        String randomTargetNo = generateRandomString(10);
+        target.setTargetNo(randomTargetNo);
+
         target.setName(request.getName());
         target.setModel(request.getModel());
         target.setStatus(request.getStatus() != null ? request.getStatus() : true);
@@ -64,12 +68,11 @@ public class RepairTargetService {
         return repairTargetRepository.save(target);
     }
 
-    // 修改商業邏輯
+    // 修改商業邏輯 (設備編號建立後維持不變，故移除 targetNo 的修改)
     public RepairTarget updateRepairTarget(Integer targetId, RepairTargetRequestDto request) {
         RepairTarget target = repairTargetRepository.findById(targetId)
                 .orElseThrow(() -> new RuntimeException("找不到該維修目標 ID: " + targetId));
 
-        target.setTargetNo(request.getTargetNo());
         target.setName(request.getName());
         target.setModel(request.getModel());
         if (request.getStatus() != null) {
@@ -86,5 +89,17 @@ public class RepairTargetService {
 
         target.setStatus(status);
         return repairTargetRepository.save(target);
+    }
+
+    // 輔助方法：產生指定長度的隨機英數字串（大小寫英文＋數字）
+    private String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            sb.append(characters.charAt(index));
+        }
+        return sb.toString();
     }
 }

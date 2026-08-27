@@ -68,10 +68,11 @@ export const NAV_ITEMS = [
     enabled: true,
   },
   {
-    key: "equipment-create",
-    label: "設備新增",
-    path: "/equipment-create",
-    roles: ["ADMIN"],
+    key: "system-settings",
+    label: "設備維修管理",
+    path: "/system-settings",
+    roles: ["ADMIN", "HANDLER"],
     enabled: true,
   },
+
 ];

@@ -166,6 +166,12 @@ const routes = [
         component: SystemSettings,
         meta: { roles: rolesFor("equipment-create") },
       },
+      {
+        path: "system-settings",
+        name: "system-settings",
+        component: SystemSettings,
+        meta: { roles: rolesFor("system-settings") },
+      },
       { path: "profile", name: "profile", component: Profile },
       {
         path: "notifications",

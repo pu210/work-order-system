@@ -85,13 +85,15 @@ public class WorkOrderController {
                         @RequestParam(required = false) Integer priorityId,
                         @RequestParam(required = false) Integer categoryId,
                         @RequestParam(required = false) Integer assignedHandlerId,
+                        @RequestParam(required = false) Integer adminUserId,
                         @RequestParam(required = false) String sort,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size) {
                 Pageable pageable = WorkOrderPageableFactory.of(page, size, sort);
                 Page<WorkOrderListItemResponse> response = workOrderService.list(keyword, status, priorityId,
                                 categoryId,
-                                assignedHandlerId, currentUserProvider.getUserId(), currentUserProvider.getRoleCodes(),
+                                assignedHandlerId, adminUserId, currentUserProvider.getUserId(),
+                                currentUserProvider.getRoleCodes(),
                                 pageable);
                 return ResponseEntity
                                 .ok(ApiResponse.success(HttpStatus.OK.value(), "成功", PageResponse.from(response)));
