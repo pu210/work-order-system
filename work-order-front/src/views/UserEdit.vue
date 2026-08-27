@@ -114,7 +114,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              使用者角色 <span class="text-danger">*</span>
+              角色 <span class="text-danger">*</span>
             </label>
 
             <div class="role-options border rounded-2 px-3 py-2">
@@ -272,7 +272,7 @@ const handleSubmit = async () => {
   }
 
   if (form.value.roleCodes.length === 0) {
-    errorMessage.value = "請至少選擇一個使用者角色";
+    errorMessage.value = "請至少選擇一個角色";
     notify.error(errorMessage.value);
     return;
   }
