@@ -43,7 +43,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              使用者姓名 <span class="text-danger">*</span>
+              姓名 <span class="text-danger">*</span>
             </label>
             <input
               type="text"
