@@ -51,6 +51,6 @@ public class RegisterController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse.error(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "註冊資料無法儲存，請聯絡系統管理員"));
+                        "註冊資料無法儲存，請聯絡管理員"));
     }
 }

@@ -291,7 +291,7 @@
                     type="checkbox"
                     value="ADMIN"
                   />
-                  <span class="form-check-label">系統管理員</span>
+                  <span class="form-check-label">管理員</span>
                 </label>
               </div>
             </div>
@@ -370,7 +370,7 @@ function closeReview() {
 
 const roleLabels = {
   ADMIN: "管理員",
-  HANDLER: "維修人員",
+  HANDLER: "工程師",
   EMPLOYEE: "一般員工",
 };
 
