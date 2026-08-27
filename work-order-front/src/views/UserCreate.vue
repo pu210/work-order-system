@@ -43,7 +43,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              使用者姓名 <span class="text-danger">*</span>
+              姓名 <span class="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -121,7 +121,9 @@
                 type="text"
                 v-model="form.password"
                 class="form-control extra-small"
-                placeholder="請設定預設密碼"
+                placeholder="請設定至少 8 個字元的預設密碼"
+                minlength="8"
+                autocomplete="new-password"
                 required
               />
               <button
@@ -132,6 +134,7 @@
                 隨機產生
               </button>
             </div>
+            <div class="form-text extra-small">密碼至少需要 8 個字元</div>
           </div>
         </div>
 
@@ -160,6 +163,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { createUser } from "@/api/user.js";
+import { notify } from "@/plugins/notify.js";
 
 const router = useRouter();
 
@@ -203,12 +207,17 @@ const handleSubmit = async () => {
   const accountPattern = /^[A-Za-z0-9]+$/;
 
   if (!accountPattern.test(form.value.account)) {
-    alert("帳號只能輸入英文字母與數字");
+    notify.warning("帳號只能輸入英文字母與數字");
     return;
   }
 
   if (form.value.roleCodes.length === 0) {
-    alert("請至少選擇一個使用者角色");
+    notify.warning("請至少選擇一個使用者角色");
+    return;
+  }
+
+  if (form.value.password.length < 8) {
+    notify.warning("密碼至少需要 8 個字元");
     return;
   }
 
@@ -223,13 +232,12 @@ const handleSubmit = async () => {
     };
 
     await createUser(payload);
-
-    alert("使用者新增成功！");
     router.push({ name: "user-management" });
+    notify.success("使用者新增成功！");
   } catch (error) {
     console.error("新增失敗：", error);
 
-    alert(
+    notify.error(
       error.response?.data?.message || "建立失敗，請確認欄位是否填寫正確！",
     );
   }
