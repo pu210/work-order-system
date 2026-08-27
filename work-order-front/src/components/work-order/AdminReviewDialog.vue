@@ -3,7 +3,7 @@
     :title="isReReview ? '重新審查工單' : '審查與派工'"
     :busy="submitting"
     title-id="admin-review-dialog-title"
-    @close="$emit('close')"
+    @close="handleDialogClose"
   >
     <div v-if="loadingOptions" class="py-4 text-center text-muted">
       <span class="spinner-border spinner-border-sm me-2"></span>正在載入派工選項…
@@ -30,12 +30,27 @@
 
       <div class="mb-3">
         <label for="review-handler" class="form-label">指派工程師</label>
-        <select id="review-handler" v-model="form.assignedHandlerId" class="form-select" required>
-          <option value="" disabled>請選擇工程師</option>
-          <option v-for="handler in handlers" :key="handler.userId" :value="handler.userId">
-            {{ handler.name }}
-          </option>
-        </select>
+        <div class="input-group">
+          <select
+            id="review-handler"
+            v-model="form.assignedHandlerId"
+            class="form-select"
+            required
+          >
+            <option value="" disabled>請選擇工程師</option>
+            <option v-for="handler in handlers" :key="handler.userId" :value="handler.userId">
+              {{ handler.name }}
+            </option>
+          </select>
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            :disabled="!form.assignedHandlerId"
+            @click="openHandlerSchedule"
+          >
+            顯示行事曆
+          </button>
+        </div>
       </div>
 
       <div class="mb-3">
@@ -87,13 +102,21 @@
       </button>
     </template>
   </WorkOrderDialogShell>
+
+  <EngineerScheduleDialog
+    v-if="scheduleDialogOpen"
+    :handler-id="Number(form.assignedHandlerId)"
+    :handler-name="selectedHandlerName"
+    @close="scheduleDialogOpen = false"
+  />
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { getPriorities } from "@/api/priority.js";
 import { getUsers } from "@/api/user.js";
 import { reviewAccept, reviewReject } from "@/api/workOrder.js";
+import EngineerScheduleDialog from "./EngineerScheduleDialog.vue";
 import WorkOrderDialogShell from "./WorkOrderDialogShell.vue";
 
 const props = defineProps({
@@ -109,12 +132,30 @@ const loadingOptions = ref(true);
 const submitting = ref(false);
 const submittingAction = ref("");
 const errorMessage = ref("");
+const scheduleDialogOpen = ref(false);
 const form = reactive({
   priorityId: "",
   assignedHandlerId: props.workOrder.assignedHandlerId ?? "",
   dueTime: toDateTimeLocal(props.workOrder.dueTime),
   feedback: "",
 });
+
+const selectedHandlerName = computed(() => {
+  const selectedId = Number(form.assignedHandlerId);
+  return handlers.value.find((handler) => Number(handler.userId) === selectedId)?.name || "";
+});
+
+function openHandlerSchedule() {
+  if (form.assignedHandlerId) scheduleDialogOpen.value = true;
+}
+
+function handleDialogClose() {
+  if (scheduleDialogOpen.value) {
+    scheduleDialogOpen.value = false;
+    return;
+  }
+  emit("close");
+}
 
 function toDateTimeLocal(value) {
   if (!value) return "";
