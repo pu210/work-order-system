@@ -3,7 +3,7 @@
     <div class="mt-page-header">
       <div>
         <span class="mt-eyebrow">SYSTEM SETTINGS</span>
-        <h1 class="mt-title">系統基礎設定</h1>
+        <h1 class="mt-title">設備維修管理</h1>
         <p class="mt-subtitle">
           {{ isTechnician ? '管理報修設備' : '管理報修設備、優先級以及相關類別選項' }}
         </p>
