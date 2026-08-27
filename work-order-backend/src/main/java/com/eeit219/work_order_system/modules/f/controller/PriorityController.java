@@ -3,6 +3,7 @@ package com.eeit219.work_order_system.modules.f.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,6 +44,15 @@ public class PriorityController {
     public ApiResponse<List<PriorityResponseDto>> getActivePriorities() {
         List<PriorityResponseDto> result = priorityService.getActivePriorities();
         return ApiResponse.success(200, "查詢啟用中的優先級成功", result);
+    }
+
+    // B 模組用：工單列表篩選下拉選單，只回傳啟用中（status = true）的資料。
+    // 故意不透過 PriorityService，直接查 priorityRepository —— 核心邏輯常在異動，
+    // 所以這支路徑跟 getActivePriorities() 分開，改自己打一隻。
+    @GetMapping("/active-for-b")
+    public ApiResponse<List<Priority>> getActivePrioritiesForB() {
+        List<Priority> data = priorityRepository.findByStatusTrue();
+        return ApiResponse.success(HttpStatus.OK.value(), "成功", data);
     }
 
     @PostMapping

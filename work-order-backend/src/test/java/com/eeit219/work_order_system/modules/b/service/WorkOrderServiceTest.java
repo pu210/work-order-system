@@ -303,12 +303,12 @@ class WorkOrderServiceTest {
     void list_forwardsAllFiltersToSearch_whenCallerIsAdmin() {
         WorkOrderState status = WorkOrderState.IN_PROGRESS;
         Pageable pageable = PageRequest.of(0, 20);
-        when(workOrderRepository.search("冷氣", status, 2, 3, 4, null, pageable))
+        when(workOrderRepository.search("冷氣", status, 2, 3, 4, 6, null, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        workOrderService.list("冷氣", status, 2, 3, 4, 1, List.of("ADMIN"), pageable);
+        workOrderService.list("冷氣", status, 2, 3, 4, 6, 1, List.of("ADMIN"), pageable);
 
-        verify(workOrderRepository).search("冷氣", status, 2, 3, 4, null, pageable);
+        verify(workOrderRepository).search("冷氣", status, 2, 3, 4, 6, null, pageable);
         verifyNoInteractions(workOrderAttachmentService);
     }
 
@@ -316,12 +316,12 @@ class WorkOrderServiceTest {
     void list_restrictsToSelfViaSearch_whenCallerIsHandler() {
         WorkOrderState status = WorkOrderState.IN_PROGRESS;
         Pageable pageable = PageRequest.of(0, 20);
-        when(workOrderRepository.search("冷氣", status, 2, 3, null, 9, pageable))
+        when(workOrderRepository.search("冷氣", status, 2, 3, null, null, 9, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        workOrderService.list("冷氣", status, 2, 3, null, 9, List.of("HANDLER"), pageable);
+        workOrderService.list("冷氣", status, 2, 3, 77, 4, 9, List.of("HANDLER"), pageable);
 
-        verify(workOrderRepository).search("冷氣", status, 2, 3, null, 9, pageable);
+        verify(workOrderRepository).search("冷氣", status, 2, 3, null, null, 9, pageable);
     }
 
     @Test
@@ -331,11 +331,11 @@ class WorkOrderServiceTest {
         when(workOrderRepository.findMySubmissions("冷氣", status, 5, pageable))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        workOrderService.list("冷氣", status, 2, 3, 4, 5, List.of("EMPLOYEE"), pageable);
+        workOrderService.list("冷氣", status, 2, 3, 4, 6, 5, List.of("EMPLOYEE"), pageable);
 
         verify(workOrderRepository).findMySubmissions("冷氣", status, 5, pageable);
         verify(workOrderRepository, org.mockito.Mockito.never()).search(any(), any(), any(), any(), any(), any(),
-                any());
+                any(), any());
     }
 
     @Test

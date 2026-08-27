@@ -51,12 +51,13 @@ public class RepairCategoryController {
     }
 
     // B 模組用：新增工單頁的大類下拉選單，只回傳啟用中（status = true）的資料。
-    // 獨立一支端點，跟上面給系統設定頁用的 getAllOrSearchCategories() 分開，F 模組調整那支時不會影響到。
-    // @GetMapping("/active")
-    // public ApiResponse<List<RepairCategory>> getActiveCategories() {
-    // List<RepairCategory> data = repairCategoryRepository.findByStatusTrue();
-    // return ApiResponse.success(HttpStatus.OK.value(), "成功", data);
-    // }
+    // 原本這支路徑跟上面 F 模組的 getActiveCategories() 都是 /active，合併時撞名，改成
+    // /active-for-b 獨一無二的路徑
+    @GetMapping("/active-for-b")
+    public ApiResponse<List<RepairCategory>> getActiveCategoriesForB() {
+        List<RepairCategory> data = repairCategoryRepository.findByStatusTrue();
+        return ApiResponse.success(HttpStatus.OK.value(), "成功", data);
+    }
 
     // B 模組用：需要「全部大類」的地方（例如工單列表篩選下拉選單）改打這支，不用 getAllOrSearchCategories()。
     // getAllOrSearchCategories() 沒帶 keyword 時走 findAll()，對每一筆大類各自補一條 SQL
