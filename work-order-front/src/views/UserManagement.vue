@@ -1,5 +1,5 @@
 <template>
-  <div class="users-page">
+  <div class="users-page px-2 px-sm-4">
     <!-- 頁面頂部：標題與操作按鈕 -->
     <div
       class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3"
@@ -528,21 +528,12 @@ async function toggleStatus(user) {
 </script>
 
 <style scoped>
-.users-page {
-  padding: 0.75rem 1rem;
-}
-
 .users-page th,
 .users-page td {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
 
-@media (max-width: 576px) {
-  .users-page {
-    padding: 0.5rem;
-  }
-}
 .extra-small {
   font-size: 0.82rem;
 }

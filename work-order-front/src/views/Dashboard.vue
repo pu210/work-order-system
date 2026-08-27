@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-page">
+  <div class="dashboard-page px-2 px-sm-4">
     <!-- 頁面標題與問候區塊 -->
     <div class="page-header dashboard-header mb-4">
       <div class="dashboard-intro">

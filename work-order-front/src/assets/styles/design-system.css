@@ -52,16 +52,17 @@ body {
   /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
   display: flex;
   align-items: center;
-  padding: 0 32px;
+  padding: 0px 44px 0px 32px;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+  height: 70px;
 }
 
 .wo-nav-inner {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1750px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -74,6 +75,7 @@ body {
   gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
+  margin-left: 13px;
 }
 
 .wo-logo-mark {
@@ -102,7 +104,8 @@ body {
   color: #fff;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 25px;
+  margin-right: 4px;
 }
 
 .wo-logo-text small {
@@ -121,11 +124,13 @@ body {
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  margin-left: 10px;
+  width: 70%;
 }
 
 .wo-nav-links a {
   color: #c4cde3;
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 500;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
@@ -206,7 +211,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px 5px 5px;
+  padding: 5px 5px 5px 8px;
   border-radius: var(--radius-sm);
   color: #fff;
   text-decoration: none;
@@ -238,7 +243,7 @@ body {
   border-radius: var(--radius-sm);
   background: transparent;
   color: #c4cde3;
-  font-size: 13px;
+  font-size: 15px;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
@@ -452,5 +457,4 @@ body {
     right: 8px;
     left: 8px;
   }
-
 }

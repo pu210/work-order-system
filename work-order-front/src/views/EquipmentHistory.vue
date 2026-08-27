@@ -1,5 +1,5 @@
 <template>
-  <div class="eh-page">
+  <div class="eh-page px-2 px-sm-4">
     <header class="eh-page-header">
       <div>
         <span class="eh-eyebrow">EQUIPMENT HISTORY</span>
@@ -454,8 +454,7 @@ onMounted(fetchHistory);
 
 <style scoped>
 .eh-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .eh-page-header {

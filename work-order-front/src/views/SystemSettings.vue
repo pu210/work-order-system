@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-page">
+  <div class="mt-page px-2 px-sm-4">
     <div class="mt-page-header">
       <div>
         <span class="mt-eyebrow">SYSTEM SETTINGS</span>
@@ -97,8 +97,7 @@ const activeTab = ref("target");
 
 <style scoped>
 .mt-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* ---------------------------------------------------------------------- */

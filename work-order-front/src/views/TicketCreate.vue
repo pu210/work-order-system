@@ -1,9 +1,11 @@
 <template>
-  <div class="tc-page">
+  <div class="tc-page px-2 px-sm-4">
     <div class="tc-page-header">
       <span class="tc-eyebrow">NEW TICKET</span>
-      <h1 class="tc-title">建立新工單</h1>
-      <p class="tc-subtitle">請盡量詳細描述問題，以利工程師更快掌握狀況並處理</p>
+      <h1 class="tc-title">建立報修單</h1>
+      <p class="tc-subtitle">
+        請盡量詳細描述問題，以利工程師更快掌握狀況並處理
+      </p>
     </div>
 
     <div class="tc-grid">
@@ -11,7 +13,13 @@
         <form @submit.prevent="handleSubmit">
           <div class="tc-field">
             <label class="tc-label tc-required">標題</label>
-            <input v-model.trim="form.title" type="text" class="tc-input" maxlength="50" required />
+            <input
+              v-model.trim="form.title"
+              type="text"
+              class="tc-input"
+              maxlength="50"
+              required
+            />
             <div class="tc-hint">{{ form.title.length }} / 50</div>
           </div>
 
@@ -20,16 +28,29 @@
               <label class="tc-label tc-required">報修大類</label>
               <select v-model="selectedCategoryId" class="tc-input" required>
                 <option value="" disabled>請選擇大類</option>
-                <option v-for="c in categories" :key="c.repairCategoriesId" :value="c.repairCategoriesId">
+                <option
+                  v-for="c in categories"
+                  :key="c.repairCategoriesId"
+                  :value="c.repairCategoriesId"
+                >
                   {{ c.name }}
                 </option>
               </select>
             </div>
             <div class="tc-field">
               <label class="tc-label tc-required">細項類別</label>
-              <select v-model="form.subCategoryId" class="tc-input" required :disabled="!selectedCategoryId">
+              <select
+                v-model="form.subCategoryId"
+                class="tc-input"
+                required
+                :disabled="!selectedCategoryId"
+              >
                 <option value="" disabled>請選擇細項</option>
-                <option v-for="s in filteredSubCategories" :key="s.subCategoriesId" :value="s.subCategoriesId">
+                <option
+                  v-for="s in filteredSubCategories"
+                  :key="s.subCategoriesId"
+                  :value="s.subCategoriesId"
+                >
                   {{ s.name }}
                 </option>
               </select>
@@ -38,36 +59,77 @@
 
           <div class="tc-field">
             <label class="tc-label tc-required">位置</label>
-            <input v-model.trim="form.locationDetail" type="text" class="tc-input" maxlength="100" required />
+            <input
+              v-model.trim="form.locationDetail"
+              type="text"
+              class="tc-input"
+              maxlength="100"
+              required
+            />
             <div class="tc-hint">{{ form.locationDetail.length }} / 100</div>
           </div>
 
           <div class="tc-field">
             <label class="tc-label">聯絡電話</label>
-            <input v-model.trim="form.contactPhone" type="text" class="tc-input" maxlength="10" pattern="\d{10}"
-              title="請輸入 10 碼數字" />
-            <div class="tc-hint">{{ form.contactPhone.length }} / 10（選填，若填寫須為 10 碼數字）</div>
+            <input
+              v-model.trim="form.contactPhone"
+              type="text"
+              class="tc-input"
+              maxlength="10"
+              pattern="\d{10}"
+              title="請輸入 10 碼數字"
+            />
+            <div class="tc-hint">
+              {{ form.contactPhone.length }} / 10（選填，若填寫須為 10 碼數字）
+            </div>
           </div>
 
           <div class="tc-field">
             <label class="tc-label">描述</label>
-            <textarea v-model.trim="form.description" class="tc-input tc-textarea" rows="4" maxlength="300"></textarea>
+            <textarea
+              v-model.trim="form.description"
+              class="tc-input tc-textarea"
+              rows="4"
+              maxlength="300"
+            ></textarea>
             <div class="tc-hint">{{ form.description.length }} / 300</div>
           </div>
 
           <div class="tc-field">
             <label class="tc-label">附件（限圖片，單檔 10MB 以內）</label>
-            <input ref="fileInputRef" type="file" accept="image/*" multiple class="d-none"
-              @change="handleFilesSelected" />
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept="image/*"
+              multiple
+              class="d-none"
+              @change="handleFilesSelected"
+            />
             <div class="attachment-grid">
-              <div v-for="(item, index) in selectedFiles" :key="item.id" class="attachment-tile">
-                <img :src="item.previewUrl" :alt="item.file.name" class="attachment-thumb" />
-                <button type="button" class="attachment-remove" :title="`移除 ${item.file.name}`"
-                  @click="removeFile(index)">
+              <div
+                v-for="(item, index) in selectedFiles"
+                :key="item.id"
+                class="attachment-tile"
+              >
+                <img
+                  :src="item.previewUrl"
+                  :alt="item.file.name"
+                  class="attachment-thumb"
+                />
+                <button
+                  type="button"
+                  class="attachment-remove"
+                  :title="`移除 ${item.file.name}`"
+                  @click="removeFile(index)"
+                >
                   ✕
                 </button>
               </div>
-              <button type="button" class="attachment-add-tile" @click="fileInputRef.click()">
+              <button
+                type="button"
+                class="attachment-add-tile"
+                @click="fileInputRef.click()"
+              >
                 <span class="fs-3 d-block">＋</span>
                 <span class="small">添加圖片</span>
               </button>
@@ -75,13 +137,24 @@
             <div v-if="fileError" class="tc-error-text">{{ fileError }}</div>
           </div>
 
-          <div v-if="errorMessage" class="tc-alert-danger">{{ errorMessage }}</div>
+          <div v-if="errorMessage" class="tc-alert-danger">
+            {{ errorMessage }}
+          </div>
 
           <div class="tc-actions">
-            <button type="submit" class="tc-btn tc-btn-primary" :disabled="submitting">
+            <button
+              type="submit"
+              class="tc-btn tc-btn-primary"
+              :disabled="submitting"
+            >
               {{ submitting ? "送出中…" : "送出工單" }}
             </button>
-            <button type="button" class="tc-btn tc-btn-secondary" :disabled="submitting" @click="router.back()">
+            <button
+              type="button"
+              class="tc-btn tc-btn-secondary"
+              :disabled="submitting"
+              @click="router.back()"
+            >
               取消
             </button>
           </div>
@@ -102,62 +175,67 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import Swal from 'sweetalert2'
-import { createWorkOrder } from '@/api/workOrder.js'
-import { getActiveRepairCategories, getActiveSubCategories } from '@/api/category.js'
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
+import { createWorkOrder } from "@/api/workOrder.js";
+import {
+  getActiveRepairCategories,
+  getActiveSubCategories,
+} from "@/api/category.js";
 
-const router = useRouter()
+const router = useRouter();
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-const categories = ref([])
-const subCategories = ref([])
-const selectedCategoryId = ref('')
-const submitting = ref(false)
-const errorMessage = ref('')
+const categories = ref([]);
+const subCategories = ref([]);
+const selectedCategoryId = ref("");
+const submitting = ref(false);
+const errorMessage = ref("");
 // { id, file, previewUrl } — previewUrl 是 URL.createObjectURL 產生的本機預覽，跟真正上傳無關
-const selectedFiles = ref([])
-const fileError = ref('')
-const fileInputRef = ref(null)
-let nextFileId = 0
+const selectedFiles = ref([]);
+const fileError = ref("");
+const fileInputRef = ref(null);
+let nextFileId = 0;
 
 const form = ref({
-  title: '',
-  subCategoryId: '',
-  locationDetail: '',
-  contactPhone: '',
-  description: '',
-})
+  title: "",
+  subCategoryId: "",
+  locationDetail: "",
+  contactPhone: "",
+  description: "",
+});
 
 const filteredSubCategories = computed(() =>
   subCategories.value.filter((s) => s.categoryId === selectedCategoryId.value)
-)
+);
 
 watch(selectedCategoryId, () => {
-  form.value.subCategoryId = ''
-})
+  form.value.subCategoryId = "";
+});
 
 onMounted(async () => {
   try {
     const [categoryList, subCategoryList] = await Promise.all([
       getActiveRepairCategories(),
       getActiveSubCategories(),
-    ])
-    categories.value = categoryList
-    subCategories.value = subCategoryList
+    ]);
+    categories.value = categoryList;
+    subCategories.value = subCategoryList;
   } catch (error) {
-    errorMessage.value = '無法載入報修分類，請確認後端已啟動'
+    errorMessage.value = "無法載入報修分類，請確認後端已啟動";
   }
-})
+});
 
 function handleFilesSelected(event) {
-  fileError.value = ''
-  const files = Array.from(event.target.files || [])
-  const invalid = files.find((f) => !f.type.startsWith('image/') || f.size > MAX_FILE_SIZE)
+  fileError.value = "";
+  const files = Array.from(event.target.files || []);
+  const invalid = files.find(
+    (f) => !f.type.startsWith("image/") || f.size > MAX_FILE_SIZE
+  );
   if (invalid) {
-    fileError.value = `「${invalid.name}」不是圖片或超過 10MB，請重新選擇`
+    fileError.value = `「${invalid.name}」不是圖片或超過 10MB，請重新選擇`;
   } else {
     selectedFiles.value.push(
       ...files.map((file) => ({
@@ -165,24 +243,24 @@ function handleFilesSelected(event) {
         file,
         previewUrl: URL.createObjectURL(file),
       }))
-    )
+    );
   }
   // 清空原生 input，讓下一次選檔（含選到同一個檔案）都會觸發 change，且不留原生「已選擇 N 個檔案」殘留字樣
-  event.target.value = ''
+  event.target.value = "";
 }
 
 function removeFile(index) {
-  URL.revokeObjectURL(selectedFiles.value[index].previewUrl)
-  selectedFiles.value.splice(index, 1)
+  URL.revokeObjectURL(selectedFiles.value[index].previewUrl);
+  selectedFiles.value.splice(index, 1);
 }
 
 onUnmounted(() => {
-  selectedFiles.value.forEach((item) => URL.revokeObjectURL(item.previewUrl))
-})
+  selectedFiles.value.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+});
 
 async function handleSubmit() {
-  errorMessage.value = ''
-  submitting.value = true
+  errorMessage.value = "";
+  submitting.value = true;
   try {
     // 工單與附件同一次送出、同一個交易：後端任一張附件驗證失敗就整個 rollback，
     // 不會出現「工單建立成功但附件缺漏」的情況；失敗時留在原頁面，選好的檔案不會被清空，可直接重試
@@ -194,27 +272,27 @@ async function handleSubmit() {
         contactPhone: form.value.contactPhone || undefined,
         description: form.value.description || undefined,
       },
-      selectedFiles.value.map((item) => item.file),
-    )
+      selectedFiles.value.map((item) => item.file)
+    );
 
     await Swal.fire({
-      icon: 'success',
-      title: '工單建立成功',
+      icon: "success",
+      title: "工單建立成功",
       text: created.workOrderNo,
-    })
-    router.push({ name: 'my-tickets' })
+    });
+    router.push({ name: "my-tickets" });
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || '建立工單失敗，請稍後再試'
+    errorMessage.value =
+      error.response?.data?.message || "建立工單失敗，請稍後再試";
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
 }
 </script>
 
 <style scoped>
 .tc-page {
-  max-width: 860px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -290,14 +368,14 @@ async function handleSubmit() {
 
 .tc-label {
   display: block;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 6px;
 }
 
 .tc-required::after {
-  content: ' *';
+  content: " *";
   color: var(--color-danger);
 }
 
@@ -460,7 +538,7 @@ async function handleSubmit() {
 /* 填寫小提醒 */
 /* ---------------------------------------------------------------------- */
 .tc-tips-title {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-ink);
   margin: 0 0 12px;
@@ -471,7 +549,7 @@ async function handleSubmit() {
   padding-left: 18px;
   margin: 0;
   line-height: 1.9;
-  font-size: 12.5px;
+  font-size: 15px;
   color: var(--color-text-muted);
 }
 </style>
