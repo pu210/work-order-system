@@ -37,9 +37,10 @@
       </div>
 
       <form v-else @submit.prevent="handleSubmit">
-        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
-          <i class="bi bi-person-vcard me-1"></i> 基本資料
-        </h6>
+        <h5 class="fw-bold border-bottom pb-3 mb-4">
+          <i class="bi bi-person-vcard me-2"></i>
+          基本資料
+        </h5>
 
         <div class="row g-3 mb-4">
           <!-- 帳號不能修改 -->
