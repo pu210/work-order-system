@@ -1,0 +1,257 @@
+<template>
+  <div class="mt-page">
+    <div class="mt-page-header">
+      <div>
+        <span class="mt-eyebrow">SYSTEM SETTINGS</span>
+        <h1 class="mt-title">設備維修管理</h1>
+        <p class="mt-subtitle">
+          {{ isTechnician ? '管理報修設備' : '管理報修設備、優先級以及相關類別選項' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-card">
+      <!-- 頁籤切換：改用 v-for 動態渲染可用分頁 -->
+      <div class="mt-toolbar" v-if="availableTabs.length > 1">
+        <div class="mt-pill-tabs">
+          <button
+            v-for="tab in availableTabs"
+            :key="tab.key"
+            type="button"
+            class="mt-pill-tab"
+            :class="{ active: activeTab === tab.key }"
+            @click="activeTab = tab.key"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 手機版下拉式選單：同樣改用 v-for 動態渲染 -->
+      <div class="mt-mobile-filter" v-if="availableTabs.length > 1">
+        <select
+          v-model="activeTab"
+          class="mt-mobile-control"
+          aria-label="選擇設定分頁"
+        >
+          <option v-for="tab in availableTabs" :key="tab.key" :value="tab.key">
+            {{ tab.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- 內容區塊 -->
+      <div class="mt-setting-content">
+        <transition name="fade" mode="out-in">
+          <div v-if="activeTab === 'target'" key="target">
+            <SettingTarget />
+          </div>
+          <div v-else-if="activeTab === 'priority'" key="priority">
+            <SettingPriority />
+          </div>
+          <div v-else-if="activeTab === 'category'" key="category">
+            <SettingCategory />
+          </div>
+          <div v-else-if="activeTab === 'subCategory'" key="subCategory">
+            <SettingSubCategory />
+          </div>
+        </transition>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth.js"; // 1. 引入 auth store
+import SettingCategory from "@/views/SettingCategory.vue";
+import SettingSubCategory from "@/views/SettingSubCategory.vue";
+import SettingPriority from "@/views/SettingPriority.vue";
+import SettingTarget from "@/views/SettingTarget.vue";
+
+const authStore = useAuthStore();
+
+// 2. 檢查是否為工程師/維修人員 (對應您專案的角色代碼 'HANDLER')
+const isTechnician = computed(() => {
+  if (authStore.hasRole('ADMIN')) return false; 
+  return authStore.hasRole('HANDLER') || authStore.hasRole('TECH');
+});
+
+// 3. 根據角色決定能看到哪些分頁
+const availableTabs = computed(() => {
+  if (isTechnician.value) {
+    return [{ key: "target", label: "報修設備管理" }];
+  }
+  // 管理員看全部 4 個
+return [
+    { key: "target", label: "報修設備管理" },
+    { key: "priority", label: "優先級管理" },
+    { key: "category", label: "報修大類管理" },
+    { key: "subCategory", label: "報修細項管理" },
+  ];
+});
+
+// 預設開啟報修設備管理
+const activeTab = ref("target");
+</script>
+
+<style scoped>
+.mt-page {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 頁首 */
+/* ---------------------------------------------------------------------- */
+.mt-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.mt-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.mt-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--color-ink);
+  margin: 0;
+}
+.mt-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 卡片容器 */
+/* ---------------------------------------------------------------------- */
+.mt-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  padding: 20px 22px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 工具列與頁籤 (Pill Tabs) */
+/* ---------------------------------------------------------------------- */
+.mt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.mt-pill-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.mt-pill-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  transition: color 0.15s;
+}
+.mt-pill-tab:hover {
+  color: var(--color-primary);
+}
+.mt-pill-tab.active {
+  background: transparent;
+  color: var(--color-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+.mt-mobile-filter {
+  display: none;
+}
+
+.mt-setting-content {
+  margin-top: 10px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 分頁切換絲滑動畫 (Fade & Slide) */
+/* ---------------------------------------------------------------------- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* 響應式調整 (對應第一份的斷點設計) */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 850px) {
+  .mt-page-header {
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .mt-card {
+    padding: 14px 12px;
+  }
+  .mt-toolbar {
+    display: none;
+  }
+  .mt-mobile-filter {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .mt-mobile-control {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .mt-mobile-control:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-primary-soft);
+  }
+}
+</style>

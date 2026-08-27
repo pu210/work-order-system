@@ -1,0 +1,13 @@
+# DOMAIN 這個環境變數的預設值（localhost）寫在 docker-compose.yml 裡，這裡不用再寫一次。
+# 本機測試（localhost）時 Caddy 會用自己內建的本機 CA 簽憑證，瀏覽器一樣會跳警告，
+# 效果跟之前自簽憑證一樣，不用額外處理。
+#
+# 之後真的有網域，在 .env 設 DOMAIN=your-domain.com，Caddy 會自動改向 Let's Encrypt
+# 申請正式憑證、之後也會自動續期，不用改這支檔案裡的其他內容。
+{$DOMAIN} {
+    # 明確指定用 Caddy 內建 CA 簽憑證，不管 DOMAIN 填什麼名稱都不會嘗試跟 Let's Encrypt 要正式憑證。
+    # 展示用的假網域（非真實註冊、無法被外部 DNS 解析）一定要有這行，不然 Caddy 可能誤判成公開網域，
+    # 嘗試 ACME 驗證而失敗。之後真的要接正式網域、要 Let's Encrypt 憑證時，把這行刪掉即可。
+    tls internal
+    reverse_proxy frontend:80
+}

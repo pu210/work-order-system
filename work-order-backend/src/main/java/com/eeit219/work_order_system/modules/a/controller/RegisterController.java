@@ -19,7 +19,7 @@ import com.eeit219.work_order_system.modules.a.service.UserService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class RegisterController {
 
     private static final Logger log = LoggerFactory.getLogger(RegisterController.class);
@@ -51,6 +51,6 @@ public class RegisterController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse.error(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "註冊資料無法儲存，請聯絡系統管理員"));
+                        "註冊資料無法儲存，請聯絡管理員"));
     }
 }

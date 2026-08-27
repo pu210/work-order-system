@@ -50,9 +50,10 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                                .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout",
-                                                                "/auth/register",
-                                                                "/auth/forgot-password", "/auth/reset-password",
+                                                .requestMatchers("/api/auth/login", "/api/auth/refresh",
+                                                                "/api/auth/logout",
+                                                                "/api/auth/register",
+                                                                "/api/auth/forgot-password", "/api/auth/reset-password",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
                                                                 "/ws/**",
@@ -61,13 +62,37 @@ public class SecurityConfig {
                                                 // 首次登入修改密碼：只需要登入，不限制角色
                                                 .requestMatchers(
                                                                 HttpMethod.PATCH,
-                                                                "/account/initial-password")
+                                                                "/api/account/initial-password")
                                                 .authenticated()
-                                                .requestMatchers(HttpMethod.POST, "/users", "/api/repair-categories/**",
-                                                                "/api/priorities/**")
+                                                // 管理員權限
+                                                .requestMatchers(HttpMethod.POST, "/api/users",
+                                                                "/api/repair-categories/**",
+                                                                "/api/priorities/**",
+                                                                "/api/work-orders/*/review/**",
+                                                                "/api/work-orders/*/admin-check/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.PATCH, "/users/**").hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/users", "/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**",
+                                                                "/api/work-orders/*/review/edit-session/heartbeat")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE,
+                                                                "/api/work-orders/*/review/edit-session")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
+                                                                "/api/reports/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(HttpMethod.POST, "/api/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER", "EMPLOYEE")
+                                                // 工程師權限
+                                                .requestMatchers(HttpMethod.POST, "/api/work-orders/*/progress/**")
+                                                .hasRole("HANDLER")
+                                                // 工程師跟管理員權限
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/equipment/*/work-orders")
+                                                .hasAnyRole("ADMIN", "HANDLER")
+                                                // 全用戶
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oauth2SuccessHandler)

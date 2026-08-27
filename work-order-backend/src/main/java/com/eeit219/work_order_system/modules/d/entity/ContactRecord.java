@@ -29,7 +29,7 @@ public class ContactRecord {
     @JoinColumn(name = "work_order_id", nullable = false)
     private WorkOrder workOrder;
 
-    @Column(name = "content", nullable = false, length = 500)
+    @Column(name = "content", length = 500)
     private String content;
 
     @Enumerated(EnumType.STRING)

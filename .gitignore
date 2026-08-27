@@ -1,4 +1,6 @@
 .m2/
+.codex-temp/
+.m2-repository/
 ### OS generated files  ###
 .DS_Store
 **/.DS_Store
@@ -62,8 +64,9 @@ nbdist/
 **/src/main/resources/application-*.yml
 **/src/main/resources/application-*.yaml
 
-# 但不要忽略範本檔（通常預設就不會忽略 .example）
+# 但不要忽略範本檔，也不要忽略 Docker 專用設定（敏感值走環境變數，本身不含明碼密鑰，要進版控）
 !**/src/main/resources/application.properties.example
+!**/src/main/resources/application-docker.properties
 
 ### Frontend (Vue / Node.js) ###
 logs/
@@ -84,6 +87,14 @@ coverage/
 
 # 允許上傳 .env 範例檔
 !.env.example
+
+# 本機自簽憑證，每個人/每個環境自己產生，不進版控
+docker/nginx/certs/*.key
+docker/nginx/certs/*.crt
+docker/nginx/certs/*.pem
+
+# Jenkins 部署用的 SSH 金鑰，私鑰不進版控
+docker/jenkins/ssh/
 
 # 前端測試 (Cypress / Vitest)
 cypress/videos/

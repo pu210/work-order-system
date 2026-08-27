@@ -2,8 +2,10 @@
   <nav class="wo-nav">
     <div class="wo-nav-inner">
       <router-link to="/dashboard" class="wo-logo">
-        <div class="wo-logo-mark">WO</div>
-        <div class="wo-logo-text">WOHub<small>WORK ORDER SYSTEM</small></div>
+        <img src="/favicon.ico" alt="logo" class="wo-logo-img" />
+        <div class="wo-logo-text">
+          Gongxiahuei<small>WORK ORDER SYSTEM</small>
+        </div>
       </router-link>
 
       <div class="wo-nav-links">
@@ -36,7 +38,45 @@
           <i class="bi bi-box-arrow-right"></i>
           登出
         </button>
+
+        <button
+          type="button"
+          class="wo-menu-btn"
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="wo-mobile-menu"
+          :aria-label="mobileMenuOpen ? '關閉導覽選單' : '開啟導覽選單'"
+          @click.stop="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+        </button>
       </div>
+    </div>
+
+    <div
+      id="wo-mobile-menu"
+      class="wo-mobile-menu"
+      :class="{ open: mobileMenuOpen }"
+    >
+      <router-link
+        v-for="item in visibleNavItems"
+        :key="item.key"
+        :to="item.path"
+        @click="mobileMenuOpen = false"
+      >
+        {{ item.label }}
+      </router-link>
+
+      <div class="wo-mobile-menu-divider"></div>
+
+      <router-link to="/profile" @click="mobileMenuOpen = false">
+        <i class="bi bi-person"></i>
+        個人資料
+      </router-link>
+
+      <button type="button" class="wo-mobile-logout" @click="handleLogout">
+        <i class="bi bi-box-arrow-right"></i>
+        登出
+      </button>
     </div>
   </nav>
 </template>
@@ -47,11 +87,12 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { NAV_ITEMS } from "@/router/navItems.js";
+import { notify } from "@/plugins/notify.js";
 
 const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const dropdownOpen = ref(false);
+const mobileMenuOpen = ref(false);
 
 const ROLE_LABEL = { ADMIN: "管理員", HANDLER: "工程師", EMPLOYEE: "一般員工" };
 
@@ -73,15 +114,26 @@ const initials = computed(() => {
 });
 
 async function handleLogout() {
-  dropdownOpen.value = false;
+  mobileMenuOpen.value = false;
   notificationStore.disconnectWebSocket(); // 登出時斷開 WebSocket 連線
+  const result = await notify.confirm({
+    title: "確定要登出嗎？",
+    icon: "question",
+    confirmButtonText: "確定",
+    cancelButtonText: "取消",
+  });
+
+  if (!result.isConfirmed) {
+    return;
+  }
+
   await authStore.logout();
   await router.replace({ name: "Login" });
 }
 
 function handleClickOutside(event) {
-  if (!event.target.closest(".wo-role-switch")) {
-    dropdownOpen.value = false;
+  if (!event.target.closest(".wo-nav")) {
+    mobileMenuOpen.value = false;
   }
 }
 

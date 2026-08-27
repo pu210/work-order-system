@@ -39,7 +39,7 @@ public class RefreshTokenController {
                 this.jwtUtility = jwtUtility;
         }
 
-        @PostMapping("/auth/refresh")
+        @PostMapping("/api/auth/refresh")
         public ResponseEntity<ApiResponse<LoginResponseDTO>> refresh(
                         @CookieValue(name = RefreshTokenCookieUtility.COOKIE_NAME, required = false) String rawRefreshToken,
                         HttpServletResponse response) {
@@ -106,7 +106,7 @@ public class RefreshTokenController {
                                                 data));
         }
 
-        @PostMapping("/auth/logout")
+        @PostMapping("/api/auth/logout")
         public ResponseEntity<ApiResponse<Void>> logout(
                         @CookieValue(name = RefreshTokenCookieUtility.COOKIE_NAME, required = false) String rawRefreshToken,
                         HttpServletResponse response) {

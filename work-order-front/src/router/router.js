@@ -15,7 +15,7 @@ import TicketAssign from "@/views/TicketAssign.vue";
 import HandlerWorkbench from "@/views/HandlerWorkbench.vue";
 import TicketStats from "@/views/TicketStats.vue";
 import UserManagement from "@/views/UserManagement.vue";
-import EquipmentCreate from "@/views/EquipmentCreate.vue";
+import SystemSettings from "@/views/SystemSettings.vue";
 import Profile from "@/views/Profile.vue";
 import Notifications from "@/views/Notifications.vue";
 import Forbidden from "@/views/Forbidden.vue";
@@ -28,6 +28,7 @@ import ForgotPassword from "@/views/ForgotPassword.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
 import InitialPassword from "@/views/InitialPassword.vue";
 import Register from "@/views/Register.vue";
+import EquipmentHistory from "@/views/EquipmentHistory.vue";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -103,6 +104,12 @@ const routes = [
       },
       { path: "tickets/:id", name: "ticket-detail", component: TicketDetail },
       {
+        path: "equipment/:targetNo/history",
+        name: "equipment-history",
+        component: EquipmentHistory,
+        meta: { roles: ["ADMIN", "HANDLER"] },
+      },
+      {
         path: "ticket-create",
         name: "ticket-create",
         component: TicketCreate,
@@ -156,8 +163,14 @@ const routes = [
       {
         path: "equipment-create",
         name: "equipment-create",
-        component: EquipmentCreate,
+        component: SystemSettings,
         meta: { roles: rolesFor("equipment-create") },
+      },
+      {
+        path: "system-settings",
+        name: "system-settings",
+        component: SystemSettings,
+        meta: { roles: rolesFor("system-settings") },
       },
       { path: "profile", name: "profile", component: Profile },
       {

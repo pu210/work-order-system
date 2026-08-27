@@ -211,6 +211,7 @@ import { getProfile, updateProfile, changePassword } from "@/api/account.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 import { notify } from "@/plugins/notify.js";
+import { userRoleLabel } from "@/constants/userRole.js";
 
 const authStore = useAuthStore();
 
@@ -237,20 +238,12 @@ const passwordForm = reactive({
   confirmPassword: "",
 });
 
-const ROLE_LABELS = {
-  ADMIN: "系統管理員",
-  HANDLER: "工程師",
-  EMPLOYEE: "一般員工",
-};
-
 const roleLabel = computed(() => {
   if (profileForm.roleCodes.length === 0) {
     return "尚未設定";
   }
 
-  return profileForm.roleCodes
-    .map((role) => ROLE_LABELS[role] || role)
-    .join("、");
+  return profileForm.roleCodes.map(userRoleLabel).join("、");
 });
 
 async function loadProfile() {
@@ -321,7 +314,7 @@ async function handleProfileSubmit() {
 
     notify.success("個人資料更新成功");
   } catch (error) {
-    profileError.value = getErrorMessage(error, "個人資料更新失敗");
+    notify.error(getErrorMessage(error, "個人資料更新失敗"));
   } finally {
     isSavingProfile.value = false;
   }
@@ -362,7 +355,7 @@ async function handlePasswordSubmit() {
 
     notify.success("密碼修改成功");
   } catch (error) {
-    passwordError.value = getErrorMessage(error, "密碼修改失敗");
+    notify.error(getErrorMessage(error, "密碼修改失敗"));
   } finally {
     isChangingPassword.value = false;
   }

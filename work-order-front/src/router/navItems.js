@@ -15,7 +15,7 @@ export const NAV_ITEMS = [
     key: "ticket-list",
     label: "工單列表",
     path: "/ticket-list",
-    roles: ["ADMIN", "HANDLER"],
+    roles: ["ADMIN"],
     enabled: true,
   },
   {
@@ -34,7 +34,7 @@ export const NAV_ITEMS = [
   },
   {
     key: "ticket-assign",
-    label: "指派工單",
+    label: "管理員工作台",
     path: "/ticket-assign",
     roles: ["ADMIN"],
     enabled: true,
@@ -68,10 +68,11 @@ export const NAV_ITEMS = [
     enabled: true,
   },
   {
-    key: "equipment-create",
-    label: "設備新增",
-    path: "/equipment-create",
-    roles: ["ADMIN"],
+    key: "system-settings",
+    label: "設備維修管理",
+    path: "/system-settings",
+    roles: ["ADMIN", "HANDLER"],
     enabled: true,
   },
+
 ];

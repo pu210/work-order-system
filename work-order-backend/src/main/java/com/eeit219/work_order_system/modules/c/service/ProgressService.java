@@ -14,8 +14,8 @@ import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRep
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderEvent;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.e.service.NotificationService;
-import com.eeit219.work_order_system.modules.f.entity.RepairTargets;
-import com.eeit219.work_order_system.modules.f.repository.RepairTargetsRepository;
+import com.eeit219.work_order_system.modules.f.entity.RepairTarget;
+import com.eeit219.work_order_system.modules.f.repository.RepairTargetRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -25,13 +25,13 @@ public class ProgressService {
         private final WorkOrderStateMachineService workOrderStateMachineService;
         private final NotificationService notificationService;
         private final RepairTicketHistoryRepository repairTicketHistoryRepository;
-        private final RepairTargetsRepository repairTargetsRepository;
+        private final RepairTargetRepository repairTargetsRepository;
 
         public ProgressService(WorkOrderRepository workOrderRepository,
                         WorkOrderStateMachineService workOrderStateMachineService,
                         NotificationService notificationService,
                         RepairTicketHistoryRepository repairTicketHistoryRepository,
-                        RepairTargetsRepository repairTargetsRepository) {
+                        RepairTargetRepository repairTargetsRepository) {
                 this.workOrderRepository = workOrderRepository;
                 this.workOrderStateMachineService = workOrderStateMachineService;
                 this.notificationService = notificationService;
@@ -52,10 +52,10 @@ public class ProgressService {
                         throw new InvalidWorkOrderStateException("目前不是進行中狀態");
                 }
                 // 查找維修標的
-                RepairTargets repairTargets = repairTargetsRepository.findByTargetNo(request.targetNo())
+                RepairTarget repairTargets = repairTargetsRepository.findByTargetNo(request.targetNo())
                                 .orElseThrow(() -> new ResourceNotFoundException("輸入的編號找不到對應的維修標的"));
 
-                workOrder.setRepairTargets(repairTargets);
+                workOrder.setRepairTarget(repairTargets);
                 // 1. 切換狀態機狀態 (IN_PROGRESS -> PENDING_USER_ACCEPTANCE)
                 workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                                 WorkOrderEvent.ACCEPT);

@@ -1,33 +1,31 @@
-/* ==========================================================================
-   WORK ORDER 設計系統 — 取自參考範例，先建立頂端列所需的部分
-   ========================================================================== */
-
 :root {
-  --color-ink: #14213D;
-  --color-ink-soft: #1D2E52;
-  --color-bg: #F5F6F9;
-  --color-surface: #FFFFFF;
-  --color-primary: #2F6FED;
-  --color-primary-dark: #1F4FBF;
-  --color-primary-soft: #EAF1FF;
-  --color-success: #1E9E6C;
-  --color-success-soft: #E6F7EF;
-  --color-warning: #E8A33D;
-  --color-warning-soft: #FDF3E4;
-  --color-danger: #D64545;
-  --color-danger-soft: #FBEAEA;
-  --color-border: #E2E5EA;
-  --color-text: #1A1D29;
-  --color-text-muted: #6B7280;
-  --color-text-faint: #9AA1AC;
+  --color-ink: #14213d;
+  --color-ink-soft: #1d2e52;
+  --color-nav: #223a67;
+  --color-nav-panel: #2b4779;
+  --color-bg: #f5f6f9;
+  --color-surface: #ffffff;
+  --color-primary: #2f6fed;
+  --color-primary-dark: #1f4fbf;
+  --color-primary-soft: #eaf1ff;
+  --color-success: #1e9e6c;
+  --color-success-soft: #e6f7ef;
+  --color-warning: #e8a33d;
+  --color-warning-soft: #fdf3e4;
+  --color-danger: #d64545;
+  --color-danger-soft: #fbeaea;
+  --color-border: #e2e5ea;
+  --color-text: #1a1d29;
+  --color-text-muted: #6b7280;
+  --color-text-faint: #9aa1ac;
 
-  --font-display: 'Space Grotesk', 'Noto Sans TC', sans-serif;
-  --font-body: 'Inter', 'Noto Sans TC', sans-serif;
+  --font-display: "Space Grotesk", "Noto Sans TC", sans-serif;
+  --font-body: "Inter", "Noto Sans TC", sans-serif;
 
   --radius-sm: 6px;
   --radius: 8px;
   --radius-lg: 12px;
-  --shadow-pop: 0 6px 18px rgba(20,33,61,0.12);
+  --shadow-pop: 0 6px 18px rgba(20, 33, 61, 0.12);
   --nav-height: 56px;
 }
 
@@ -48,56 +46,162 @@ body {
 /* 導覽列（頂端列） */
 /* ---------------------------------------------------------------------- */
 .wo-nav {
-  background: var(--color-ink);
+  background: var(--color-nav);
   height: var(--nav-height);
-  flex-shrink: 0; /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
-  display: flex; align-items: center;
+  flex-shrink: 0;
+  /* 在 100dvh 固定高度的版面裡，內容塞不下時預設所有 flex 子項會被等比壓縮，這裡要鎖住不讓導覽列跟著縮 */
+  display: flex;
+  align-items: center;
   padding: 0 32px;
-  position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-.wo-nav-inner {
-  width: 100%; max-width: 1400px; margin: 0 auto;
-  display: flex; align-items: center; gap: 24px;
-}
-.wo-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; text-decoration: none; }
-.wo-logo-mark {
-  width: 32px; height: 32px; border-radius: 6px;
-  background: var(--color-primary);
-  color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 13px;
-  display: flex; align-items: center; justify-content: center;
-}
-.wo-logo-text { color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
-.wo-logo-text small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 10.5px; color: #93A2C6; letter-spacing: .04em; }
 
-.wo-nav-links { display: flex; align-items: center; gap: 4px; flex: 1; overflow-x: auto; }
-.wo-nav-links a {
-  color: #C4CDE3; font-size: 14.5px; font-weight: 500; padding: 8px 12px;
-  border-radius: var(--radius-sm); white-space: nowrap; text-decoration: none;
-  transition: background .15s, color .15s;
+.wo-nav-inner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
-.wo-nav-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.wo-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.wo-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wo-logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.wo-logo-text {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.wo-logo-text small {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 10.5px;
+  color: #93a2c6;
+  letter-spacing: 0.04em;
+}
+
+.wo-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.wo-nav-links a {
+  color: #c4cde3;
+  font-size: 14.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.wo-nav-links a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
 .wo-nav-links a.router-link-active {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
   box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
-.wo-nav-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-.wo-bell { position: relative; color: #C4CDE3; cursor: pointer; padding: 6px; border-radius: 8px; text-decoration: none; display: flex; }
-.wo-bell:hover { background: rgba(255,255,255,0.08); }
-.wo-bell i { font-size: 20px; line-height: 1; }
+.wo-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.wo-bell {
+  position: relative;
+  color: #c4cde3;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: flex;
+}
+
+.wo-bell:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wo-bell i {
+  font-size: 20px;
+  line-height: 1;
+}
+
 .wo-bell-dot {
-  position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--color-danger); border: 2px solid var(--color-ink);
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  border: 2px solid var(--color-nav);
 }
 
 .wo-avatar {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; font-family: var(--font-display); flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  flex-shrink: 0;
 }
-.wo-role-btn .role-tag { color: #A9B5D1; font-size: 11.5px; }
+
+.wo-role-btn .role-tag {
+  color: #a9b5d1;
+  font-size: 11.5px;
+}
+
 .wo-user-info {
   display: flex;
   align-items: center;
@@ -108,6 +212,7 @@ body {
   text-decoration: none;
   transition: background 0.15s;
 }
+
 .wo-user-info:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
@@ -139,19 +244,145 @@ body {
   cursor: pointer;
 }
 
-
 .wo-logout-btn:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.badge {
-  display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px;
-  font-size: 11.5px; font-weight: 700; line-height: 1.6;
+.wo-menu-btn,
+.wo-mobile-menu {
+  display: none;
 }
-.badge-primary { background: var(--color-primary-soft); color: var(--color-primary-dark); }
-.badge-danger { background: var(--color-danger-soft); color: var(--color-danger); }
-.badge-success { background: var(--color-success-soft); color: var(--color-success); }
+
+.wo-menu-btn {
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #c4cde3;
+  cursor: pointer;
+}
+
+.wo-menu-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wo-menu-btn i {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.wo-mobile-menu {
+  position: absolute;
+  top: calc(var(--nav-height) - 1px);
+  right: 16px;
+  left: 16px;
+  max-height: calc(100dvh - var(--nav-height) - 16px);
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--color-nav-panel);
+  box-shadow: var(--shadow-pop);
+}
+
+.wo-mobile-menu.open {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.wo-mobile-menu a,
+.wo-mobile-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #dbe3f5;
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.wo-mobile-menu a:hover,
+.wo-mobile-logout:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wo-mobile-menu a.router-link-active {
+  color: #fff;
+  background: rgba(47, 111, 237, 0.28);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.wo-mobile-menu-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.badge-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.badge-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.badge-success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.wo-status-neutral {
+  background: #eef0f4;
+  color: var(--color-text-muted);
+}
+
+.wo-status-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.wo-status-warning {
+  background: var(--color-warning-soft);
+  color: #92600f;
+}
+
+.wo-status-success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.wo-status-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
 
 /* 後台介面維持平實的企業系統質感，避免過多浮起卡片與膠囊造型。 */
 .main-layout .card {
@@ -178,4 +409,48 @@ body {
   .wo-nav-inner {
     gap: 16px;
   }
+}
+
+@media (max-width: 1320px) {
+  .wo-nav-links,
+  .wo-logout-btn {
+    display: none;
+  }
+
+  .wo-nav-right {
+    margin-left: auto;
+  }
+
+  .wo-menu-btn {
+    display: inline-flex;
+  }
+
+  .wo-mobile-menu.open {
+    display: grid;
+  }
+}
+
+@media (max-width: 600px) {
+  .wo-nav {
+    padding: 0 14px;
+  }
+
+  .wo-nav-inner {
+    gap: 8px;
+  }
+
+  .wo-logo-text small,
+  .wo-user-text {
+    display: none;
+  }
+
+  .wo-nav-right {
+    gap: 6px;
+  }
+
+  .wo-mobile-menu {
+    right: 8px;
+    left: 8px;
+  }
+
 }

@@ -82,7 +82,7 @@ async function handleSubmit() {
 
   try {
     const response = await axios.post(
-      "/auth/forgot-password",
+      "/api/auth/forgot-password",
       {
         email: email.value,
       },

@@ -10,11 +10,14 @@ final class WorkOrderPageableFactory {
     static final int DEFAULT_PAGE_SIZE = 10;
     private static final int MAX_PAGE_SIZE = 100;
 
+    // 預設排序：建立時間新到舊，符合使用者直覺，未指定或指定無效的 sort 值時皆套用
+    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdTime");
+
     private WorkOrderPageableFactory() {
     }
 
     static Pageable of(int page, int size) {
-        return PageRequest.of(page, clampSize(size));
+        return PageRequest.of(page, clampSize(size), DEFAULT_SORT);
     }
 
     static Pageable of(int page, int size, String sort) {
@@ -27,15 +30,13 @@ final class WorkOrderPageableFactory {
 
     private static Sort resolveSort(String sort) {
         if (sort == null) {
-            return Sort.unsorted();
+            return DEFAULT_SORT;
         }
         return switch (sort) {
-            case "PRIORITY_HIGH_TO_LOW" -> Sort.by(Sort.Direction.ASC, "priority.hours");
-            case "PRIORITY_LOW_TO_HIGH" -> Sort.by(Sort.Direction.DESC, "priority.hours");
-            case "DUE_TIME_NEAR_TO_FAR" -> Sort.by(Sort.Direction.ASC, "dueTime");
-            case "DUE_TIME_FAR_TO_NEAR" -> Sort.by(Sort.Direction.DESC, "dueTime");
+            case "CREATED_TIME_ASC" -> Sort.by(Sort.Direction.ASC, "createdTime");
+            case "CREATED_TIME_DESC" -> Sort.by(Sort.Direction.DESC, "createdTime");
             case "WORK_ORDER_NO_ASC" -> Sort.by(Sort.Direction.ASC, "workOrderNo");
-            default -> Sort.unsorted();
+            default -> DEFAULT_SORT;
         };
     }
 }

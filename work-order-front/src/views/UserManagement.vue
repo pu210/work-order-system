@@ -26,30 +26,29 @@
         {{ errorMessage }}
       </div>
       <!-- 頂部搜尋框 -->
-      <div
-        class="input-group input-group-sm search-input-group"
-        style="max-width: 240px"
-      >
-        <span class="input-group-text bg-white border-end-0 text-muted ps-3">
-          <i class="bi bi-search"></i>
-        </span>
+      <div class="users-toolbar p-3 border-bottom">
+        <div class="input-group input-group-sm search-input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+            <i class="bi bi-search"></i>
+          </span>
 
-        <input
-          v-model="searchQuery"
-          type="search"
-          class="form-control border-start-0 ps-1"
-          placeholder="搜尋姓名、帳號或信箱"
-          aria-label="搜尋使用者"
-        />
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="form-control border-start-0 ps-1"
+            placeholder="搜尋姓名、帳號或信箱"
+            aria-label="搜尋使用者"
+          />
+        </div>
       </div>
 
       <!-- 表格內容 -->
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table users-table table-hover align-middle mb-0">
           <thead class="table-light extra-small text-secondary">
             <tr>
               <th class="ps-4 py-2" style="width: 20%">姓名</th>
-              <th class="py-2" style="width: 30%">電子郵件信箱</th>
+              <th class="py-2" style="width: 30%">電子郵件</th>
               <th class="py-2" style="width: 15%">狀態</th>
               <th class="py-2" style="width: 15%">角色</th>
               <!-- 🎯 修正重點：操作標題與底下欄位統一對齊風格 -->
@@ -75,8 +74,10 @@
               <!-- 3. 狀態標籤 -->
               <td>
                 <span
-                  class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill"
+                  class="badge status-badge rounded-pill"
+                  :class="statusBadgeClass(user.status)"
                 >
+                  <span class="status-dot"></span>
                   {{ statusLabels[user.status] ?? "未知狀態" }}
                 </span>
               </td>
@@ -88,7 +89,7 @@
                   :key="roleCode"
                   class="badge bg-light text-secondary border rounded-pill px-3 py-1 fw-normal me-1"
                 >
-                  {{ roleCode }}
+                  {{ roleLabels[roleCode] ?? roleCode }}
                 </span>
               </td>
 
@@ -291,7 +292,7 @@
                     type="checkbox"
                     value="ADMIN"
                   />
-                  <span class="form-check-label">系統管理員</span>
+                  <span class="form-check-label">管理員</span>
                 </label>
               </div>
             </div>
@@ -366,6 +367,21 @@ function closeReview() {
 
   reviewingUser.value = null;
   selectedRoleCodes.value = [];
+}
+
+const roleLabels = {
+  ADMIN: "管理員",
+  HANDLER: "工程師",
+  EMPLOYEE: "一般員工",
+};
+function statusBadgeClass(status) {
+  return (
+    {
+      0: "status-disabled",
+      1: "status-active",
+      2: "status-pending",
+    }[status] ?? "status-unknown"
+  );
 }
 
 const statusLabels = {
@@ -454,9 +470,8 @@ async function submitReview(approved) {
 
     notify.success(approved ? "帳號已核准" : "註冊申請已拒絕");
   } catch (error) {
-    errorMessage.value = getErrorMessage(
-      error,
-      approved ? "核准帳號失敗" : "拒絕註冊申請失敗",
+    notify.error(
+      getErrorMessage(error, approved ? "核准帳號失敗" : "拒絕註冊申請失敗"),
     );
   } finally {
     reviewSubmitting.value = false;
@@ -515,7 +530,7 @@ async function toggleStatus(user) {
     await loadUsers();
     notify.success(`帳號已成功${actionName}`);
   } catch (error) {
-    errorMessage.value = getErrorMessage(error, `${actionName}帳號失敗`);
+    notify.error(getErrorMessage(error, `${actionName}帳號失敗`));
   } finally {
     updatingUserId.value = null;
   }
@@ -525,6 +540,20 @@ async function toggleStatus(user) {
 <style scoped>
 .users-page {
   padding: 0.75rem 1rem;
+}
+.users-table {
+  min-width: 820px;
+}
+
+.users-table th,
+.users-table td {
+  white-space: nowrap;
+}
+
+.users-table td:nth-child(2) {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .users-page th,
@@ -563,5 +592,100 @@ async function toggleStatus(user) {
   background-color: #0d6efd;
   border-color: #0d6efd;
   color: #fff;
+}
+.users-toolbar {
+  background: linear-gradient(90deg, #f8fafc, #ffffff);
+}
+
+.search-input-group {
+  max-width: 320px;
+}
+
+.search-input-group .input-group-text,
+.search-input-group .form-control {
+  min-height: 38px;
+}
+
+.users-page thead th {
+  color: #64748b;
+  background-color: #f8fafc;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-bottom-color: #e2e8f0;
+}
+
+.users-page tbody tr {
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.users-page tbody tr:hover {
+  background-color: #f8fbff;
+  box-shadow: inset 3px 0 0 #3b82f6;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #1d4ed8;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.user-account {
+  margin-top: 0.1rem;
+  font-size: 0.72rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-active {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.status-disabled {
+  color: #64748b;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.status-pending {
+  color: #b45309;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.status-unknown {
+  color: #475569;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.role-badge {
+  color: #0369a1;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
 }
 </style>

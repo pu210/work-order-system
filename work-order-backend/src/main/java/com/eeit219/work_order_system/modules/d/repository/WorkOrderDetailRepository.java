@@ -12,6 +12,7 @@ public interface WorkOrderDetailRepository extends JpaRepository<WorkOrder, Inte
 
     @EntityGraph(attributePaths = {
             "creator",
+            "admin",
             "assignedHandler",
             "subCategory",
             "subCategory.repairCategory",
