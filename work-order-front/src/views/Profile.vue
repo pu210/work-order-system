@@ -16,13 +16,16 @@
     <div v-else class="row g-4 align-items-stretch">
       <!-- 基本資料 -->
       <div class="col-lg-6">
-        <div class="card bg-white p-4 h-100">
+        <div class="card bg-white p-4 h-100 d-flex flex-column">
         <h5 class="fw-bold border-bottom pb-3 mb-4">
           <i class="bi bi-person-vcard me-2"></i>
           基本資料
         </h5>
 
-        <form @submit.prevent="handleProfileSubmit">
+        <form
+          class="d-flex flex-column flex-grow-1"
+          @submit.prevent="handleProfileSubmit"
+        >
           <div class="row g-3">
             <!-- 帳號 -->
             <div class="col-md-6">
@@ -106,7 +109,7 @@
             {{ profileError }}
           </div>
 
-          <div class="d-flex justify-content-end mt-4">
+          <div class="d-flex justify-content-end mt-auto pt-4">
             <button
               type="submit"
               class="btn btn-primary px-4"
@@ -126,13 +129,16 @@
 
       <!-- 修改密碼 -->
       <div class="col-lg-6">
-        <div class="card bg-white p-4 h-100">
+        <div class="card bg-white p-4 h-100 d-flex flex-column">
         <h5 class="fw-bold border-bottom pb-3 mb-4">
           <i class="bi bi-shield-lock me-2"></i>
           修改密碼
         </h5>
 
-        <form @submit.prevent="handlePasswordSubmit">
+        <form
+          class="d-flex flex-column flex-grow-1"
+          @submit.prevent="handlePasswordSubmit"
+        >
           <div class="row g-3">
             <div class="col-12">
               <label for="currentPassword" class="form-label"> 目前密碼 </label>
@@ -188,7 +194,7 @@
             {{ passwordError }}
           </div>
 
-          <div class="d-flex justify-content-end mt-4">
+          <div class="d-flex justify-content-end mt-auto pt-4">
             <button
               type="submit"
               class="btn btn-primary px-4"

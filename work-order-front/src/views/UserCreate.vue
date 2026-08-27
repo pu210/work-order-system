@@ -17,6 +17,10 @@
     <!-- 表單卡片 -->
     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden p-4">
       <form @submit.prevent="handleSubmit">
+        <h5 class="fw-bold border-bottom pb-3 mb-4">
+          <i class="bi bi-person-vcard me-2"></i>
+          基本資料
+        </h5>
         <div class="row g-3 mb-4">
           <!-- 帳號 -->
           <div class="col-md-6">
