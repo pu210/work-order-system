@@ -78,7 +78,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              電子郵件信箱 <span class="text-danger">*</span>
+              電子郵件 <span class="text-danger">*</span>
             </label>
             <input
               type="email"
