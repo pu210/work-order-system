@@ -13,9 +13,10 @@
       <div class="text-muted small">正在載入個人資料...</div>
     </div>
 
-    <template v-else>
+    <div v-else class="row g-4 align-items-stretch">
       <!-- 基本資料 -->
-      <div class="card bg-white p-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card bg-white p-4 h-100">
         <h5 class="fw-bold border-bottom pb-3 mb-4">
           <i class="bi bi-person-vcard me-2"></i>
           基本資料
@@ -120,10 +121,12 @@
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       <!-- 修改密碼 -->
-      <div class="card bg-white p-4">
+      <div class="col-lg-6">
+        <div class="card bg-white p-4 h-100">
         <h5 class="fw-bold border-bottom pb-3 mb-4">
           <i class="bi bi-shield-lock me-2"></i>
           修改密碼
@@ -200,8 +203,9 @@
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -366,7 +370,7 @@ onMounted(loadProfile);
 
 <style scoped>
 .profile-page {
-  max-width: 800px;
+  max-width: 1200px;
 }
 
 .card {
