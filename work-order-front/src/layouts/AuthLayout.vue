@@ -61,7 +61,8 @@
   color: #f04c2f;
   font-size: clamp(2rem, 7vw, 2.5rem);
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1.2;
+  padding-bottom: 0.08em;
   letter-spacing: 1.5px;
   background: linear-gradient(120deg, #ff6b35 12%, #e9342f 55%, #d92355 100%);
   background-clip: text;
