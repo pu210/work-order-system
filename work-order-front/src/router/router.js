@@ -29,6 +29,7 @@ import ResetPassword from "@/views/ResetPassword.vue";
 import InitialPassword from "@/views/InitialPassword.vue";
 import Register from "@/views/Register.vue";
 import EquipmentHistory from "@/views/EquipmentHistory.vue";
+import { useAuthStore } from "@/stores/auth.js";
 
 function rolesFor(key) {
   return NAV_ITEMS.find((item) => item.key === key)?.roles ?? [];
@@ -197,6 +198,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   let isAuthenticated = hasValidToken();
 
+  // 需要登入的頁面沒有有效 Access Token 時，嘗試刷新 Token。
   if (to.meta.requiresAuth && !isAuthenticated) {
     try {
       await refreshAccessToken();
@@ -213,12 +215,53 @@ router.beforeEach(async (to) => {
     }
   }
 
+  // 每次判斷時重新讀取，因為 refreshAccessToken() 可能已更新使用者資料。
+  const mustChangePassword =
+    isAuthenticated && getCurrentUser()?.mustChangePassword === true;
+
+  if (mustChangePassword) {
+    // 使用者從修改初始密碼頁返回登入頁，視為放棄登入。
+    // 必須先登出及清除資料，否則下面的 guestOnly 會再次導向 Dashboard。
+    if (to.name === "Login") {
+      const authStore = useAuthStore();
+
+      try {
+        await authStore.logout();
+      } catch (error) {
+        // logout() 的 finally 已清除前端登入狀態，
+        // 即使後端登出失敗，仍允許返回登入頁。
+        console.warn("登出 API 呼叫失敗", error);
+      }
+
+      return true;
+    }
+
+    // 初始密碼尚未修改時，不允許前往其他系統頁面。
+    if (to.name !== "initial-password") {
+      return {
+        name: "initial-password",
+      };
+    }
+  }
+  // 已完成初始密碼修改後，不允許再次進入初始密碼頁。
+  if (
+    isAuthenticated &&
+    !mustChangePassword &&
+    to.name === "initial-password"
+  ) {
+    return {
+      name: "Dashboard",
+    };
+  }
+
+  // 一般已登入使用者不能進入登入、註冊等訪客頁面。
   if (to.meta.guestOnly && isAuthenticated) {
     return {
       name: "Dashboard",
     };
   }
 
+  // 檢查頁面角色權限。
   if (isAuthenticated && to.meta.roles) {
     const roleCodes = getCurrentUser()?.roleCodes ?? [];
 

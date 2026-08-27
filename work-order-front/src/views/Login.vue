@@ -199,7 +199,7 @@ async function handleLogin() {
 
     authStore.login(data);
     if (data.mustChangePassword) {
-      await router.replace({ name: "initial-password" });
+      await router.push({ name: "initial-password" });
       return;
     }
     const returnUrl =
