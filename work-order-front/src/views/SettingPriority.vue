@@ -366,4 +366,54 @@ input:checked + .slider:before { transform: translateX(18px); }
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+/* ================================================================= */
+/* RWD 響應式設計 (針對平板與手機螢幕: 768px 以下) */
+/* ================================================================= */
+@media (max-width: 768px) {
+  /* 1. 調整頁面整體左右內距 */
+  .mt-page {
+    padding: 12px;
+  }
+
+  /* 2. 頂部操作列改為上下垂直排列 */
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  /* 3. 搜尋框在手機上佔滿整行 */
+  .search-box {
+    width: 100%;
+  }
+
+  .search-box input {
+    width: 100%;
+    flex: 1;
+  }
+
+  /* 4. 新增按鈕改為寬版按鈕，方便手指點擊 */
+  .btn-create {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+  }
+
+  /* 5. 表格卡片支援水平滾動，避免優先級或時數欄位被擠壓破版 */
+  .table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modern-table {
+    min-width: 500px; /* 確保表格在手機上有足夠的延展寬度 */
+  }
+
+  /* 6. 彈跳視窗 (Modal) 在手機上自動縮放兩側留白 */
+  .modal-card {
+    width: 90%;
+    margin: 0 auto;
+  }
+}
 </style>
