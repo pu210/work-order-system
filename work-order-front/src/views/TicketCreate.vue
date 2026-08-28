@@ -1,7 +1,6 @@
 <template>
   <div class="tc-page px-2 px-sm-4">
     <div class="tc-page-header">
-      <span class="tc-eyebrow">NEW TICKET</span>
       <h1 class="tc-title">建立報修單</h1>
       <p class="tc-subtitle">
         請盡量詳細描述問題，以利工程師更快掌握狀況並處理
@@ -208,7 +207,7 @@ const form = ref({
 });
 
 const filteredSubCategories = computed(() =>
-  subCategories.value.filter((s) => s.categoryId === selectedCategoryId.value)
+  subCategories.value.filter((s) => s.categoryId === selectedCategoryId.value),
 );
 
 watch(selectedCategoryId, () => {
@@ -232,7 +231,7 @@ function handleFilesSelected(event) {
   fileError.value = "";
   const files = Array.from(event.target.files || []);
   const invalid = files.find(
-    (f) => !f.type.startsWith("image/") || f.size > MAX_FILE_SIZE
+    (f) => !f.type.startsWith("image/") || f.size > MAX_FILE_SIZE,
   );
   if (invalid) {
     fileError.value = `「${invalid.name}」不是圖片或超過 10MB，請重新選擇`;
@@ -242,7 +241,7 @@ function handleFilesSelected(event) {
         id: nextFileId++,
         file,
         previewUrl: URL.createObjectURL(file),
-      }))
+      })),
     );
   }
   // 清空原生 input，讓下一次選檔（含選到同一個檔案）都會觸發 change，且不留原生「已選擇 N 個檔案」殘留字樣
@@ -272,7 +271,7 @@ async function handleSubmit() {
         contactPhone: form.value.contactPhone || undefined,
         description: form.value.description || undefined,
       },
-      selectedFiles.value.map((item) => item.file)
+      selectedFiles.value.map((item) => item.file),
     );
 
     await Swal.fire({

@@ -1,7 +1,6 @@
 <template>
   <div class="tl-page px-2 px-sm-4">
     <div class="tl-page-header">
-      <span class="tl-eyebrow">TICKETS</span>
       <h1 class="tl-title">報修單總覽</h1>
       <p class="tl-subtitle">檢視、篩選公司所有維修工單</p>
     </div>
