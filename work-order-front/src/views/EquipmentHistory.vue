@@ -1,5 +1,5 @@
 <template>
-  <div class="eh-page">
+  <div class="eh-page px-2 px-sm-4">
     <header class="eh-page-header">
       <div>
         <h1 class="eh-title">設備維修紀錄</h1>
@@ -469,8 +469,7 @@ onMounted(fetchHistory);
 
 <style scoped>
 .eh-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .eh-page-header {

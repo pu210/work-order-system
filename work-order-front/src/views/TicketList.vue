@@ -1,7 +1,8 @@
 <template>
-  <div class="tl-page">
+  <div class="tl-page px-2 px-sm-4">
     <div class="tl-page-header">
-      <h1 class="tl-title">工單列表</h1>
+      <span class="tl-eyebrow">TICKETS</span>
+      <h1 class="tl-title">報修單總覽</h1>
       <p class="tl-subtitle">檢視、篩選公司所有維修工單</p>
     </div>
 
@@ -247,11 +248,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.tl-page {
-  max-width: 1240px;
-  margin: 0 auto;
-}
-
 /* ---------------------------------------------------------------------- */
 /* 頁首 */
 /* ---------------------------------------------------------------------- */
@@ -365,11 +361,11 @@ onMounted(async () => {
 .tl-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 .tl-table th {
   text-align: left;
-  font-size: 11.5px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-faint);
