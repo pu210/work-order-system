@@ -55,6 +55,12 @@ public class Notification {
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime; // 建立時間
 
+    @jakarta.persistence.Transient
+    private String senderName; // 發送者姓名（非持久化欄位，用於前端/WS顯示）
+
+    @jakarta.persistence.Transient
+    private String workOrderNo; // 工單編號（非持久化欄位，如 WO-2026-0011）
+
     // 手動補充 Getter / Setter，防止 IDE (Lombok) 對 isRead 欄位名稱產生判斷快取誤差
     public Boolean getIsRead() {
         return isRead;

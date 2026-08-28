@@ -171,15 +171,26 @@ body {
   line-height: 1;
 }
 
-.wo-bell-dot {
+.wo-bell-dot,
+.wo-bell-badge {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-danger);
-  border: 2px solid var(--color-nav);
+  top: 0px;
+  right: -2px;
+  background-color: #dc3545;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-nav, #1e293b);
+  pointer-events: none;
 }
 
 .wo-avatar {
