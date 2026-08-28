@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eeit219.work_order_system.common.websocket.NotificationWebSocketHandler;
+import com.eeit219.work_order_system.modules.a.repository.UserRepository;
+import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.e.entity.Notification;
 import com.eeit219.work_order_system.modules.e.repository.NotificationRepository;
@@ -18,6 +20,8 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationWebSocketHandler webSocketHandler;
+    private final UserRepository userRepository;
+    private final WorkOrderRepository workOrderRepository;
 
     @Transactional
     public Notification sendNotification(Integer receiverId, Integer senderId, Integer workOrderId, String title,
@@ -31,23 +35,45 @@ public class NotificationService {
         notification.setStatus(status); // 當時的工單狀態
         notification.setIsRead(false); // 預設為未讀
         // 1. 先存入資料庫，拿到包含流水號 ID 的成果 saved
-Notification saved = notificationRepository.save(notification);
-// 2. 拿這筆 saved 資料去發送 WebSocket 實時推播
-webSocketHandler.sendNotificationToUser(receiverId, saved);
-// 3. 最後把 saved 成果 return 交出去！
-return saved;
+        Notification saved = notificationRepository.save(notification);
+        populateExtraInfo(saved);
+        // 2. 拿這筆 saved 資料去發送 WebSocket 實時推播
+        webSocketHandler.sendNotificationToUser(receiverId, saved);
+        // 3. 最後把 saved 成果 return 交出去！
+        return saved;
     }
 
-    // 你原本寫好的查詢方法
+    // 查詢使用者專屬通知列表
     public List<Notification> getNotificationsByReceiverId(Integer receiverId) {
-        return notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
+        List<Notification> list = notificationRepository.findByReceiverIdOrderByNotificationIdDesc(receiverId);
+        list.forEach(this::populateExtraInfo);
+        return list;
     }
+
     @Transactional
     public Notification markAsRead(Integer notificationId){
         Notification notification = notificationRepository.findById(notificationId)
         .orElseThrow
         (() -> new RuntimeException("通知不存在"+notificationId));
         notification.setIsRead(true);
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        populateExtraInfo(saved);
+        return saved;
+    }
+
+    private void populateExtraInfo(Notification notification) {
+        if (notification == null) return;
+
+        if (notification.getSenderId() != null) {
+            userRepository.findById(notification.getSenderId())
+                    .ifPresent(user -> notification.setSenderName(user.getName() != null && !user.getName().isBlank() ? user.getName() : user.getAccount()));
+        } else {
+            notification.setSenderName("系統");
+        }
+
+        if (notification.getWorkOrderId() != null) {
+            workOrderRepository.findById(notification.getWorkOrderId())
+                    .ifPresent(wo -> notification.setWorkOrderNo(wo.getWorkOrderNo()));
+        }
     }
 }                                                                                                                                                                                                                                             
