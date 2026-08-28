@@ -105,10 +105,13 @@ instance.interceptors.response.use(
         if (window.location.pathname !== "/account/initial-password") {
           window.location.assign("/account/initial-password");
         }
-      } else if (!config.skipForbiddenRedirect) {
+      } else if (config.forceForbiddenRedirect) {
         if (window.location.pathname !== "/forbidden") {
           window.location.assign("/forbidden");
         }
+      } else if (!config.skipGlobalError) {
+        const msg = error.response?.data?.message || getErrorMessage(error) || "您無權限執行此操作";
+        notify.error(msg);
       }
 
       return Promise.reject(error);

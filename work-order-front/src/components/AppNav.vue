@@ -21,8 +21,10 @@
       <div class="wo-nav-right">
         <router-link to="/notifications" class="wo-bell" title="通知中心">
           <i class="bi bi-bell"></i>
-          <!-- 綁定 Pinia Store 的 hasUnread，只要有未讀通知就亮起紅點 -->
-          <span v-if="notificationStore.hasUnread" class="wo-bell-dot"></span>
+          <!-- 顯示紅底方形框框未讀訊息數量 -->
+          <span v-if="notificationStore.unreadCount > 0" class="wo-bell-badge">
+            {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
+          </span>
         </router-link>
 
         <router-link to="/profile" class="wo-user-info" title="個人資料設定">
@@ -127,6 +129,8 @@ async function handleLogout() {
     return;
   }
 
+  localStorage.removeItem('google_access_token');
+  localStorage.removeItem('google_token_expires_at');
   await authStore.logout();
   await router.replace({ name: "Login" });
 }

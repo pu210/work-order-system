@@ -137,7 +137,6 @@ const routes = [
         path: "announcements",
         name: "announcements",
         component: Announcements,
-        meta: { roles: rolesFor("announcements") },
       },
       {
         path: "user-management",
@@ -220,9 +219,17 @@ router.beforeEach(async (to) => {
   }
 
   if (isAuthenticated && to.meta.roles) {
-    const roleCodes = getCurrentUser()?.roleCodes ?? [];
+    const rawRoles = getCurrentUser()?.roleCodes ?? [];
+    const userRoles = rawRoles.map((r) => String(r).replace(/^ROLE_/, "").toUpperCase());
 
-    const allowed = to.meta.roles.some((role) => roleCodes.includes(role));
+    const allowed = to.meta.roles.some((role) => {
+      const cleanRole = String(role).replace(/^ROLE_/, "").toUpperCase();
+      return (
+        userRoles.includes(cleanRole) ||
+        (cleanRole === "HANDLER" && userRoles.includes("ENGINEER")) ||
+        (cleanRole === "ENGINEER" && userRoles.includes("HANDLER"))
+      );
+    });
 
     if (!allowed) {
       return {

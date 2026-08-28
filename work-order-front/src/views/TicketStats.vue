@@ -3,8 +3,8 @@
     <!-- 1. 頁面頂部標題列 -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
       <div>
-        <h2 class="h4 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-          <i class="bi bi-pie-chart-fill text-primary"></i> 工單統計報表中心
+        <h2 class="h4 fw-bold text-dark mb-1">
+          統計報表
         </h2>
         <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與占比統計</p>
       </div>
@@ -40,9 +40,9 @@
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <div class="text-muted small mb-1 fw-medium">
-                {{ getDimensionTitle() }}總數
+                {{ getDimensionTotalCardTitle() }}
               </div>
-              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">類</span></div>
+              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
             </div>
             <div class="icon-avatar bg-success-subtle text-success rounded-circle p-3">
               <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
@@ -472,6 +472,25 @@ const getDimensionTitle = () => {
     default:
       return '報修大分類'
   }
+}
+
+// 取得當前總數卡片標題
+const getDimensionTotalCardTitle = () => {
+  if (filterDimension.value === 'ENGINEER_KPI') {
+    return '工程師人數'
+  }
+  return `${getDimensionTitle()}總數`
+}
+
+// 取得當前總數卡片單位
+const getDimensionUnit = () => {
+  if (filterDimension.value === 'ENGINEER_KPI' || filterDimension.value === 'CREATOR') {
+    return '人'
+  }
+  if (filterDimension.value === 'STATUS' || filterDimension.value === 'PRIORITY') {
+    return '種'
+  }
+  return '類'
 }
 
 // 取得當前最高項目卡片標題

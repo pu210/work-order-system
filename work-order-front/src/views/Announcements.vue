@@ -3,12 +3,15 @@
     <!-- 頁面標題區塊 -->
     <div class="page-header d-flex justify-content-between align-items-end mb-4">
       <div>
-        <span class="eyebrow text-primary text-uppercase fw-bold">ANNOUNCEMENTS</span>
         <h1 class="h3 fw-bold text-dark mb-1">系統公告</h1>
         <p class="text-muted small mb-0">重要通知、系統維護與功能更新</p>
       </div>
-      <button class="btn btn-primary" @click="showAddModal = true">
-        <i class="bi bi-plus-lg me-1"></i> + 發布公告
+      <button 
+        v-if="authStore.hasRole('ADMIN')" 
+        class="btn btn-primary" 
+        @click="showAddModal = true"
+      >
+        <i class="bi bi-plus-lg me-1"></i> 發布公告
       </button>
     </div>
 
@@ -33,8 +36,8 @@
               <!-- 公告標題：Vue 3 雙大括號 {{ }} 天生防注入攻擊 -->
               <h3 class="h5 fw-bold text-dark mb-0">{{ a.title }}</h3>
             </div>
-            <!-- 操作按鈕區 (編輯與刪除) -->
-            <div class="d-flex gap-2">
+            <!-- 操作按鈕區 (編輯與刪除：僅管理員可見) -->
+            <div v-if="authStore.hasRole('ADMIN')" class="d-flex gap-2">
               <button class="btn btn-outline-primary btn-sm" @click="openEditModal(a)">
                 編輯
               </button>
@@ -51,7 +54,7 @@
 
           <!-- 建立資訊 -->
           <div class="text-muted small">
-            發布人：管理者 (ID: {{ a.createdBy }}) · 
+            發布人：管理者 (名稱: {{ getPublisherName(a.createdBy) }}) · 
             {{ formatTime(a.createdTime) }}
           </div>
         </div>
@@ -194,17 +197,51 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import Swal from 'sweetalert2'
+import { useAuthStore } from '@/stores/auth.js'
 import {
   getAnnouncements,
   createAnnouncement as apiCreateAnnouncement,
   updateAnnouncement as apiUpdateAnnouncement,
   deleteAnnouncement as apiDeleteAnnouncement
 } from '@/api/announcement.js'
+import { getUsers } from '@/api/user.js'
+
+const authStore = useAuthStore()
 
 // 響應式狀態變數
 const announcements = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+
+// 使用者對照 Map (userId -> name)
+const userMap = ref({})
+
+const loadUsersMap = async () => {
+  // 非管理員無權限呼叫 /api/users，避免觸發 403 轉址到 /forbidden
+  if (!authStore.hasRole('ADMIN')) return
+
+  try {
+    const res = await getUsers({ size: 1000 })
+    const list = res?.content || (Array.isArray(res) ? res : [])
+    const map = {}
+    list.forEach(u => {
+      if (u.userId != null) {
+        map[u.userId] = u.name || u.account
+      }
+    })
+    userMap.value = map
+  } catch (err) {
+    console.warn('載入使用者名單失敗，使用備用對照', err)
+  }
+}
+
+const getPublisherName = (createdBy) => {
+  if (userMap.value[createdBy]) {
+    return userMap.value[createdBy]
+  }
+  if (createdBy === 1) return '系統管理員'
+  return createdBy ? `使用者 ${createdBy}` : '管理者'
+}
 
 // 1. 新增用表單
 const form = reactive({
@@ -344,6 +381,7 @@ const deleteAnn = async (id) => {
 
 // 組件載入完畢自動呼叫
 onMounted(() => {
+  loadUsersMap()
   loadAnnouncements()
 })
 </script>

@@ -5,6 +5,7 @@ export function getUsers(params) {
     .get("/api/users", {
       params,
       skipGlobalError: true,
+      skipForbiddenRedirect: true,
     })
     .then((res) => res.data.data);
 }

@@ -3,22 +3,9 @@
     <!-- 頁面標題與問候區塊 -->
     <div class="page-header dashboard-header mb-4">
       <div class="dashboard-intro">
-        <span class="eyebrow text-primary text-uppercase fw-bold">WELCOME BACK</span>
         <h1 class="h3 fw-bold text-dark mb-1">哈囉！{{ userDisplayName }}</h1>
-        <p class="text-muted small mb-0">今天是 {{ todayFormatted }}，以下是今日工單狀況與 Google 行事曆總覽。</p>
+        <p class="text-muted small mb-0">今天日期是{{ todayFormatted }}，以下是工單狀況與行事曆（工單與Google行程）總覽。</p>
       </div>
-
-      <!-- Google 日曆綁定按鈕 -->
-      <button 
-        v-if="!isGoogleConnected" 
-        class="btn btn-outline-danger shadow-sm fw-bold calendar-connect-btn"
-        @click="connectGoogleCalendar"
-      >
-        <i class="bi bi-google me-2"></i> 🔗 綁定 Google 日曆
-      </button>
-      <button v-else class="btn btn-success shadow-sm fw-bold calendar-connect-btn" disabled>
-        <i class="bi bi-check-circle-fill me-2"></i> ✅ 已成功同步 Google 日曆 ({{ googleEvents.length }} 筆行程)
-      </button>
     </div>
 
     <!-- 4 大 KPI 卡片區塊 (真實 SQL Server 資料庫數據) -->
@@ -26,48 +13,52 @@
       <!-- 卡片 1：待審核工單 (PENDING_REVIEW) -->
       <div class="col-md-3 d-flex">
         <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
-          <div class="text-muted small fw-bold mb-1">待審核工單</div>
+          <div class="text-dark small fw-bold mb-1">待審核工單</div>
           <div class="h2 fw-bold text-dark mb-0">
             <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
-            <span v-else>{{ kpiStats.pendingReviewCount }}</span> 筆
+            <span v-else>{{ kpiStats.pendingReviewCount }}</span>
+            <span class="fs-6 fw-normal text-dark ms-1">筆</span>
           </div>
-          <div class="small text-danger mt-1">需儘速審核與指派工程師</div>
+          <div class="small text-dark mt-1">需儘速審核與指派工程師</div>
         </div>
       </div>
 
       <!-- 卡片 2：處理中工單 (IN_PROGRESS) -->
       <div class="col-md-3 d-flex">
         <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
-          <div class="text-muted small fw-bold mb-1">處理中工單</div>
-          <div class="h2 fw-bold text-primary mb-0">
-            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-primary me-1"></span>
-            <span v-else>{{ kpiStats.inProgressCount }}</span> 筆
+          <div class="text-dark small fw-bold mb-1">處理中工單</div>
+          <div class="h2 fw-bold text-dark mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
+            <span v-else>{{ kpiStats.inProgressCount }}</span>
+            <span class="fs-6 fw-normal text-dark ms-1">筆</span>
           </div>
-          <div class="small text-muted mt-1">工程師積極維修中</div>
+          <div class="small text-dark mt-1">工程師積極維修中</div>
         </div>
       </div>
 
       <!-- 卡片 3：待驗收工單 (PENDING_USER_ACCEPTANCE + PENDING_ADMIN_ACCEPTANCE) -->
       <div class="col-md-3 d-flex">
         <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
-          <div class="text-muted small fw-bold mb-1">待驗收工單</div>
-          <div class="h2 fw-bold text-warning mb-0">
-            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-warning me-1"></span>
-            <span v-else>{{ kpiStats.pendingAcceptanceCount }}</span> 筆
+          <div class="text-dark small fw-bold mb-1">待驗收工單</div>
+          <div class="h2 fw-bold text-dark mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
+            <span v-else>{{ kpiStats.pendingAcceptanceCount }}</span>
+            <span class="fs-6 fw-normal text-dark ms-1">筆</span>
           </div>
-          <div class="small text-warning mt-1">等待使用者/管理員確認驗收</div>
+          <div class="small text-dark mt-1">等待使用者/管理員確認驗收</div>
         </div>
       </div>
 
-      <!-- 卡片 4：本月完成結案工單 (COMPLETED) -->
+      <!-- 卡片 4：已完成工單 (COMPLETED) -->
       <div class="col-md-3 d-flex">
         <div class="card card-pad shadow-sm border-0 bg-white h-100 w-100">
-          <div class="text-muted small fw-bold mb-1">本月完成結案</div>
-          <div class="h2 fw-bold text-success mb-0">
-            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-success me-1"></span>
-            <span v-else>{{ kpiStats.completedCount }}</span> 筆
+          <div class="text-dark small fw-bold mb-1">已完成工單</div>
+          <div class="h2 fw-bold text-dark mb-0">
+            <span v-if="kpiStats.loading" class="spinner-border spinner-border-sm text-secondary me-1"></span>
+            <span v-else>{{ kpiStats.completedCount }}</span>
+            <span class="fs-6 fw-normal text-dark ms-1">筆</span>
           </div>
-          <div class="small text-success mt-1">工單成功修復並歸檔</div>
+          <div class="small text-dark mt-1">工單成功修復並歸檔</div>
         </div>
       </div>
     </div>
@@ -75,13 +66,33 @@
     <!-- 主要內容兩欄版面：左側 FullCalendar 行事曆 + 右側最新公告 -->
     <div class="row g-3">
       <!-- 左欄：📅 FullCalendar + Google 日曆整合 -->
-      <div class="col-lg-8">
+      <div class="col-lg-9">
         <div class="card card-pad shadow-sm border-0 bg-white h-100">
           <div class="calendar-card-header">
             <h5 class="fw-bold mb-0">📅 整合行事曆</h5>
-            <div class="calendar-legends">
-              <span class="badge bg-primary">系統工單</span>
-              <span class="badge bg-success">Google 行程</span>
+            <div class="calendar-legends d-flex align-items-center gap-2">
+              <span class="badge legend-system">系統工單</span>
+              
+              <!-- 未綁定時：直接取代 Google 行程 標籤，放在 系統工單 的右手邊 -->
+              <button 
+                v-if="!isGoogleConnected" 
+                class="badge legend-google legend-google-btn border-0 shadow-2xs"
+                @click="connectGoogleCalendar"
+                style="cursor: pointer;"
+              >
+                <i class="bi bi-google me-1"></i> 按我綁定GOOGLE日曆
+              </button>
+
+              <!-- 綁定成功後：直接取代 Google 行程 標籤，放在 系統工單 的右手邊 -->
+              <button 
+                v-else 
+                class="badge legend-google legend-google-btn border-0 shadow-2xs"
+                @click="disconnectGoogleCalendar"
+                title="點擊可解除 Google 日曆綁定"
+                style="cursor: pointer;"
+              >
+                ✅ 已同步 Google 日曆 ({{ googleEvents.length }} 筆)
+              </button>
             </div>
           </div>
 
@@ -93,7 +104,7 @@
       </div>
 
       <!-- 右欄：📢 最新公告欄 -->
-      <div class="col-lg-4">
+      <div class="col-lg-3">
         <div class="card card-pad shadow-sm border-0 bg-white h-100">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0">📢 最新公告</h5>
@@ -150,6 +161,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import zhTwLocale from '@fullcalendar/core/locales/zh-tw'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -312,14 +324,12 @@ const loadKpiStats = async () => {
     realWorkOrderEvents.value = userFilteredTickets.map(t => {
       const rawTime = t.createdTime || t.created_time || t.dueTime || t.due_time
       const startDate = formatFullCalendarDate(rawTime) || todayYMD
-      const color = STATUS_COLOR_MAP[t.status] || '#2F6FED'
 
       return {
         id: `ticket-${t.workOrderId || t.work_order_id}`,
         title: t.title || '未命名工單',
         start: startDate,
-        backgroundColor: color,
-        borderColor: color,
+        classNames: ['event-system-ticket'],
         extendedProps: {
           ticket: t
         }
@@ -358,17 +368,16 @@ const loadAnnouncements = async () => {
 const calendarOptions = ref({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
+  locale: zhTwLocale,
   displayEventTime: false,
   height: 520,
   headerToolbar: {
-    left: 'prev,today,next',
-    center: 'title',
-    right: 'dayGridMonth,timeGridWeek'
+    left: 'today',
+    center: 'prev,title,next',
+    right: ''
   },
   buttonText: {
-    today: '今天',
-    month: '月視圖',
-    week: '週視圖'
+    today: '本月'
   },
   eventTimeFormat: {
     hour: '2-digit',
@@ -376,6 +385,7 @@ const calendarOptions = ref({
     hour12: false
   },
   dayMaxEvents: 2,
+  dayCellContent: (arg) => arg.dayNumberText.replace('日', ''),
   moreLinkText: (count) => `+${count}`,
   events: [],
   eventClick: (info) => {
@@ -429,9 +439,15 @@ const connectGoogleCalendar = () => {
     scope: 'https://www.googleapis.com/auth/calendar.events',
     callback: async (response) => {
       if (response.access_token) {
-        Swal.fire('成功', 'Google 日曆綁定成功！同步行程中...', 'success')
+        // 💾 儲存 Access Token 與過期時間至 localStorage
+        const expiresIn = response.expires_in ? Number(response.expires_in) : 3600
+        const expiresAt = Date.now() + expiresIn * 1000
+        localStorage.setItem('google_access_token', response.access_token)
+        localStorage.setItem('google_token_expires_at', String(expiresAt))
+
         isGoogleConnected.value = true
-        await fetchGoogleCalendarEvents(response.access_token)
+        Swal.fire('成功', 'Google 日曆綁定成功！同步行程中...', 'success')
+        await fetchGoogleCalendarEvents(response.access_token, false)
       }
     }
   })
@@ -439,8 +455,30 @@ const connectGoogleCalendar = () => {
   client.requestAccessToken()
 }
 
+// 解除 Google 日曆綁定
+const disconnectGoogleCalendar = async () => {
+  const result = await Swal.fire({
+    title: '確定要解除 Google 日曆綁定嗎？',
+    text: '解除後將暫停於行事曆中顯示 Google 私人行程。',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: '解除綁定',
+    cancelButtonText: '取消',
+    confirmButtonColor: '#dc3545'
+  })
+
+  if (result.isConfirmed) {
+    localStorage.removeItem('google_access_token')
+    localStorage.removeItem('google_token_expires_at')
+    isGoogleConnected.value = false
+    googleEvents.value = []
+    updateCalendarEvents()
+    Swal.fire('已解除', '已成功解除 Google 日曆綁定', 'success')
+  }
+}
+
 // 向 Google Calendar API 抓取行程 (帶入時間範圍與展開重複行程參數)
-const fetchGoogleCalendarEvents = async (accessToken) => {
+const fetchGoogleCalendarEvents = async (accessToken, isSilent = false) => {
   try {
     const currentDate = new Date()
     const timeMin = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1).toISOString()
@@ -476,25 +514,53 @@ const fetchGoogleCalendarEvents = async (accessToken) => {
         start: startDate,
         end: endDate,
         allDay: !!item.start?.date,
-        backgroundColor: '#198754',
-        borderColor: '#198754'
+        classNames: ['event-google-calendar']
       }
     })
 
     // 動態更新包含 Google 日曆行程的總事件陣列
     updateCalendarEvents()
 
-    Swal.fire('同步完成', `已成功為您載入近期 ${googleEvents.value.length} 筆 Google 日曆私人行程！`, 'success')
+    if (!isSilent) {
+      Swal.fire('同步完成', `已成功為您載入近期 ${googleEvents.value.length} 筆 Google 日曆私人行程！`, 'success')
+    }
   } catch (error) {
     console.error('❌ 抓取 Google 日曆失敗：', error)
-    Swal.fire('錯誤', '無法抓取 Google 日曆行程，請確認權限', 'error')
+    // 若 Token 無效或已過期，清除暫存狀態
+    localStorage.removeItem('google_access_token')
+    localStorage.removeItem('google_token_expires_at')
+    isGoogleConnected.value = false
+    googleEvents.value = []
+    updateCalendarEvents()
+
+    if (!isSilent) {
+      Swal.fire('錯誤', 'Google 日曆授權已過期或無法抓取行程，請重新綁定！', 'error')
+    }
+  }
+}
+
+// 自動檢查是否有暫存且未過期的 Google 存取權杖
+const checkSavedGoogleToken = async () => {
+  const savedToken = localStorage.getItem('google_access_token')
+  const savedExpiresAt = localStorage.getItem('google_token_expires_at')
+
+  if (savedToken && savedExpiresAt) {
+    if (Date.now() < Number(savedExpiresAt)) {
+      isGoogleConnected.value = true
+      await fetchGoogleCalendarEvents(savedToken, true) // 靜默同步載入行程
+    } else {
+      localStorage.removeItem('google_access_token')
+      localStorage.removeItem('google_token_expires_at')
+      isGoogleConnected.value = false
+    }
   }
 }
 
 // 組件掛載 (頁面開啟時自動執行)
 onMounted(() => {
-  loadAnnouncements() // 載入公告列表
-  loadKpiStats()      // 載入 4 大 KPI 統計數據並渲染真實工單至 FullCalendar
+  loadAnnouncements()     // 載入公告列表
+  loadKpiStats()          // 載入 4 大 KPI 統計數據並渲染真實工單至 FullCalendar
+  checkSavedGoogleToken() // 自動還原已綁定的 Google 日曆行程
 })
 </script>
 
@@ -517,8 +583,24 @@ onMounted(() => {
   min-width: 0;
 }
 .calendar-connect-btn {
-  flex-shrink: 0;
-  white-space: nowrap;
+  background-color: #d1e7dd !important;
+  color: #0f5132 !important;
+  border: 1px solid #badbcc !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+.calendar-connect-btn:hover {
+  background-color: #c1e2d3 !important;
+  color: #08342a !important;
+  border-color: #a3d7c0 !important;
 }
 .calendar-card-header {
   display: flex;
@@ -532,19 +614,139 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
 }
+.legend-system,
+.legend-google {
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+.legend-system {
+  background-color: #cfe2ff;
+  color: #084298;
+  border: 1px solid #b6d4fe;
+}
+.legend-google {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+.legend-google-btn {
+  transition: all 0.2s ease;
+}
+.legend-google-btn:hover {
+  background-color: #c1e2d3 !important;
+  color: #08342a !important;
+}
 .fullcalendar-wrap {
+  width: 100%;
   min-height: 520px;
 }
 :deep(.fc) {
+  width: 100% !important;
   font-family: inherit;
 }
-:deep(.fc-button-primary) {
+:deep(.fc-view-harness),
+:deep(.fc-scrollgrid),
+:deep(.fc-col-header),
+:deep(.fc-col-header table),
+:deep(.fc-scrollgrid-section-header table),
+:deep(.fc-scrollgrid-section-body table),
+:deep(.fc-daygrid-body),
+:deep(.fc-scrollgrid-sync-table) {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+:deep(.fc-header-toolbar) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 1rem !important;
+}
+:deep(.fc-header-toolbar .fc-toolbar-chunk:nth-child(2)) {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: transparent !important;
+  color: #212529 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  gap: 6px !important;
+}
+:deep(.fc-header-toolbar .fc-toolbar-title) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
+  margin: 0 6px !important;
+  padding: 0 !important;
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  color: #212529 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+:deep(.fc-col-header-cell-cushion),
+:deep(.fc-daygrid-day-number),
+:deep(.fc-daygrid-more-link) {
+  color: #212529 !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+}
+:deep(.fc-today-button) {
   background-color: #2F6FED !important;
   border-color: #2F6FED !important;
 }
-:deep(.fc-button-primary:hover) {
+:deep(.fc-today-button:hover) {
   background-color: #1F4FBF !important;
   border-color: #1F4FBF !important;
+}
+:deep(.fc .fc-button-primary.fc-prev-button),
+:deep(.fc .fc-button-primary.fc-next-button),
+:deep(.fc-prev-button),
+:deep(.fc-next-button) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #212529 !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  height: 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  cursor: pointer !important;
+  transition: opacity 0.2s ease !important;
+}
+:deep(.fc .fc-button-primary.fc-prev-button:hover),
+:deep(.fc .fc-button-primary.fc-next-button:hover),
+:deep(.fc .fc-button-primary.fc-prev-button:focus),
+:deep(.fc .fc-button-primary.fc-next-button:focus),
+:deep(.fc .fc-button-primary.fc-prev-button:active),
+:deep(.fc .fc-button-primary.fc-next-button:active),
+:deep(.fc-prev-button:hover),
+:deep(.fc-next-button:hover),
+:deep(.fc-prev-button:focus),
+:deep(.fc-next-button:focus),
+:deep(.fc-prev-button:active),
+:deep(.fc-next-button:active) {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #000000 !important;
+  opacity: 0.65 !important;
 }
 :deep(.fc-daygrid-event) {
   display: flex;
@@ -554,12 +756,19 @@ onMounted(() => {
   margin-top: 2px;
   padding: 2px 4px;
   overflow: hidden;
-  border: 1px solid var(--color-border) !important;
   border-radius: 4px;
-  background: #fff !important;
-  color: var(--color-text) !important;
   font-size: clamp(0.62rem, 1vw, 0.75rem);
   line-height: 1.25;
+}
+:deep(.event-system-ticket) {
+  background-color: #cfe2ff !important;
+  border: 1px solid #b6d4fe !important;
+  color: #084298 !important;
+}
+:deep(.event-google-calendar) {
+  background-color: #d1e7dd !important;
+  border: 1px solid #badbcc !important;
+  color: #0f5132 !important;
 }
 :deep(.fc-daygrid-event .fc-event-main) {
   display: flex;
@@ -621,32 +830,16 @@ onMounted(() => {
   }
 
   :deep(.fc .fc-header-toolbar) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px 12px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px;
     margin-bottom: 14px;
   }
 
-  :deep(.fc .fc-toolbar-chunk:nth-child(1)) {
-    grid-row: 2;
-    grid-column: 1;
-    justify-self: start;
-  }
-
-  :deep(.fc .fc-toolbar-chunk:nth-child(2)) {
-    grid-row: 1;
-    grid-column: 1 / -1;
-    justify-self: center;
-  }
-
-  :deep(.fc .fc-toolbar-chunk:nth-child(3)) {
-    grid-row: 2;
-    grid-column: 2;
-    justify-self: end;
-  }
-
   :deep(.fc .fc-toolbar-title) {
-    font-size: clamp(1.15rem, 5vw, 1.45rem);
+    font-size: clamp(1rem, 4vw, 1.25rem) !important;
     line-height: 1.2;
     white-space: nowrap;
   }
