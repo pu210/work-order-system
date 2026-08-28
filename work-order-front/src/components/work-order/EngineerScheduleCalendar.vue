@@ -3,7 +3,6 @@
     <div class="schedule-header">
       <div>
         <h6 id="engineer-schedule-title" class="mb-1">工程師未結案工單行事曆</h6>
-        <p class="mb-0 text-muted small">依工單完成期限顯示，不包含私人 Google 行程。</p>
       </div>
       <span class="badge text-bg-light">{{ events.length }} 筆</span>
     </div>
@@ -81,13 +80,16 @@ const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, interactionPlugin],
   locale: zhTwLocale,
   initialView: "dayGridMonth",
-  height: 420,
+  height: "auto",
   headerToolbar: {
-    left: "prev,next",
-    center: "title",
+    left: "",
+    center: "prev title next",
     right: "today",
   },
   buttonText: { today: "今天" },
+  dayCellContent(info) {
+    return info.dayNumberText.replace(/日$/, "");
+  },
   displayEventTime: true,
   eventTimeFormat: {
     hour: "2-digit",
@@ -208,6 +210,17 @@ watch(() => props.handlerId, fetchHandlerTickets, { immediate: true });
 :deep(.fc) { font-size: 0.78rem; }
 :deep(.fc .fc-toolbar-title) { font-size: 1rem; }
 :deep(.fc .fc-button) { padding: 0.3rem 0.55rem; font-size: 0.75rem; }
+:deep(.fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2)) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+:deep(.fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) > *) {
+  margin: 0;
+}
+:deep(.fc .fc-day-sat .fc-daygrid-day-number) {
+  padding-right: 0.75rem;
+}
 :deep(.fc .fc-daygrid-event) {
   border: 0;
   background: transparent;

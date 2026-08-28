@@ -197,7 +197,6 @@
                   v-if="!isClosed(ticket)"
                   :class="['priority-pill', priorityClass(ticket.priorityName)]"
                 >
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i>
                   {{ ticket.priorityName || '未設定優先級' }}
                 </span>
                 <span v-if="!isClosed(ticket)" :class="['overdue-pill', overdueClass(ticket)]">
@@ -570,10 +569,7 @@ onMounted(loadTickets);
 .work-order-no { color: #67758a; font-size: 0.88rem; }
 .card-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 0.4rem; }
 .status-pill, .priority-pill, .overdue-pill { display: inline-flex; align-items: center; padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-.priority-pill { border: 1px solid transparent; border-radius: 6px; }
-.priority-critical, .priority-high { border-color: #ffc9c9; background: #fff0f0; color: #e13c3c; }
-.priority-medium { border-color: #ffe1a8; background: #fff8e7; color: #b66d00; }
-.priority-low { border-color: #d8e1ec; background: #f4f7fa; color: #65758a; }
+.priority-pill { border: 1px solid #d8e1ec; border-radius: 6px; background: #fff; color: #65758a; }
 .overdue-danger { background: #ffe1e1; color: #c92a2a; }
 .overdue-ok { background: #dcf7e8; color: #198754; }
 .overdue-neutral { background: #eef1f5; color: #6b7280; }

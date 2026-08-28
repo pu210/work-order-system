@@ -31,7 +31,6 @@
     <template v-else-if="equipment">
       <section class="eh-equipment-card" aria-labelledby="equipment-name">
         <div class="eh-equipment-heading">
-          <div class="eh-equipment-icon" aria-hidden="true">EQ</div>
           <div>
             <div class="eh-equipment-meta">
               <span class="eh-target-no">{{ equipment.targetNo }}</span>
@@ -92,8 +91,6 @@
                 <th>工單編號</th>
                 <th>標題</th>
                 <th>類別</th>
-                <th>優先級</th>
-                <th>狀態</th>
                 <th>報修人</th>
                 <th>負責工程師</th>
                 <th>完成時間</th>
@@ -112,12 +109,6 @@
                 <td class="eh-mono">{{ workOrder.workOrderNo }}</td>
                 <td class="eh-ticket-title">{{ workOrder.title }}</td>
                 <td>{{ workOrder.categoryName || "—" }}</td>
-                <td>{{ workOrder.priorityName || "—" }}</td>
-                <td>
-                  <span :class="['eh-badge', statusBadgeClass(workOrder.status)]">
-                    {{ statusLabel(workOrder.status) }}
-                  </span>
-                </td>
                 <td>{{ workOrder.creatorName || "—" }}</td>
                 <td>{{ workOrder.assignedHandlerName || "尚未指派" }}</td>
                 <td class="eh-nowrap">{{ formatTime(workOrder.completedTime) }}</td>
@@ -223,7 +214,6 @@ import { useRoute, useRouter } from "vue-router";
 import QRCode from "qrcode";
 
 import { getEquipmentHistory } from "@/api/equipmentHistory.js";
-import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
 
 const PAGE_SIZE = 20;
 const periodOptions = [
@@ -504,20 +494,6 @@ onMounted(fetchHistory);
   min-width: 240px;
 }
 
-.eh-equipment-icon {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .eh-equipment-meta {
   display: flex;
   align-items: center;
@@ -715,16 +691,6 @@ onMounted(fetchHistory);
 }
 
 .eh-nowrap {
-  white-space: nowrap;
-}
-
-.eh-badge {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 700;
-  line-height: 1.6;
   white-space: nowrap;
 }
 
