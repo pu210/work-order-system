@@ -16,7 +16,11 @@ export function updateUserStatus(userId, status) {
 }
 
 export function createUser(payload) {
-  return api.post("/api/users", payload).then((res) => res.data.data);
+  return api
+    .post("/api/users", payload, {
+      skipGlobalError: true,
+    })
+    .then((res) => res.data.data);
 }
 
 export function reviewUserRegistration(userId, payload) {
