@@ -103,11 +103,11 @@ instance.interceptors.response.use(
     if (status === 403) {
       if (code === "PASSWORD_CHANGE_REQUIRED") {
         if (window.location.pathname !== "/account/initial-password") {
-          window.location.assign("/account/initial-password");
+          window.location.replace("/account/initial-password");
         }
       } else if (config.forceForbiddenRedirect) {
         if (window.location.pathname !== "/forbidden") {
-          window.location.assign("/forbidden");
+          window.location.replace("/forbidden");
         }
       } else if (!config.skipGlobalError) {
         const msg = error.response?.data?.message || getErrorMessage(error) || "您無權限執行此操作";
