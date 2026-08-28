@@ -1,11 +1,11 @@
 <template>
-  <div class="ticket-stats-container container-fluid py-4 px-3 px-md-4">
+  <div class="ticket-stats-container">
     <!-- 1. 頁面頂部標題列 -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
       <div>
-        <h2 class="h4 fw-bold text-dark mb-1">
+        <h1 class="h3 fw-bold text-dark mb-1">
           統計報表
-        </h2>
+        </h1>
         <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與占比統計</p>
       </div>
 
@@ -87,80 +87,8 @@
       </div>
     </div>
 
-    <!-- 3. 客製化條件篩選控制列 (含 5 大維度快捷 Tab 按鈕) -->
+    <!-- 3. 客製化條件篩選控制列 -->
     <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
-      <div class="card-header bg-light bg-opacity-75 py-2.5 px-3 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-muted small fw-medium">資料來源：</span>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal">
-              <i class="bi bi-database me-1"></i>設備報修單
-            </span>
-          </div>
-
-          <!-- 5 大統計維度快速頁籤 Tab 按鈕 -->
-          <div class="btn-group rounded-pill p-1 bg-white border shadow-2xs flex-wrap">
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'CATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'CATEGORY'"
-            >
-              <i class="bi bi-grid-fill me-1"></i> 大分類
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'SUBCATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'SUBCATEGORY'"
-            >
-              <i class="bi bi-diagram-3-fill me-1"></i> 細項分類
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'STATUS' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'STATUS'"
-            >
-              <i class="bi bi-flag-fill me-1"></i> 依狀態
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'CREATOR' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'CREATOR'"
-            >
-              <i class="bi bi-person-fill me-1"></i> 依建立者
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'PRIORITY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'PRIORITY'"
-            >
-              <i class="bi bi-exclamation-triangle-fill me-1"></i> 依優先級
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'ENGINEER_KPI' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'ENGINEER_KPI'"
-            >
-              <i class="bi bi-speedometer2 me-1"></i> 工程師 KPI
-            </button>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 text-nowrap" @click="resetFilters">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>重置篩選
-          </button>
-          <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 text-nowrap" @click="applyFilters">
-            套用篩選
-          </button>
-        </div>
-      </div>
-
       <div class="card-body p-3 bg-light-subtle">
         <div class="row g-2 align-items-center">
           <div class="col-12 col-sm-6 col-md-3">
@@ -183,8 +111,8 @@
                 <option value="SUBCATEGORY">按細項分類</option>
                 <option value="STATUS">依工單狀態</option>
                 <option value="CREATOR">依工單建立者</option>
-                <option value="PRIORITY">依優先級 (Priority)</option>
-                <option value="ENGINEER_KPI">依工程師處理 KPI (Engineer KPI)</option>
+                <option value="PRIORITY">依優先級</option>
+                <option value="ENGINEER_KPI">依工程師 KPI</option>
               </select>
             </div>
           </div>

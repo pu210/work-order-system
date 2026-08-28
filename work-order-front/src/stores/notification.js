@@ -135,6 +135,24 @@ export const useNotificationStore = defineStore('notification', () => {
     unreadCount.value = 0
   }
 
+  // F. 從前端與資料庫移除單筆通知
+  const removeNotification = async (notificationId) => {
+    const index = notifications.value.findIndex(n => n.notificationId === notificationId)
+    if (index !== -1) {
+      const item = notifications.value[index]
+      if (!item.isRead && unreadCount.value > 0) {
+        unreadCount.value--
+      }
+      notifications.value.splice(index, 1)
+    }
+
+    try {
+      await axios.delete(`/api/notifications/${notificationId}`)
+    } catch (error) {
+      console.error('刪除後端通知失敗：', error)
+    }
+  }
+
   // ---- 4. 匯出要對外公開的狀態與方法 ----
   return {
     notifications,
@@ -146,6 +164,7 @@ export const useNotificationStore = defineStore('notification', () => {
     connectWebSocket,
     disconnectWebSocket,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    removeNotification
   }
 })

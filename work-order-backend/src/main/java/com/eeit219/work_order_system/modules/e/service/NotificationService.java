@@ -61,6 +61,11 @@ public class NotificationService {
         return saved;
     }
 
+    @Transactional
+    public void deleteNotification(Integer notificationId) {
+        notificationRepository.deleteById(notificationId);
+    }
+
     private void populateExtraInfo(Notification notification) {
         if (notification == null) return;
 

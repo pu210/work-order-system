@@ -73,8 +73,7 @@
         <div class="empty-icon-wrap mx-auto mb-3">
           <i class="bi bi-bell-slash fs-1 text-muted opacity-50"></i>
         </div>
-        <h6 class="fw-bold text-secondary mb-1">目前沒有通知</h6>
-        <p class="text-muted small mb-0">當有工單狀態變更或新任務指派時，將會顯示於此處。</p>
+        <h6 class="fw-bold text-secondary mb-0">目前沒有通知</h6>
       </div>
     </div>
 
@@ -135,6 +134,13 @@
                     title="標記為已讀"
                   >
                     <i class="bi bi-check-lg me-1"></i>標為已讀
+                  </button>
+                  <button 
+                    class="btn btn-outline-danger btn-xs rounded-pill px-2.5"
+                    @click="removeNotification(item)"
+                    title="移除通知"
+                  >
+                    <i class="bi bi-trash me-1"></i>移除通知
                   </button>
                 </div>
               </div>
@@ -227,6 +233,11 @@ const toggleReadStatus = async (item) => {
 // ---- 3. 全部標為已讀 ----
 const markAllAsRead = async () => {
   await notificationStore.markAllAsRead()
+}
+
+// ---- 4. 移除單筆前端通知 ----
+const removeNotification = (item) => {
+  notificationStore.removeNotification(item.notificationId)
 }
 
 // ---- 4. 工具與樣式選取 ----

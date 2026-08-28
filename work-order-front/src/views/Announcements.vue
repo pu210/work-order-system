@@ -284,10 +284,10 @@ const getCategoryLabel = (cat) => {
   return map[cat] || cat
 }
 
-// 格式化時間顯示
+// 格式化時間顯示 (例如：2026-08-28 16:12)
 const formatTime = (timeStr) => {
   if (!timeStr) return ''
-  return timeStr.replace('T', ' ')
+  return String(timeStr).replace('T', ' ').slice(0, 16)
 }
 
 // ---- API 1: 載入所有公告 (GET) ----
