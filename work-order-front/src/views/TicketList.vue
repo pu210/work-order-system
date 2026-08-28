@@ -359,11 +359,11 @@ onMounted(async () => {
 .tl-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 .tl-table th {
   text-align: left;
-  font-size: 11.5px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-faint);

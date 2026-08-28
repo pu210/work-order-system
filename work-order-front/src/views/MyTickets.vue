@@ -348,7 +348,7 @@ onMounted(fetchTickets);
   min-height: 40px;
   padding: 0 12px;
   border-radius: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -440,11 +440,11 @@ onMounted(fetchTickets);
 .mt-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 .mt-table th {
   text-align: left;
-  font-size: 11.5px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-faint);
