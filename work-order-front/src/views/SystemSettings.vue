@@ -1,11 +1,14 @@
 <template>
-  <div class="mt-page">
+  <div class="mt-page px-2 px-sm-4">
     <div class="mt-page-header">
       <div>
-        <span class="mt-eyebrow">SYSTEM SETTINGS</span>
-        <h1 class="mt-title">系統基礎設定</h1>
+        <h1 class="mt-title">設備維修管理</h1>
         <p class="mt-subtitle">
-          {{ isTechnician ? '管理報修設備' : '管理報修設備、優先級以及相關類別選項' }}
+          {{
+            isTechnician
+              ? "管理報修設備"
+              : "管理報修設備、優先級以及相關類別選項"
+          }}
         </p>
       </div>
     </div>
@@ -72,14 +75,14 @@ import SettingTarget from "@/views/SettingTarget.vue";
 const authStore = useAuthStore();
 
 // 2. 檢查是否為工程師/維修人員 (對應您專案的角色代碼 'HANDLER')
-const isTechnician = computed(() => 
-  authStore.hasRole('HANDLER') || authStore.hasRole('TECH')
-);
+const isTechnician = computed(() => {
+  if (authStore.hasRole("ADMIN")) return false;
+  return authStore.hasRole("HANDLER") || authStore.hasRole("TECH");
+});
 
 // 3. 根據角色決定能看到哪些分頁
 const availableTabs = computed(() => {
   if (isTechnician.value) {
-    // 工程師只保留「報修設備管理」
     return [{ key: "target", label: "報修設備管理" }];
   }
   // 管理員看全部 4 個
@@ -97,8 +100,7 @@ const activeTab = ref("target");
 
 <style scoped>
 .mt-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,7 +143,9 @@ const activeTab = ref("target");
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  box-shadow:
+    0 1px 2px rgba(20, 33, 61, 0.05),
+    0 2px 8px rgba(20, 33, 61, 0.06);
   padding: 20px 22px;
 }
 
@@ -204,7 +208,9 @@ const activeTab = ref("target");
 /* ---------------------------------------------------------------------- */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .fade-enter-from {

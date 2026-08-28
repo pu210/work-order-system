@@ -6,28 +6,28 @@
 export const NAV_ITEMS = [
   {
     key: "dashboard",
-    label: "儀表板",
+    label: "首頁",
     path: "/dashboard",
     roles: ["ADMIN", "HANDLER", "EMPLOYEE"],
     enabled: true,
   },
   {
     key: "ticket-list",
-    label: "工單列表",
+    label: "報修單總覽",
     path: "/ticket-list",
     roles: ["ADMIN"],
     enabled: true,
   },
   {
     key: "my-tickets",
-    label: "我的工單",
+    label: "我的報修單",
     path: "/my-tickets",
     roles: ["EMPLOYEE", "ADMIN", "HANDLER"],
     enabled: true,
   },
   {
     key: "ticket-create",
-    label: "建立工單",
+    label: "建立報修單",
     path: "/ticket-create",
     roles: ["ADMIN", "HANDLER", "EMPLOYEE"],
     enabled: true,
@@ -54,13 +54,6 @@ export const NAV_ITEMS = [
     enabled: true,
   },
   {
-    key: "announcements",
-    label: "公告",
-    path: "/announcements",
-    roles: ["ADMIN", "HANDLER", "EMPLOYEE"],
-    enabled: true,
-  },
-  {
     key: "user-management",
     label: "帳號管理",
     path: "/user-management",
@@ -72,6 +65,13 @@ export const NAV_ITEMS = [
     label: "設備維修管理",
     path: "/system-settings",
     roles: ["ADMIN", "HANDLER"],
+    enabled: true,
+  },
+  {
+    key: "announcements",
+    label: "公告",
+    path: "/announcements",
+    roles: ["ADMIN", "HANDLER", "EMPLOYEE"],
     enabled: true,
   },
 ];

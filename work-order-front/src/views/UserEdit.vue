@@ -37,9 +37,10 @@
       </div>
 
       <form v-else @submit.prevent="handleSubmit">
-        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3 extra-small">
-          <i class="bi bi-person-vcard me-1"></i> 基本資料
-        </h6>
+        <h5 class="fw-bold border-bottom pb-3 mb-4">
+          <i class="bi bi-person-vcard me-2"></i>
+          基本資料
+        </h5>
 
         <div class="row g-3 mb-4">
           <!-- 帳號不能修改 -->
@@ -62,7 +63,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              使用者姓名 <span class="text-danger">*</span>
+              姓名 <span class="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -78,7 +79,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              電子郵件信箱 <span class="text-danger">*</span>
+              電子郵件 <span class="text-danger">*</span>
             </label>
             <input
               type="email"
@@ -113,7 +114,7 @@
             <label
               class="form-label extra-small fw-semibold text-secondary mb-1"
             >
-              使用者角色 <span class="text-danger">*</span>
+              角色 <span class="text-danger">*</span>
             </label>
 
             <div class="role-options border rounded-2 px-3 py-2">
@@ -199,7 +200,7 @@ const isLastActiveAdmin = ref(false);
 
 const roleOptions = [
   { value: "EMPLOYEE", label: "一般員工" },
-  { value: "HANDLER", label: "維修人員" },
+  { value: "HANDLER", label: "工程師" },
   { value: "ADMIN", label: "管理員" },
 ];
 
@@ -271,7 +272,7 @@ const handleSubmit = async () => {
   }
 
   if (form.value.roleCodes.length === 0) {
-    errorMessage.value = "請至少選擇一個使用者角色";
+    errorMessage.value = "請至少選擇一個角色";
     notify.error(errorMessage.value);
     return;
   }

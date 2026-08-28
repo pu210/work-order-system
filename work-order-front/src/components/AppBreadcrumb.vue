@@ -71,7 +71,7 @@ import NotificationBell from "./NotificationBell.vue";
 import UserDropdown from "./UserDropdown.vue";
 
 const navItems = [
-  { title: "儀表板", path: "/dashboard", icon: "bi bi-grid-1x2-fill" },
+  { title: "首頁", path: "/dashboard", icon: "bi bi-grid-1x2-fill" },
   { title: "工單報修", path: "/repair", icon: "bi bi-wrench-adjustable" },
   { title: "設備管理", path: "/equipment", icon: "bi bi-cpu-fill" },
   { title: "帳號管理", path: "/users", icon: "bi bi-people-fill" },

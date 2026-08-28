@@ -13,195 +13,239 @@
       <div class="text-muted small">正在載入個人資料...</div>
     </div>
 
-    <template v-else>
+    <div v-else class="row g-4 align-items-stretch">
       <!-- 基本資料 -->
-      <div class="card bg-white p-4 mb-4">
-        <h5 class="fw-bold border-bottom pb-3 mb-4">
-          <i class="bi bi-person-vcard me-2"></i>
-          基本資料
-        </h5>
+      <div class="col-lg-6">
+        <div class="card bg-white p-4 h-100 d-flex flex-column">
+          <h5 class="fw-bold border-bottom pb-3 mb-4">
+            <i class="bi bi-person-vcard me-2"></i>
+            基本資料
+          </h5>
 
-        <form @submit.prevent="handleProfileSubmit">
-          <div class="row g-3">
-            <!-- 帳號 -->
-            <div class="col-md-6">
-              <label for="account" class="form-label"> 帳號 </label>
-
-              <input
-                id="account"
-                v-model="profileForm.account"
-                type="text"
-                class="form-control bg-light"
-                disabled
-              />
-            </div>
-
-            <!-- 角色 -->
-            <div class="col-md-6">
-              <label class="form-label">角色</label>
-
-              <input
-                :value="roleLabel"
-                type="text"
-                class="form-control bg-light"
-                disabled
-              />
-            </div>
-
-            <!-- 姓名 -->
-            <div class="col-md-6">
-              <label for="name" class="form-label">
-                姓名
-                <span class="text-danger">*</span>
-              </label>
-
-              <input
-                id="name"
-                v-model="profileForm.name"
-                type="text"
-                class="form-control"
-                maxlength="50"
-                required
-              />
-            </div>
-
-            <!-- 電話 -->
-            <div class="col-md-6">
-              <label for="phone" class="form-label"> 聯絡電話 </label>
-
-              <input
-                id="phone"
-                v-model="profileForm.phone"
-                type="tel"
-                class="form-control"
-                maxlength="10"
-                inputmode="numeric"
-                placeholder="例如：0912345678"
-              />
-            </div>
-
-            <!-- Email -->
-            <div class="col-12">
-              <label for="email" class="form-label">
-                電子郵件
-                <span class="text-danger">*</span>
-              </label>
-
-              <input
-                id="email"
-                v-model="profileForm.email"
-                type="email"
-                class="form-control"
-                required
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="profileError"
-            class="alert alert-danger py-2 mt-3 mb-0"
-            role="alert"
+          <form
+            class="d-flex flex-column flex-grow-1"
+            @submit.prevent="handleProfileSubmit"
           >
-            {{ profileError }}
-          </div>
+            <div class="row g-3">
+              <!-- 帳號 -->
+              <div class="col-md-6">
+                <label
+                  for="account"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  帳號
+                </label>
+                <input
+                  id="account"
+                  v-model="profileForm.account"
+                  type="text"
+                  class="form-control extra-small bg-light"
+                  disabled
+                />
+              </div>
 
-          <div class="d-flex justify-content-end mt-4">
-            <button
-              type="submit"
-              class="btn btn-primary px-4"
-              :disabled="isSavingProfile"
+              <!-- 角色 -->
+              <div class="col-md-6">
+                <label
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  角色
+                </label>
+
+                <input
+                  :value="roleLabel"
+                  type="text"
+                  class="form-control extra-small bg-light"
+                  disabled
+                />
+              </div>
+
+              <!-- 姓名 -->
+              <div class="col-md-6">
+                <label
+                  for="name"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  姓名
+                  <span class="text-danger">*</span>
+                </label>
+
+                <input
+                  id="name"
+                  v-model="profileForm.name"
+                  type="text"
+                  class="form-control extra-small"
+                  maxlength="50"
+                  required
+                />
+              </div>
+
+              <!-- 電話 -->
+              <div class="col-md-6">
+                <label
+                  for="phone"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  聯絡電話
+                </label>
+
+                <input
+                  id="phone"
+                  v-model="profileForm.phone"
+                  type="tel"
+                  class="form-control extra-small"
+                  maxlength="10"
+                  inputmode="numeric"
+                  placeholder="例如：0912345678"
+                />
+              </div>
+
+              <!-- Email -->
+              <div class="col-12">
+                <label
+                  for="email"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  電子郵件
+                  <span class="text-danger">*</span>
+                </label>
+
+                <input
+                  id="email"
+                  v-model="profileForm.email"
+                  type="email"
+                  class="form-control extra-small"
+                  required
+                />
+              </div>
+            </div>
+
+            <div
+              v-if="profileError"
+              class="alert alert-danger py-2 mt-3 mb-0"
+              role="alert"
             >
-              <span
-                v-if="isSavingProfile"
-                class="spinner-border spinner-border-sm me-1"
-              ></span>
+              {{ profileError }}
+            </div>
 
-              {{ isSavingProfile ? "儲存中..." : "儲存基本資料" }}
-            </button>
-          </div>
-        </form>
+            <div class="d-flex justify-content-end mt-auto pt-4">
+              <button
+                type="submit"
+                class="btn btn-primary px-4"
+                :disabled="isSavingProfile"
+              >
+                <span
+                  v-if="isSavingProfile"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+
+                {{ isSavingProfile ? "儲存中..." : "儲存基本資料" }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <!-- 修改密碼 -->
-      <div class="card bg-white p-4">
-        <h5 class="fw-bold border-bottom pb-3 mb-4">
-          <i class="bi bi-shield-lock me-2"></i>
-          修改密碼
-        </h5>
+      <div class="col-lg-6">
+        <div class="card bg-white p-4 h-100 d-flex flex-column">
+          <h5 class="fw-bold border-bottom pb-3 mb-4">
+            <i class="bi bi-shield-lock me-2"></i>
+            修改密碼
+          </h5>
 
-        <form @submit.prevent="handlePasswordSubmit">
-          <div class="row g-3">
-            <div class="col-12">
-              <label for="currentPassword" class="form-label"> 目前密碼 </label>
-
-              <input
-                id="currentPassword"
-                v-model="passwordForm.currentPassword"
-                type="password"
-                class="form-control"
-                autocomplete="current-password"
-                required
-              />
-            </div>
-
-            <div class="col-md-6">
-              <label for="newPassword" class="form-label"> 新密碼 </label>
-
-              <input
-                id="newPassword"
-                v-model="passwordForm.newPassword"
-                type="password"
-                class="form-control"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              />
-
-              <div class="form-text">新密碼至少需要 8 個字元。</div>
-            </div>
-
-            <div class="col-md-6">
-              <label for="confirmPassword" class="form-label">
-                確認新密碼
-              </label>
-
-              <input
-                id="confirmPassword"
-                v-model="passwordForm.confirmPassword"
-                type="password"
-                class="form-control"
-                autocomplete="new-password"
-                minlength="8"
-                required
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="passwordError"
-            class="alert alert-danger py-2 mt-3 mb-0"
-            role="alert"
+          <form
+            class="d-flex flex-column flex-grow-1"
+            @submit.prevent="handlePasswordSubmit"
           >
-            {{ passwordError }}
-          </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label
+                  for="currentPassword"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  目前密碼
+                </label>
 
-          <div class="d-flex justify-content-end mt-4">
-            <button
-              type="submit"
-              class="btn btn-primary px-4"
-              :disabled="isChangingPassword"
+                <input
+                  id="currentPassword"
+                  v-model="passwordForm.currentPassword"
+                  type="password"
+                  class="form-control extra-small"
+                  autocomplete="current-password"
+                  required
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label
+                  for="newPassword"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  新密碼
+                </label>
+
+                <input
+                  id="newPassword"
+                  v-model="passwordForm.newPassword"
+                  type="password"
+                  class="form-control extra-small"
+                  autocomplete="new-password"
+                  minlength="8"
+                  required
+                />
+
+                <div class="form-text extra-small">
+                  新密碼至少需要 8 個字元。
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label
+                  for="confirmPassword"
+                  class="form-label extra-small fw-semibold text-secondary mb-1"
+                >
+                  確認新密碼
+                </label>
+
+                <input
+                  id="confirmPassword"
+                  v-model="passwordForm.confirmPassword"
+                  type="password"
+                  class="form-control extra-small"
+                  autocomplete="new-password"
+                  minlength="8"
+                  required
+                />
+              </div>
+            </div>
+
+            <div
+              v-if="passwordError"
+              class="alert alert-danger py-2 mt-3 mb-0"
+              role="alert"
             >
-              <span
-                v-if="isChangingPassword"
-                class="spinner-border spinner-border-sm me-1"
-              ></span>
+              {{ passwordError }}
+            </div>
 
-              {{ isChangingPassword ? "修改中..." : "修改密碼" }}
-            </button>
-          </div>
-        </form>
+            <div class="d-flex justify-content-end mt-auto pt-4">
+              <button
+                type="submit"
+                class="btn btn-primary px-4"
+                :disabled="isChangingPassword"
+              >
+                <span
+                  v-if="isChangingPassword"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+
+                {{ isChangingPassword ? "修改中..." : "修改密碼" }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -211,6 +255,7 @@ import { getProfile, updateProfile, changePassword } from "@/api/account.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 import { notify } from "@/plugins/notify.js";
+import { userRoleLabel } from "@/constants/userRole.js";
 
 const authStore = useAuthStore();
 
@@ -237,20 +282,12 @@ const passwordForm = reactive({
   confirmPassword: "",
 });
 
-const ROLE_LABELS = {
-  ADMIN: "系統管理員",
-  HANDLER: "工程師",
-  EMPLOYEE: "一般員工",
-};
-
 const roleLabel = computed(() => {
   if (profileForm.roleCodes.length === 0) {
     return "尚未設定";
   }
 
-  return profileForm.roleCodes
-    .map((role) => ROLE_LABELS[role] || role)
-    .join("、");
+  return profileForm.roleCodes.map(userRoleLabel).join("、");
 });
 
 async function loadProfile() {
@@ -372,8 +409,12 @@ onMounted(loadProfile);
 </script>
 
 <style scoped>
+.extra-small {
+  font-size: 0.82rem;
+}
+
 .profile-page {
-  max-width: 800px;
+  max-width: 1200px;
 }
 
 .card {

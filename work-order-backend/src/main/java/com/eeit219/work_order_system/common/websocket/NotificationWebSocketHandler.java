@@ -2,6 +2,7 @@ package com.eeit219.work_order_system.common.websocket;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONObject;
@@ -22,7 +23,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationWebSocketHandler extends TextWebSocketHandler {
 
-    private static final Map<Integer, WebSocketSession> userSessions = new ConcurrentHashMap<>();
+    // 支援單一使用者建立多個 WebSocket 連線 (例如同時開啟多分頁、多視窗或行動裝置)
+    private static final Map<Integer, Set<WebSocketSession>> userSessions = new ConcurrentHashMap<>();
     private final JsonWebTokenUtility jwtUtil;
 
     // 配置支援 Java 8 LocalDateTime 的 ObjectMapper
@@ -30,12 +32,12 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    // 當前端連線成功時觸發 (Client 剛打開網頁)
+    // 當前端連線成功時觸發 (Client 剛打開網頁或開新分頁)
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         Integer userId = getUserIdFromSession(session);
         if (userId != null) {
-            userSessions.put(userId, session);
+            userSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(session);
             System.out.println("✅ [JWT 驗證成功] 使用者 " + userId + " 建立 WebSocket 安全連線！(Session ID: " + session.getId() + ")");
         } else {
             System.out.println("⛔ [JWT 驗證失敗] WebSocket 連線拒絕：未提供有效的 Token 或 Token 已過期！Session ID: " + session.getId());
@@ -43,24 +45,40 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    // 當前端離線關閉網頁時觸發
+    // 當前端離線關閉網頁/分頁時觸發
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Integer userId = getUserIdFromSession(session);
         if (userId != null) {
-            userSessions.remove(userId);
-            System.out.println("❌ 使用者 " + userId + " 斷開 WebSocket 連線！");
+            Set<WebSocketSession> sessions = userSessions.get(userId);
+            if (sessions != null) {
+                sessions.remove(session);
+                if (sessions.isEmpty()) {
+                    userSessions.remove(userId);
+                }
+            }
+            System.out.println("❌ 使用者 " + userId + " 斷開 WebSocket 連線！(Session ID: " + session.getId() + ")");
         }
     }
 
-    // 傳送通知給指定使用者的自訂方法
+    // 傳送通知給指定使用者的所有線上連線 (多分頁同步推播)
     public void sendNotificationToUser(Integer receiverId, Object notificationData) {
-        WebSocketSession session = userSessions.get(receiverId);
-        if (session != null && session.isOpen()) {
+        Set<WebSocketSession> sessions = userSessions.get(receiverId);
+        if (sessions != null && !sessions.isEmpty()) {
             try {
                 String jsonMessage = objectMapper.writeValueAsString(notificationData);
-                session.sendMessage(new TextMessage(jsonMessage));
-                System.out.println("🚀 已成功推播即時通知給 User " + receiverId);
+                int sentCount = 0;
+                for (WebSocketSession session : sessions) {
+                    if (session != null && session.isOpen()) {
+                        try {
+                            session.sendMessage(new TextMessage(jsonMessage));
+                            sentCount++;
+                        } catch (IOException e) {
+                            System.err.println("推播訊息至 Session " + session.getId() + " 失敗: " + e.getMessage());
+                        }
+                    }
+                }
+                System.out.println("🚀 已成功推播即時通知給 User " + receiverId + " (" + sentCount + " 個 WebSocket 連線)");
             } catch (IOException e) {
                 e.printStackTrace();
             }

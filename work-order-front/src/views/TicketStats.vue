@@ -1,10 +1,10 @@
 <template>
-  <div class="ticket-stats-container container-fluid py-4 px-3 px-md-4">
+  <div class="ticket-stats-container container-fluid py-4 px-2 px-sm-4">
     <!-- 1. 頁面頂部標題列 -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
       <div>
-        <h2 class="h4 fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-          <i class="bi bi-pie-chart-fill text-primary"></i> 工單統計報表中心
+        <h2 class="h4 fw-bold text-dark mb-1">
+          統計報表
         </h2>
         <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與占比統計</p>
       </div>
@@ -40,9 +40,9 @@
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <div class="text-muted small mb-1 fw-medium">
-                {{ getDimensionTitle() }}總數
+                {{ getDimensionTotalCardTitle() }}
               </div>
-              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">類</span></div>
+              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
             </div>
             <div class="icon-avatar bg-success-subtle text-success rounded-circle p-3">
               <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
@@ -474,6 +474,25 @@ const getDimensionTitle = () => {
   }
 }
 
+// 取得當前總數卡片標題
+const getDimensionTotalCardTitle = () => {
+  if (filterDimension.value === 'ENGINEER_KPI') {
+    return '工程師人數'
+  }
+  return `${getDimensionTitle()}總數`
+}
+
+// 取得當前總數卡片單位
+const getDimensionUnit = () => {
+  if (filterDimension.value === 'ENGINEER_KPI' || filterDimension.value === 'CREATOR') {
+    return '人'
+  }
+  if (filterDimension.value === 'STATUS' || filterDimension.value === 'PRIORITY') {
+    return '種'
+  }
+  return '類'
+}
+
 // 取得當前最高項目卡片標題
 const getTopCategoryCardTitle = () => {
   switch (filterDimension.value) {
@@ -556,16 +575,19 @@ const chartData = computed(() => {
   // 3. 根據標籤數量截取對應數量的顏色
   const colors = paletteColors.slice(0, labels.length)
 
-  // 4. 組合成 Chart.js 要求的標準資料格式，傳給 HTML 的 <Pie :data="chartData" /> 繪製
+  // 4. 當只有 1 個項目 (100%) 時，動態將分隔邊界設為 0，避免在圓餅圖上方留下白色的縫隙切線
+  const isSingleSlice = labels.length <= 1 || counts.filter(c => c > 0).length <= 1
+
+  // 5. 組合成 Chart.js 要求的標準資料格式，傳給 HTML 的 <Pie :data="chartData" /> 繪製
   return {
     labels,
     datasets: [
       {
-        backgroundColor: colors,        // 各扇形區塊背景顏色
-        hoverBackgroundColor: colors,   // 滑鼠移入時的懸浮背景顏色
-        borderWidth: 2,                 // 扇形邊框粗細
-        borderColor: '#ffffff',         // 扇形白色分割線
-        data: counts                    // 填入真正的工單筆數數字
+        backgroundColor: colors,                          // 各扇形區塊背景顏色
+        hoverBackgroundColor: colors,                     // 滑鼠移入時的懸浮背景顏色
+        borderWidth: isSingleSlice ? 0 : 2,               // 100% 時無邊框，多區塊時為 2px 白邊
+        borderColor: isSingleSlice ? 'transparent' : '#ffffff', // 100% 時透明，多區塊時為白色分割線
+        data: counts                                      // 填入真正的工單筆數數字
       }
     ]
   }
@@ -842,8 +864,7 @@ onMounted(() => {
 
 <style scoped>
 .ticket-stats-container {
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .color-badge {
