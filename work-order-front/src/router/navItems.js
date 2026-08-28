@@ -6,7 +6,7 @@
 export const NAV_ITEMS = [
   {
     key: "dashboard",
-    label: "儀表板",
+    label: "首頁",
     path: "/dashboard",
     roles: ["ADMIN", "HANDLER", "EMPLOYEE"],
     enabled: true,

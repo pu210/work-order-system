@@ -346,7 +346,9 @@ async function handleSubmit() {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  box-shadow:
+    0 1px 2px rgba(20, 33, 61, 0.05),
+    0 2px 8px rgba(20, 33, 61, 0.06);
   padding: 20px 22px;
 }
 
