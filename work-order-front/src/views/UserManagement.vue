@@ -1,5 +1,5 @@
 <template>
-  <div class="users-page">
+  <div class="users-page px-2 px-sm-4">
     <!-- 頁面頂部：標題與操作按鈕 -->
     <div
       class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3"
@@ -74,10 +74,8 @@
               <!-- 3. 狀態標籤 -->
               <td>
                 <span
-                  class="badge status-badge rounded-pill"
-                  :class="statusBadgeClass(user.status)"
+                  class="badge bg-light text-secondary border px-2.5 py-1 rounded-pill"
                 >
-                  <span class="status-dot"></span>
                   {{ statusLabels[user.status] ?? "未知狀態" }}
                 </span>
               </td>
@@ -674,11 +672,6 @@ async function toggleStatus(user) {
   padding-bottom: 0.5rem;
 }
 
-@media (max-width: 576px) {
-  .users-page {
-    padding: 0.5rem;
-  }
-}
 .extra-small {
   font-size: 0.82rem;
 }

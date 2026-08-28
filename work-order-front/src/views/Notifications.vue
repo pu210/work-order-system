@@ -1,5 +1,5 @@
 <template>
-  <div class="notifications-page container-fluid py-4">
+  <div class="notifications-page container-fluid py-4 px-2 px-sm-4">
     <!-- 頁面標題與操作欄 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -33,13 +33,6 @@
         <div class="nav nav-pills custom-pills" id="notification-tabs">
           <button 
             class="nav-link px-3 py-1.5 rounded-pill me-2" 
-            :class="{ active: currentTab === 'all' }"
-            @click="currentTab = 'all'"
-          >
-            全部 <span class="badge bg-secondary ms-1">{{ notifications.length }}</span>
-          </button>
-          <button 
-            class="nav-link px-3 py-1.5 rounded-pill me-2" 
             :class="{ active: currentTab === 'unread' }"
             @click="currentTab = 'unread'"
           >
@@ -50,7 +43,7 @@
             :class="{ active: currentTab === 'read' }"
             @click="currentTab = 'read'"
           >
-            已讀 <span class="badge bg-light text-dark ms-1">{{ readCount }}</span>
+            已讀 <span class="badge bg-secondary ms-1">{{ readCount }}</span>
           </button>
         </div>
 
@@ -119,11 +112,11 @@
               <!-- 底部資訊與操作 -->
               <div class="d-flex align-items-center justify-content-between pt-1">
                 <div class="d-flex align-items-center gap-3 extra-small text-muted">
-                  <span v-if="item.workOrderId">
-                    <i class="bi bi-file-earmark-text me-1"></i>工單編號：#{{ item.workOrderId }}
+                  <span v-if="item.workOrderNo || item.workOrderId">
+                    <i class="bi bi-file-earmark-text me-1"></i>工單編號：{{ item.workOrderNo || ('#' + item.workOrderId) }}
                   </span>
-                  <span v-if="item.senderId">
-                    <i class="bi bi-person me-1"></i>發送人 ID: {{ item.senderId }}
+                  <span v-if="item.senderId || item.senderName">
+                    <i class="bi bi-person me-1"></i>發送人 名稱: {{ item.senderName || getSenderName(item.senderId) }}
                   </span>
                 </div>
 
@@ -156,11 +149,46 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useNotificationStore } from '@/stores/notification.js'
+import { useAuthStore } from '@/stores/auth.js'
+import { getUsers } from '@/api/user.js'
 
 const notificationStore = useNotificationStore()
+const authStore = useAuthStore()
 const loading = ref(false)
 const errorMessage = ref('')
-const currentTab = ref('all') // 'all' | 'unread' | 'read'
+const currentTab = ref('unread') // 'unread' | 'all'
+
+// 使用者對照 Map (userId -> name)
+const userMap = ref({})
+
+const loadUsersMap = async () => {
+  // 非管理員無權限呼叫 /api/users，避免觸發 403 轉址到 /forbidden
+  if (!authStore.hasRole('ADMIN')) return
+
+  try {
+    const res = await getUsers({ size: 1000 })
+    const list = res?.content || (Array.isArray(res) ? res : [])
+    const map = {}
+    list.forEach(u => {
+      if (u.userId != null) {
+        map[u.userId] = u.name || u.account
+      }
+    })
+    userMap.value = map
+  } catch (err) {
+    console.warn('載入使用者清單失敗', err)
+  }
+}
+
+const getSenderName = (senderId) => {
+  if (!senderId) return ''
+  if (userMap.value[senderId]) {
+    return userMap.value[senderId]
+  }
+  if (senderId === 1) return '系統管理員'
+  if (senderId === 2) return '陳志明'
+  return `使用者 ${senderId}`
+}
 
 // 直接使用 Store 的響應式資料與狀態
 const notifications = computed(() => notificationStore.notifications)
@@ -240,13 +268,14 @@ const getIconBgClass = (item) => {
 
 // 組件掛載後自動載入歷史通知
 onMounted(() => {
+  loadUsersMap()
   loadNotifications()
 })
 </script>
 
 <style scoped>
 .notifications-page {
-  max-width: 1000px;
+  width: 100%;
 }
 
 .extra-small {
@@ -279,10 +308,10 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* 未讀通知卡片醒目提示 */
+/* 未讀通知卡片醒目提示（淺紅色底色） */
 .notification-card.unread-card {
-  border-left-color: #0d6efd !important;
-  background-color: #f8fafc;
+  border-left-color: #dc3545 !important;
+  background-color: #fff5f5;
 }
 
 .custom-pills .nav-link {
