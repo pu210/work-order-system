@@ -60,6 +60,8 @@
           v-model="form.dueTime"
           type="datetime-local"
           class="form-control"
+          :min="minimumDueTime"
+          @focus="refreshMinimumDueTime"
           required
         />
       </div>
@@ -133,6 +135,7 @@ const submitting = ref(false);
 const submittingAction = ref("");
 const errorMessage = ref("");
 const scheduleDialogOpen = ref(false);
+const minimumDueTime = ref(currentDateTimeLocal());
 const form = reactive({
   priorityId: "",
   assignedHandlerId: props.workOrder.assignedHandlerId ?? "",
@@ -160,6 +163,16 @@ function handleDialogClose() {
 function toDateTimeLocal(value) {
   if (!value) return "";
   return String(value).replace(" ", "T").slice(0, 16);
+}
+
+function currentDateTimeLocal() {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 16);
+}
+
+function refreshMinimumDueTime() {
+  minimumDueTime.value = currentDateTimeLocal();
 }
 
 function normalizeList(response) {
@@ -196,6 +209,10 @@ async function loadOptions() {
 function validateAccept() {
   if (!form.priorityId || !form.assignedHandlerId || !form.dueTime) {
     errorMessage.value = "請完整填寫優先級、指派工程師與預計完成時間";
+    return false;
+  }
+  if (new Date(form.dueTime).getTime() < Date.now()) {
+    errorMessage.value = "預計完成時間不能早於現在時間";
     return false;
   }
   return true;
