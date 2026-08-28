@@ -2,7 +2,6 @@
   <div class="mt-page px-2 px-sm-4">
     <div class="mt-page-header">
       <div>
-        <span class="mt-eyebrow">MY TICKETS</span>
         <h1 class="mt-title">我的報修單</h1>
         <p class="mt-subtitle">您所提交過的所有報修工單</p>
       </div>
@@ -216,7 +215,7 @@ const authStore = useAuthStore();
 
 // 純 EMPLOYEE（沒有 ADMIN/HANDLER 角色）不顯示優先級欄位
 const showPriority = computed(
-  () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER")
+  () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER"),
 );
 
 const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS;
@@ -317,7 +316,9 @@ onMounted(fetchTickets);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  box-shadow:
+    0 1px 2px rgba(20, 33, 61, 0.05),
+    0 2px 8px rgba(20, 33, 61, 0.06);
   padding: 20px 22px;
 }
 
@@ -676,7 +677,9 @@ onMounted(fetchTickets);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     background: #fff;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
   }
   .mt-ticket-card:hover,
   .mt-ticket-card:focus-visible {
