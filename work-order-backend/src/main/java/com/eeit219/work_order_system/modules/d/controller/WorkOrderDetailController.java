@@ -4,8 +4,10 @@ import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.d.dto.WorkOrderDetailResponse;
+import com.eeit219.work_order_system.modules.d.dto.WorkOrderFeedbackRecordResponse;
 import com.eeit219.work_order_system.modules.d.dto.WorkOrderRejectionRecordResponse;
 import com.eeit219.work_order_system.modules.d.service.WorkOrderDetailService;
+import com.eeit219.work_order_system.modules.d.service.WorkOrderFeedbackRecordService;
 import com.eeit219.work_order_system.modules.d.service.WorkOrderRejectionRecordService;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ public class WorkOrderDetailController {
 
     private final WorkOrderDetailService workOrderDetailService;
     private final WorkOrderRejectionRecordService workOrderRejectionRecordService;
+    private final WorkOrderFeedbackRecordService workOrderFeedbackRecordService;
     private final UserRepository userRepository;
 
     @GetMapping("/detail")
@@ -67,6 +70,26 @@ public class WorkOrderDetailController {
                 ApiResponse.success(
                         HttpStatus.OK.value(),
                         "取得工單退回紀錄成功",
+                        records));
+    }
+
+    /**
+     * 取得工單所有接受流程回饋，僅限管理員。
+     */
+    @GetMapping("/feedback-records")
+    public ResponseEntity<ApiResponse<List<WorkOrderFeedbackRecordResponse>>> getFeedbackRecords(
+            @PathVariable Integer workOrderId,
+            Authentication authentication) {
+
+        List<WorkOrderFeedbackRecordResponse> records =
+                workOrderFeedbackRecordService.getAllFeedbackRecords(
+                        workOrderId,
+                        getCurrentUser(authentication));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        HttpStatus.OK.value(),
+                        "取得工單流程回饋成功",
                         records));
     }
 
