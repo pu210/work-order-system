@@ -1,12 +1,13 @@
 <template>
-  <div class="mt-page">
+  <div class="mt-page px-2 px-sm-4">
     <div class="mt-page-header">
       <div>
-        <h1 class="mt-title">我的工單</h1>
+        <span class="mt-eyebrow">MY TICKETS</span>
+        <h1 class="mt-title">我的報修單</h1>
         <p class="mt-subtitle">您所提交過的所有報修工單</p>
       </div>
       <router-link to="/ticket-create" class="mt-btn mt-btn-primary"
-        >+ 建立工單</router-link
+        >+ 建立報修單</router-link
       >
     </div>
 
@@ -276,11 +277,6 @@ onMounted(fetchTickets);
 </script>
 
 <style scoped>
-.mt-page {
-  max-width: 1240px;
-  margin: 0 auto;
-}
-
 /* ---------------------------------------------------------------------- */
 /* 頁首 */
 /* ---------------------------------------------------------------------- */
@@ -354,7 +350,7 @@ onMounted(fetchTickets);
   min-height: 40px;
   padding: 0 12px;
   border-radius: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -446,11 +442,11 @@ onMounted(fetchTickets);
 .mt-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 .mt-table th {
   text-align: left;
-  font-size: 11.5px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-faint);

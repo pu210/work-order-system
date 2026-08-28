@@ -1,5 +1,5 @@
 <template>
-  <div class="notifications-page container-fluid py-4">
+  <div class="notifications-page container-fluid py-4 px-2 px-sm-4">
     <!-- 頁面標題與操作欄 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -275,7 +275,7 @@ onMounted(() => {
 
 <style scoped>
 .notifications-page {
-  max-width: 1000px;
+  width: 100%;
 }
 
 .extra-small {

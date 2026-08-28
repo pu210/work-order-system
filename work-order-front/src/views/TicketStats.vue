@@ -1,5 +1,5 @@
 <template>
-  <div class="ticket-stats-container container-fluid py-4 px-3 px-md-4">
+  <div class="ticket-stats-container container-fluid py-4 px-2 px-sm-4">
     <!-- 1. 頁面頂部標題列 -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
       <div>
@@ -864,8 +864,7 @@ onMounted(() => {
 
 <style scoped>
 .ticket-stats-container {
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .color-badge {
