@@ -54,7 +54,7 @@
       <div class="text-end mb-4">
         <router-link
           to="/auth/forgot/password"
-          class="text-decoration-none extra-small text-primary fw-medium"
+          class="forgot-password-link text-decoration-none extra-small fw-medium"
         >
           忘記密碼？
         </router-link>
@@ -163,7 +163,6 @@ onMounted(async () => {
     authStore.login(data);
 
     await router.replace("/dashboard");
-    notify.success("登入成功");
   } catch (error) {
     notify.error(
       error.response?.data?.message || "無法取得 Google 登入結果，請重新登入",
@@ -200,7 +199,7 @@ async function handleLogin() {
 
     authStore.login(data);
     if (data.mustChangePassword) {
-      await router.replace({ name: "initial-password" });
+      await router.push({ name: "initial-password" });
       return;
     }
     const returnUrl =
@@ -209,7 +208,6 @@ async function handleLogin() {
         ? route.query.returnUrl
         : "/dashboard";
     await router.replace(returnUrl);
-    notify.success("登入成功");
   } catch (error) {
     notify.error(
       error.response?.data?.message || "無法登入，請確認後端服務與帳號密碼",
@@ -226,18 +224,35 @@ async function handleLogin() {
 }
 
 .shadow-2xs {
-  box-shadow: 0 1px 2px 0 rgba(13, 110, 253, 0.25);
+  box-shadow: 0 1px 2px 0 rgba(240, 76, 47, 0.25);
+}
+
+.forgot-password-link {
+  color: #e4472e;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: #c92f2b;
 }
 
 /* 輸入框質感調校 */
 .custom-input-group .form-control,
 .custom-input-group .input-group-text {
+  background-color: rgba(255, 255, 255, 0.3) !important;
   border-color: #dcdfe6;
   padding-top: 0.65rem;
   padding-bottom: 0.65rem;
+  backdrop-filter: blur(5px) saturate(135%);
+  -webkit-backdrop-filter: blur(5px) saturate(135%);
+}
+
+.custom-input-group .form-control::placeholder {
+  color: rgba(71, 85, 105, 0.78);
 }
 
 .custom-input-group .form-control:focus {
+  background-color: rgba(255, 255, 255, 0.4) !important;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -247,6 +262,36 @@ async function handleLogin() {
 }
 .btn-eye:hover {
   color: #1e293b !important;
+}
+
+/* 登入頁按鈕統一使用透明玻璃質感 */
+.login-view .btn {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.58) !important;
+  color: #334155 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 4px 12px rgba(30, 41, 59, 0.06);
+  backdrop-filter: blur(5px) saturate(135%);
+  -webkit-backdrop-filter: blur(5px) saturate(135%);
+}
+
+.login-view .btn-primary {
+  background-color: rgba(240, 76, 47, 0.3) !important;
+  border-color: rgba(240, 76, 47, 0.5) !important;
+  color: #a72b1c !important;
+}
+
+.login-view .btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.82) !important;
+  transform: translateY(-1px);
+}
+
+.login-view .btn-primary:hover:not(:disabled) {
+  background-color: rgba(217, 35, 85, 0.4) !important;
+  border-color: rgba(217, 35, 85, 0.62) !important;
+  color: #8f1837 !important;
 }
 
 /* 白色按鈕微調 */

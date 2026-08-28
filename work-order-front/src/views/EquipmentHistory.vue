@@ -1,8 +1,7 @@
 <template>
-  <div class="eh-page">
+  <div class="eh-page px-2 px-sm-4">
     <header class="eh-page-header">
       <div>
-        <span class="eh-eyebrow">EQUIPMENT HISTORY</span>
         <h1 class="eh-title">設備維修紀錄</h1>
         <p class="eh-subtitle">查看這台設備過去的報修與處理紀錄</p>
       </div>
@@ -115,19 +114,27 @@
                 <td>{{ workOrder.categoryName || "—" }}</td>
                 <td>{{ workOrder.priorityName || "—" }}</td>
                 <td>
-                  <span :class="['eh-badge', statusBadgeClass(workOrder.status)]">
+                  <span
+                    :class="['eh-badge', statusBadgeClass(workOrder.status)]"
+                  >
                     {{ statusLabel(workOrder.status) }}
                   </span>
                 </td>
                 <td>{{ workOrder.creatorName || "—" }}</td>
                 <td>{{ workOrder.assignedHandlerName || "尚未指派" }}</td>
-                <td class="eh-nowrap">{{ formatTime(workOrder.createdTime) }}</td>
+                <td class="eh-nowrap">
+                  {{ formatTime(workOrder.createdTime) }}
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <nav v-if="totalPages > 1" class="eh-pagination" aria-label="歷史工單分頁">
+        <nav
+          v-if="totalPages > 1"
+          class="eh-pagination"
+          aria-label="歷史工單分頁"
+        >
           <button
             type="button"
             class="eh-page-btn"
@@ -136,7 +143,9 @@
           >
             上一頁
           </button>
-          <span class="eh-page-info">第 {{ page + 1 }} / {{ totalPages }} 頁</span>
+          <span class="eh-page-info"
+            >第 {{ page + 1 }} / {{ totalPages }} 頁</span
+          >
           <button
             type="button"
             class="eh-page-btn"
@@ -193,7 +202,11 @@
         <div v-if="qrError" class="eh-qr-error">{{ qrError }}</div>
 
         <footer class="eh-modal-footer">
-          <button type="button" class="eh-btn eh-btn-secondary" @click="closeQrPreview">
+          <button
+            type="button"
+            class="eh-btn eh-btn-secondary"
+            @click="closeQrPreview"
+          >
             關閉
           </button>
           <button
@@ -438,8 +451,10 @@ function printQrCode() {
   `);
   printDocument.close();
 
-  printDocument.getElementById("equipment-name").textContent = equipment.value.name;
-  printDocument.getElementById("target-no").textContent = equipment.value.targetNo;
+  printDocument.getElementById("equipment-name").textContent =
+    equipment.value.name;
+  printDocument.getElementById("target-no").textContent =
+    equipment.value.targetNo;
 
   const image = printDocument.getElementById("qr-image");
   image.addEventListener("load", () => {
@@ -454,8 +469,7 @@ onMounted(fetchHistory);
 
 <style scoped>
 .eh-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .eh-page-header {
@@ -498,7 +512,9 @@ onMounted(fetchHistory);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  box-shadow:
+    0 1px 2px rgba(20, 33, 61, 0.05),
+    0 2px 8px rgba(20, 33, 61, 0.06);
 }
 
 .eh-equipment-card {

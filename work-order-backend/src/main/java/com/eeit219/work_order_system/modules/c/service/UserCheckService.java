@@ -45,27 +45,36 @@ public class UserCheckService {
             throw new InvalidWorkOrderStateException("目前不是使用者驗收狀態");
         }
 
+        // 1. 找出當初審核此工單的管理員 ID (優先取 workOrder.getAdmin()，備用查歷史紀錄)
+        Integer adminUserId = null;
+        if (workOrder.getAdmin() != null) {
+            adminUserId = workOrder.getAdmin().getUserId();
+        } else {
+            // 必須在 changeState 前查詢，否則隨後寫入的 User ACCEPT 紀錄會覆蓋真正的管理員審核紀錄
+            RepairTicketHistory reviewHistory = repairTicketHistoryRepository
+                    .findTopByWorkOrderWorkOrderIdAndEventOrderByHistoryIdDesc(workOrderId, WorkOrderEvent.ACCEPT)
+                    .orElse(null);
+            if (reviewHistory != null && reviewHistory.getEditor() != null) {
+                adminUserId = reviewHistory.getEditor().getUserId();
+            }
+        }
+
+        // 2. 執行狀態轉換 (PENDING_USER_ACCEPTANCE -> PENDING_ADMIN_ACCEPTANCE)
         workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
                 WorkOrderEvent.ACCEPT);
         workOrderRepository.save(workOrder);
 
-        // 2. 查詢歷史紀錄：找出「當初審核並接受這張工單」的那一位管理員
-        RepairTicketHistory reviewHistory = repairTicketHistoryRepository
-                .findTopByWorkOrderWorkOrderIdAndEventOrderByHistoryIdDesc(workOrderId, WorkOrderEvent.ACCEPT)
-                .orElse(null);
-
-        // 3. 如果有找到當初審核的管理員，發送退單通知給該位管理員
-        if (reviewHistory != null && reviewHistory.getEditor() != null) {
-            Integer adminUserId = reviewHistory.getEditor().getUserId();
-
+        // 3. 如果有找到當初審核的管理員，發送驗收通知給該位管理員
+        if (adminUserId != null) {
+            String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName() : "未指定";
             notificationService.sendNotification(
                     adminUserId, // 接收通知者：當初審核此工單的管理員 ID
-                    userId, // 發送通知者：該工單建立者 ID
+                    userId, // 發送通知者：該工單建立者 ID (使用者)
                     workOrderId, // 工單 ID
                     "使用者已驗收回饋，請確認！", // 通知標題
-                    "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + workOrder.getAssignedHandler().getName()
-                            + " 已處理完成並得到使用者回饋，請進行確認。", // 通知詳細內容
-                    workOrder.getStatus()); // 當前狀態 (PENDING_USER_ACCEPTANCE)
+                    "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName
+                            + " 已完成並得到使用者回饋：" + request.feedback() + "，請確認。", // 通知詳細內容
+                    workOrder.getStatus()); // 當前狀態 (PENDING_ADMIN_ACCEPTANCE)
         }
     }
 }

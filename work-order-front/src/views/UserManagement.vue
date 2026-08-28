@@ -1,11 +1,12 @@
 <template>
-  <div class="users-page">
+  <div class="users-page px-2 px-sm-4">
     <!-- 頁面頂部：標題與操作按鈕 -->
     <div
       class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3"
     >
       <div>
-        <h3 class="fw-bold text-slate-800 mb-1">帳號管理</h3>
+        <h3 class="users-title">帳號管理</h3>
+        <p class="users-subtitle">管理使用者帳號、權限與審核狀態</p>
       </div>
 
       <router-link
@@ -26,37 +27,36 @@
         {{ errorMessage }}
       </div>
       <!-- 頂部搜尋框 -->
-      <div
-        class="input-group input-group-sm search-input-group"
-        style="max-width: 240px"
-      >
-        <span class="input-group-text bg-white border-end-0 text-muted ps-3">
-          <i class="bi bi-search"></i>
-        </span>
+      <div class="users-toolbar p-3 border-bottom">
+        <div class="input-group input-group-sm search-input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted ps-3">
+            <i class="bi bi-search"></i>
+          </span>
 
-        <input
-          v-model="searchQuery"
-          type="search"
-          class="form-control border-start-0 ps-1"
-          placeholder="搜尋姓名、帳號或信箱"
-          aria-label="搜尋使用者"
-        />
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="form-control border-start-0 ps-1"
+            placeholder="搜尋姓名、帳號或信箱"
+            aria-label="搜尋使用者"
+          />
+        </div>
       </div>
 
       <!-- 表格內容 -->
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light extra-small text-secondary">
+      <div class="table-responsive d-none d-md-block">
+        <table class="table users-table table-hover align-middle mb-0">
+          <thead class="table-light text-secondary">
             <tr>
               <th class="ps-4 py-2" style="width: 20%">姓名</th>
-              <th class="py-2" style="width: 30%">電子郵件信箱</th>
+              <th class="py-2" style="width: 30%">電子郵件</th>
               <th class="py-2" style="width: 15%">狀態</th>
               <th class="py-2" style="width: 15%">角色</th>
               <!-- 🎯 修正重點：操作標題與底下欄位統一對齊風格 -->
               <th class="pe-4 py-2 text-center" style="width: 20%">操作</th>
             </tr>
           </thead>
-          <tbody class="extra-small text-dark">
+          <tbody class="text-dark">
             <tr
               v-for="user in users"
               :key="user.userId"
@@ -155,6 +155,118 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- 手機版使用者卡片 -->
+      <div class="user-mobile-list d-md-none">
+        <article
+          v-for="user in users"
+          :key="`mobile-${user.userId}`"
+          class="user-mobile-card"
+          :class="{ 'user-mobile-card-disabled': user.status === 0 }"
+        >
+          <!-- 姓名與狀態 -->
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+              <div class="user-avatar">
+                {{ user.name?.charAt(0) || "?" }}
+              </div>
+
+              <div class="min-w-0">
+                <div class="fw-semibold text-dark text-truncate">
+                  {{ user.name }}
+                </div>
+
+                <div class="user-mobile-email">
+                  {{ user.email }}
+                </div>
+              </div>
+            </div>
+
+            <span
+              class="badge status-badge rounded-pill flex-shrink-0"
+              :class="statusBadgeClass(user.status)"
+            >
+              <span class="status-dot"></span>
+              {{ statusLabels[user.status] ?? "未知狀態" }}
+            </span>
+          </div>
+
+          <!-- 角色 -->
+          <div class="user-mobile-roles">
+            <div class="d-flex flex-wrap gap-1">
+              <span
+                v-for="roleCode in user.roleCodes"
+                :key="roleCode"
+                class="badge bg-light text-secondary border rounded-pill px-2 py-1 fw-normal"
+              >
+                {{ roleLabels[roleCode] ?? roleCode }}
+              </span>
+
+              <span
+                v-if="!user.roleCodes?.length"
+                class="extra-small text-muted"
+              >
+                尚未指派
+              </span>
+            </div>
+          </div>
+
+          <!-- 操作 -->
+          <div class="user-mobile-actions">
+            <button
+              v-if="user.status === 2"
+              type="button"
+              class="btn btn-sm btn-primary"
+              @click="openReview(user)"
+            >
+              <i class="bi bi-person-check-fill me-1"></i>
+              審核
+            </button>
+
+            <template v-else-if="user.status === 0 || user.status === 1">
+              <router-link
+                :to="{
+                  name: 'user-edit',
+                  params: { id: user.userId },
+                }"
+                class="btn btn-sm btn-outline-secondary"
+              >
+                <i class="bi bi-pencil-square me-1"></i>
+                編輯
+              </router-link>
+
+              <button
+                v-if="user.status === 1"
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                :disabled="updatingUserId === user.userId"
+                @click="toggleStatus(user)"
+              >
+                <span
+                  v-if="updatingUserId === user.userId"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                <i v-else class="bi bi-person-x me-1"></i>
+                停用
+              </button>
+
+              <button
+                v-else
+                type="button"
+                class="btn btn-sm btn-outline-success"
+                :disabled="updatingUserId === user.userId"
+                @click="toggleStatus(user)"
+              >
+                <span
+                  v-if="updatingUserId === user.userId"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                <i v-else class="bi bi-person-check me-1"></i>
+                啟用
+              </button>
+            </template>
+          </div>
+        </article>
       </div>
 
       <!-- 頁尾分頁列 -->
@@ -291,7 +403,7 @@
                     type="checkbox"
                     value="ADMIN"
                   />
-                  <span class="form-check-label">系統管理員</span>
+                  <span class="form-check-label">管理員</span>
                 </label>
               </div>
             </div>
@@ -370,9 +482,18 @@ function closeReview() {
 
 const roleLabels = {
   ADMIN: "管理員",
-  HANDLER: "維修人員",
+  HANDLER: "工程師",
   EMPLOYEE: "一般員工",
 };
+function statusBadgeClass(status) {
+  return (
+    {
+      0: "status-disabled",
+      1: "status-active",
+      2: "status-pending",
+    }[status] ?? "status-unknown"
+  );
+}
 
 const statusLabels = {
   0: "已停用",
@@ -529,7 +650,38 @@ async function toggleStatus(user) {
 
 <style scoped>
 .users-page {
-  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+}
+
+.users-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.users-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.users-table {
+  min-width: 820px;
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.users-table th,
+.users-table td {
+  white-space: nowrap;
+}
+
+.users-table td:nth-child(2) {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .users-page th,
@@ -538,11 +690,6 @@ async function toggleStatus(user) {
   padding-bottom: 0.5rem;
 }
 
-@media (max-width: 576px) {
-  .users-page {
-    padding: 0.5rem;
-  }
-}
 .extra-small {
   font-size: 0.82rem;
 }
@@ -568,5 +715,173 @@ async function toggleStatus(user) {
   background-color: #0d6efd;
   border-color: #0d6efd;
   color: #fff;
+}
+.users-toolbar {
+  background: linear-gradient(90deg, #f8fafc, #ffffff);
+}
+
+.search-input-group {
+  max-width: 320px;
+}
+
+.search-input-group .input-group-text,
+.search-input-group .form-control {
+  min-height: 38px;
+}
+
+.users-page thead th {
+  color: #64748b;
+  background-color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-bottom-color: #e2e8f0;
+}
+
+.users-page tbody tr {
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.users-page tbody tr:hover {
+  background-color: #f8fbff;
+  box-shadow: inset 3px 0 0 #3b82f6;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #1d4ed8;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.user-account {
+  margin-top: 0.1rem;
+  font-size: 0.72rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-active {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.status-disabled {
+  color: #64748b;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.status-pending {
+  color: #b45309;
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.status-unknown {
+  color: #475569;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.role-badge {
+  color: #0369a1;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+.min-w-0 {
+  min-width: 0;
+}
+
+.user-mobile-list {
+  background-color: #f8fafc;
+}
+
+.user-mobile-card {
+  padding: 1rem;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.user-mobile-card:last-child {
+  border-bottom: 0;
+}
+
+.user-mobile-card-disabled {
+  background-color: #f8fafc;
+}
+
+.user-mobile-card-disabled .user-avatar,
+.user-mobile-card-disabled .user-mobile-email,
+.user-mobile-card-disabled .fw-semibold {
+  opacity: 0.55;
+}
+
+.user-mobile-email {
+  margin-top: 0.15rem;
+  color: #1e3a8a;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.user-mobile-roles {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.user-mobile-label {
+  min-width: 2.5rem;
+  padding-top: 0.2rem;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.user-mobile-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.user-mobile-actions .btn {
+  min-width: 72px;
+}
+
+@media (max-width: 576px) {
+  .search-input-group {
+    max-width: none;
+  }
+
+  .user-mobile-card {
+    padding: 0.875rem;
+  }
 }
 </style>
