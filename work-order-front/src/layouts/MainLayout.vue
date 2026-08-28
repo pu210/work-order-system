@@ -27,11 +27,25 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import AppNav from "@/components/AppNav.vue";
 import ChatSidebar from "@/components/ChatSidebar.vue";
+import { notify } from "@/plugins/notify.js";
+
+const PERMISSION_CHANGED_MESSAGE_KEY = "permission_changed_message";
 
 const isChatOpen = ref(false);
+
+onMounted(() => {
+  const message = sessionStorage.getItem(PERMISSION_CHANGED_MESSAGE_KEY);
+
+  if (!message) {
+    return;
+  }
+
+  sessionStorage.removeItem(PERMISSION_CHANGED_MESSAGE_KEY);
+  notify.warning(message);
+});
 </script>
 
 <style scoped>

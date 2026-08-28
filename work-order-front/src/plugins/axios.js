@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, saveAuth, clearAuth } from "@/utils/auth.js";
+import { getToken, getCurrentUser, saveAuth, clearAuth } from "@/utils/auth.js";
 import { notify } from "@/plugins/notify.js";
 import { getErrorMessage } from "@/utils/apiError.js";
 
@@ -15,6 +15,7 @@ const instance = axios.create({
 });
 
 let refreshPromise = null;
+let handlingPermissionChange = false;
 
 export async function refreshAccessToken() {
   if (!refreshPromise) {
@@ -105,10 +106,50 @@ instance.interceptors.response.use(
         if (window.location.pathname !== "/account/initial-password") {
           window.location.replace("/account/initial-password");
         }
-      } else if (!config.skipForbiddenRedirect) {
-        if (window.location.pathname !== "/forbidden") {
+
+        return Promise.reject(error);
+      }
+
+      const shouldCheckRoleChange =
+        config.checkRoleChangeOnForbidden || !config.skipForbiddenRedirect;
+
+      if (!shouldCheckRoleChange) {
+        return Promise.reject(error);
+      }
+
+      if (handlingPermissionChange) {
+        return Promise.reject(error);
+      }
+
+      handlingPermissionChange = true;
+
+      try {
+        const previousRoleCodes = getCurrentUser()?.roleCodes ?? [];
+
+        await refreshAccessToken();
+
+        const currentRoleCodes = getCurrentUser()?.roleCodes ?? [];
+
+        const rolesChanged =
+          JSON.stringify([...previousRoleCodes].sort()) !==
+          JSON.stringify([...currentRoleCodes].sort());
+
+        if (rolesChanged) {
+          sessionStorage.setItem(
+            "permission_changed_message",
+            "你的使用權限已變更，已為你更新可使用的功能。",
+          );
+
+          window.location.replace("/dashboard");
+        } else if (!config.skipForbiddenRedirect) {
+          // 一般未略過全域轉址的 403，維持原本行為。
           window.location.replace("/forbidden");
+        } else {
+          // 角色沒有改變，而且呼叫端要自行處理這個 403。
+          handlingPermissionChange = false;
         }
+      } catch {
+        redirectToLogin();
       }
 
       return Promise.reject(error);

@@ -40,6 +40,7 @@ export function startEditSession(workOrderId) {
     .post(`/api/work-orders/${workOrderId}/review/edit-session`, null, {
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
@@ -55,6 +56,7 @@ export function editSessionHeartbeat(workOrderId, sessionToken) {
         },
         skipGlobalError: true,
         skipForbiddenRedirect: true,
+        checkRoleChangeOnForbidden: true,
       },
     )
     .then((res) => res.data.data);
@@ -68,6 +70,7 @@ export function releaseEditSession(workOrderId, sessionToken) {
       },
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
@@ -80,8 +83,13 @@ export function reviewAccept(workOrderId, payload, sessionToken) {
         headers: { "X-Edit-Session-Token": sessionToken },
         skipGlobalError: true,
         skipForbiddenRedirect: true,
+        checkRoleChangeOnForbidden: true,
       }
-    : { skipGlobalError: true, skipForbiddenRedirect: true };
+    : {
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+        checkRoleChangeOnForbidden: true,
+      };
 
   return api
     .post(`/api/work-orders/${workOrderId}/review/accept`, payload, config)
@@ -94,8 +102,13 @@ export function reviewReject(workOrderId, payload, sessionToken) {
         headers: { "X-Edit-Session-Token": sessionToken },
         skipGlobalError: true,
         skipForbiddenRedirect: true,
+        checkRoleChangeOnForbidden: true,
       }
-    : { skipGlobalError: true, skipForbiddenRedirect: true };
+    : {
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+        checkRoleChangeOnForbidden: true,
+      };
 
   return api
     .post(`/api/work-orders/${workOrderId}/review/reject`, payload, config)
@@ -109,6 +122,7 @@ export function progressAccept(workOrderId, payload) {
     .post(`/api/work-orders/${workOrderId}/progress/accept`, payload, {
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
@@ -118,6 +132,7 @@ export function progressReject(workOrderId, payload) {
     .post(`/api/work-orders/${workOrderId}/progress/reject`, payload, {
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
@@ -140,6 +155,7 @@ export function adminCheckAccept(workOrderId, payload) {
     .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload, {
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
@@ -149,6 +165,7 @@ export function adminCheckReject(workOrderId, payload) {
     .post(`/api/work-orders/${workOrderId}/admin-check/reject`, payload, {
       skipGlobalError: true,
       skipForbiddenRedirect: true,
+      checkRoleChangeOnForbidden: true,
     })
     .then((res) => res.data.data);
 }
