@@ -418,16 +418,22 @@ body {
 }
 
 @media (max-width: 991.98px) {
-  .wo-nav {
-    padding: 0 16px;
-  }
-
   .wo-nav-inner {
     gap: 16px;
   }
 }
 
 @media (max-width: 1320px) {
+  .wo-nav {
+    /* 與主內容的 p-4 + container gutter + 頁面 px-sm-4 對齊 */
+    padding-right: 60px;
+    padding-left: 60px;
+  }
+
+  .wo-logo {
+    margin-left: 0;
+  }
+
   .wo-nav-links,
   .wo-logout-btn {
     display: none;
@@ -447,10 +453,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  .wo-nav {
-    padding: 0 14px;
-  }
-
   .wo-nav-inner {
     gap: 8px;
   }
@@ -467,5 +469,13 @@ body {
   .wo-mobile-menu {
     right: 8px;
     left: 8px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .wo-nav {
+    /* px-sm-4 尚未生效時，頁面左右邊界為 24px + 12px + 8px */
+    padding-right: 44px;
+    padding-left: 44px;
   }
 }
