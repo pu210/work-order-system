@@ -66,12 +66,16 @@ public class SecurityConfig {
                                                                 HttpMethod.PATCH,
                                                                 "/api/account/initial-password")
                                                 .authenticated()
+
+                                                // 維修目標：管理員與工程師皆可新增、修改、查詢及切換狀態
+                                                .requestMatchers("/api/repair-targets/**")
+                                                .hasAnyRole("ADMIN", "HANDLER")
+
                                                 // 僅管理員權限可使用 API
                                                 .requestMatchers(HttpMethod.POST, "/api/users",
                                                                 "/api/repair-categories/**",
                                                                 "/api/priorities/**",
                                                                 "/api/sub-categories/**",
-                                                                "/api/repair-targets/**",
                                                                 "/api/announcements/**",
                                                                 "/api/work-orders/*/review/**",
                                                                 "/api/work-orders/*/admin-check/**")
@@ -80,7 +84,6 @@ public class SecurityConfig {
                                                                 "/api/repair-categories/**",
                                                                 "/api/sub-categories/**",
                                                                 "/api/priorities/**",
-                                                                "/api/repair-targets/**",
                                                                 "/api/work-orders/*/review/edit-session/heartbeat")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(
@@ -88,7 +91,6 @@ public class SecurityConfig {
                                                                 "/api/repair-categories/**",
                                                                 "/api/sub-categories/**",
                                                                 "/api/priorities/**",
-                                                                "/api/repair-targets/**",
                                                                 "/api/announcements/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.DELETE,
