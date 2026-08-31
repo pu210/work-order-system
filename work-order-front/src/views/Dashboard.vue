@@ -149,13 +149,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "@/plugins/axios.js";
 import plainAxios from "axios";
 import Swal from "sweetalert2";
 
 import { useAuthStore } from "@/stores/auth.js";
+import { useNotificationStore } from "@/stores/notification.js";
 
 // 📌 匯入 API 模組
 import { getWorkOrderList } from "@/api/workOrder.js";
@@ -210,40 +211,49 @@ const STATUS_COLOR_MAP = {
 
 const STATUS_TEXT_MAP = {
   PENDING_REVIEW: "待審核",
+  DRAFT: "草稿",
+  SUBMITTED: "已送出",
+  ASSIGNED: "已派單",
   IN_PROGRESS: "處理中",
   PENDING_USER_ACCEPTANCE: "待使用者驗收",
   PENDING_ADMIN_ACCEPTANCE: "待管理員驗收",
   COMPLETED: "已完成",
-  CANCELLED: "已取消",
+  CLOSED: "已結案",
+  CANCELLED: "已撤回",
+  REJECTED: "已退單",
 };
 
 // -------------------------------------------------------------
 // 🛠️ FullCalendar 時間格式化專用防呆函式 (ISO 8601 標準相容)
+// 目的：將 Java 後端、Google API 或 JS Date 等不同來源的時間格式，
+//      統一洗成 FullCalendar 唯一認得的標準 ISO 8601 字串 (YYYY-MM-DDTHH:mm:ss)
 // -------------------------------------------------------------
 const formatFullCalendarDate = (dateVal) => {
+  // 0. 安全關卡：若值為空 (null / undefined)，回傳 null 防止程式崩潰
   if (!dateVal) return null;
 
-  // 情況 1：若後端回傳的是陣列格式 [2026, 8, 22, 14, 30]
+  // 1. 情況 1：處理 Java Jackson 序列化回傳的陣列格式 [2026, 8, 22, 14, 30]
   if (Array.isArray(dateVal)) {
     const [y, m, d, h = 0, min = 0, s = 0] = dateVal;
-    const pad = (n) => String(n).padStart(2, "0");
+    const pad = (n) => String(n).padStart(2, "0"); // 個位數自動補零 (如 8 補成 "08")
     return `${y}-${pad(m)}-${pad(d)}T${pad(h)}:${pad(min)}:${pad(s)}`;
   }
 
-  // 情況 2：若後端回傳的是字串 (例如 "2026-08-22T11:30:00" 或 "2026-08-22 11:30:00")
+  // 2. 情況 2：處理字串時間 (如 "2026-08-22 14:30:00" 或帶納秒 "2026-08-22T14:30:00.2954553")
   if (typeof dateVal === "string") {
-    const cleaned = dateVal.trim().replace(" ", "T");
+    const cleaned = dateVal.trim().replace(" ", "T"); // 空格替換為大寫 "T" 分隔符
     if (cleaned.includes("T")) {
-      return cleaned.substring(0, 19);
+      return cleaned.substring(0, 19); // 裁剪掉多餘的納秒/毫秒 (.2954553)，只保留前 19 位 (YYYY-MM-DDTHH:mm:ss)
     }
-    return cleaned.substring(0, 10);
+    return cleaned.substring(0, 10); // 若只有日期，剪出前 10 位 (YYYY-MM-DD)
   }
 
-  // 情況 3：若已是 Date 物件
+  // 3. 情況 3：處理 JS 原生 Date 物件 (如 new Date())
   if (dateVal instanceof Date) {
     return dateVal.toISOString().substring(0, 19);
   }
 
+  // 4. 保底退路：若為未知格式，安全回傳 null
   return null;
 };
 
@@ -362,9 +372,14 @@ const loadKpiStats = async () => {
       const rawTime = t.createdTime || t.created_time || t.dueTime || t.due_time
       const startDate = formatFullCalendarDate(rawTime) || todayYMD
 
+      const rawTitle = t.title || "未命名工單"
+      const statusKey = t.statusName || t.status || t.status_name
+      const statusText = STATUS_TEXT_MAP[statusKey] || statusKey || ""
+      const displayTitle = statusText ? `${rawTitle}(${statusText})` : rawTitle
+
       return {
         id: `ticket-${t.workOrderId || t.work_order_id}`,
-        title: t.title || "未命名工單",
+        title: displayTitle,
         start: startDate,
         classNames: ['event-system-ticket'],
         extendedProps: {
@@ -609,6 +624,16 @@ const checkSavedGoogleToken = async () => {
     }
   }
 };
+
+const notificationStore = useNotificationStore();
+
+// 監聽即時推播通知 (當有新工單推播/狀態變更通知到達時，自動無刷新重新載入 KPI 與行事曆工單狀態)
+watch(
+  () => notificationStore.notifications.length,
+  () => {
+    loadKpiStats();
+  }
+);
 
 // 組件掛載 (頁面開啟時自動執行)
 onMounted(() => {

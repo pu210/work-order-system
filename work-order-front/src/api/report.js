@@ -25,6 +25,11 @@ export function getPriorityReport(params) {
   return api.get('/api/reports/priorities', { params }).then((res) => res.data.data)
 }
 
+// 5.1 依設備型號統計報表
+export function getEquipmentModelReport(params) {
+  return api.get('/api/reports/equipment-models', { params }).then((res) => res.data.data)
+}
+
 // 6. 依月份統計報表 (折線圖用)
 export function getMonthlyReport(params) {
   return api.get('/api/reports/monthly', { params }).then((res) => res.data.data)

@@ -78,12 +78,15 @@ public class AdminCheckService {
 
                 // 傳送退單通知給負責工程師（無論歷史紀錄是否存在，工程師都一定能收到通知）
                 if (workOrder.getAssignedHandler() != null) {
+                        String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
+                        String reasonPart = reasonStr.isBlank() ? "已被管理員退回驗收。" : "已被管理員退回驗收，原因：" + reasonStr;
+
                         notificationService.sendNotification(
                                         workOrder.getAssignedHandler().getUserId(), // 接收者：工程師
                                         senderAdminId, // 發送者：當初審核管理員 (或目前使用者)
                                         workOrderId,
                                         "管理員退回驗收，請重新處理！",
-                                        "工單：" + workOrder.getWorkOrderNo() + " 已被管理員退回驗收，原因：" + request.feedback(),
+                                        "工單：" + workOrder.getWorkOrderNo() + " " + reasonPart,
                                         workOrder.getStatus());
                 }
 

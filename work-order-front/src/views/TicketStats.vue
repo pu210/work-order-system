@@ -42,7 +42,7 @@
               <div class="text-muted small mb-1 fw-medium">
                 {{ getDimensionTotalCardTitle() }}
               </div>
-              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
+              <div class="h3 fw-bold mb-0 text-success">{{ filteredReportData.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
             </div>
             <div class="icon-avatar bg-success-subtle text-success rounded-circle p-3">
               <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
@@ -109,6 +109,7 @@
               <select class="form-select border-start-0" id="dimension-select" v-model="filterDimension">
                 <option value="CATEGORY">按工單大分類</option>
                 <option value="SUBCATEGORY">按細項分類</option>
+                <option value="EQUIPMENT">依設備型號</option>
                 <option value="STATUS">依工單狀態</option>
                 <option value="CREATOR">依工單建立者</option>
                 <option value="PRIORITY">依優先級</option>
@@ -284,6 +285,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import {
   getCategoryReport,
   getSubCategoryReport,
+  getEquipmentModelReport,
   getStatusReport,
   getCreatorReport,
   getPriorityReport,
@@ -329,7 +331,7 @@ const categoryReportList = ref([]) // 後端 API 抓回的原始分類數據
 
 // 下拉選單控制條件
 const filterLimit = ref('ALL')          // 限制筆數 ('ALL' | '3' | '5' | '10')
-const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY')
+const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY' | 'EQUIPMENT')
 const filterField = ref('CATEGORY_NAME')// 選擇欄位
 const filterStartDate = ref('')         // 開始日期 YYYY-MM-DD
 const filterEndDate = ref('')           // 結束日期 YYYY-MM-DD
@@ -367,13 +369,14 @@ const formatStatus = (statusStr) => {
   return map[statusStr] || statusStr
 }
 
-// 取得項目的顯示名稱（相容大分類、細項名稱、狀態、建立者、優先級、工程師）
+// 取得項目的顯示名稱（相容大分類、細項名稱、設備型號、狀態、建立者、優先級、工程師）
 const getDisplayName = (item) => {
   if (!item) return '未指定'
   if (filterDimension.value === 'STATUS') {
     return formatStatus(item.statusName || item.status)
   }
   return (
+    item.equipmentModel ||
     item.engineerName ||
     item.categoryName ||
     item.subCategoryName ||
@@ -389,6 +392,8 @@ const getDimensionTitle = () => {
   switch (filterDimension.value) {
     case 'SUBCATEGORY':
       return '細項分類'
+    case 'EQUIPMENT':
+      return '設備型號'
     case 'STATUS':
       return '工單狀態'
     case 'CREATOR':
@@ -430,6 +435,8 @@ const getTopCategoryCardTitle = () => {
       return '最多的建立者'
     case 'PRIORITY':
       return '最多的優先級'
+    case 'EQUIPMENT':
+      return '報修最多設備'
     case 'ENGINEER_KPI':
       return '完成件數最高'
     case 'SUBCATEGORY':
@@ -450,6 +457,11 @@ const getChartTitle = () => {
 const filteredReportData = computed(() => {
   let list = [...categoryReportList.value]
 
+  // 當維度為依設備型號 (或 0 筆防呆) 時，自動過濾掉 0 筆報修次數的項目
+  if (filterDimension.value === 'EQUIPMENT') {
+    list = list.filter(item => (item.count || item.completedCount || 0) > 0)
+  }
+
   // 按數量高到低排序
   list.sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
 
@@ -468,9 +480,8 @@ const totalCount = computed(() => {
 
 // 計算最高報修項目
 const topCategory = computed(() => {
-  if (categoryReportList.value.length === 0) return null
-  const sorted = [...categoryReportList.value].sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
-  return sorted[0]
+  if (filteredReportData.value.length === 0) return null
+  return filteredReportData.value[0]
 })
 
 // 計算最高占比百分比
@@ -480,10 +491,10 @@ const topCategoryPercentage = computed(() => {
   return ((count / totalCount.value) * 100).toFixed(1)
 })
 
-// 平均每個分類筆數 (保留小數點第一位)
+// 平均每個分類筆數 (排除 0 筆項目後整除，保留小數點第一位)
 const avgCount = computed(() => {
-  if (categoryReportList.value.length === 0) return '0.0'
-  return (totalCount.value / categoryReportList.value.length).toFixed(1)
+  if (filteredReportData.value.length === 0) return '0.0'
+  return (totalCount.value / filteredReportData.value.length).toFixed(1)
 })
 
 // 計算特定數量的百分比占比
@@ -568,6 +579,8 @@ const loadData = async () => {
     let data = []
     if (filterDimension.value === 'SUBCATEGORY') {
       data = await getSubCategoryReport(params)
+    } else if (filterDimension.value === 'EQUIPMENT') {
+      data = await getEquipmentModelReport(params)
     } else if (filterDimension.value === 'STATUS') {
       data = await getStatusReport(params)
     } else if (filterDimension.value === 'CREATOR') {

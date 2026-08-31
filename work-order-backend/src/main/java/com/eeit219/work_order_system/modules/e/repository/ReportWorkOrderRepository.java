@@ -89,4 +89,14 @@ public interface ReportWorkOrderRepository extends JpaRepository<WorkOrder, Inte
             "GROUP BY YEAR(w.createdTime), MONTH(w.createdTime), DAY(w.createdTime) " +
             "ORDER BY YEAR(w.createdTime) ASC, MONTH(w.createdTime) ASC, DAY(w.createdTime) ASC")
     List<DailyReportDto> countWorkOrdersByDaily(@Param("year") Integer year, @Param("month") Integer month);
+
+    // 9. 依設備型號群組統計 (包含所有註冊設備與維修次數，支援日期過濾)
+    @Query("SELECT CASE WHEN t.model IS NOT NULL AND t.model <> '' THEN t.model ELSE t.name END AS equipmentModel, COUNT(w.workOrderId) AS count " +
+            "FROM RepairTarget t LEFT JOIN WorkOrder w ON w.repairTarget = t " +
+            "AND (:startDate IS NULL OR w.createdTime >= :startDate) " +
+            "AND (:endDate IS NULL OR w.createdTime <= :endDate) " +
+            "GROUP BY CASE WHEN t.model IS NOT NULL AND t.model <> '' THEN t.model ELSE t.name END")
+    List<CategoryReportDto> countWorkOrdersByEquipmentModel(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

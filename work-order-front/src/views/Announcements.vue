@@ -272,7 +272,7 @@ const loadUsersMap = async () => {
   if (!authStore.hasRole('ADMIN')) return
 
   try {
-    const res = await getUsers({ size: 1000 })
+    const res = await getUsers({ size: 100 })
     const list = res?.content || (Array.isArray(res) ? res : [])
     const map = {}
     list.forEach(u => {
