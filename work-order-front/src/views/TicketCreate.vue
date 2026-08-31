@@ -1,7 +1,7 @@
 <template>
-  <div class="tc-page">
+  <div class="tc-page px-2 px-sm-4">
     <div class="tc-page-header">
-      <h1 class="tc-title">建立新工單</h1>
+      <h1 class="tc-title">建立報修單</h1>
       <p class="tc-subtitle">
         請盡量詳細描述問題，以利工程師更快掌握狀況並處理
       </p>
@@ -291,8 +291,7 @@ async function handleSubmit() {
 
 <style scoped>
 .tc-page {
-  max-width: 860px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -370,7 +369,7 @@ async function handleSubmit() {
 
 .tc-label {
   display: block;
-  font-size: 12.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 6px;
@@ -540,7 +539,7 @@ async function handleSubmit() {
 /* 填寫小提醒 */
 /* ---------------------------------------------------------------------- */
 .tc-tips-title {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-ink);
   margin: 0 0 12px;
@@ -551,7 +550,7 @@ async function handleSubmit() {
   padding-left: 18px;
   margin: 0;
   line-height: 1.9;
-  font-size: 12.5px;
+  font-size: 15px;
   color: var(--color-text-muted);
 }
 </style>

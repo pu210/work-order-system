@@ -1,7 +1,7 @@
 <template>
-  <div class="ticket-detail-view">
+  <div class="ticket-detail-view px-2 px-sm-4">
     <RouterLink :to="{ name: backTarget }" class="d-inline-block mb-3 small"
-      >← 返回工單列表</RouterLink
+      >← {{ backButtonLable }}</RouterLink
     >
 
     <div v-if="loading" class="text-muted">載入中…</div>
@@ -95,6 +95,214 @@
                     <div class="small mt-1">{{ progressNotice.message }}</div>
                   </div>
                 </div>
+              </section>
+
+              <!-- 退回紀錄：後端已依登入者角色過濾可見內容 -->
+              <section
+                v-if="
+                  rejectionRecordsLoading ||
+                  rejectionRecordsError ||
+                  rejectionRecords.length
+                "
+                class="rejection-record-section mb-3"
+              >
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <h6 class="mb-0">
+                    {{ hasCurrentRejection ? "退回原因" : "過往退回紀錄" }}
+                  </h6>
+                  <span
+                    v-if="rejectionRecords.length"
+                    class="badge bg-light border text-secondary fw-normal rejection-count-badge"
+                  >
+                    共 {{ rejectionRecords.length }} 筆
+                  </span>
+                </div>
+
+                <p v-if="rejectionRecordsLoading" class="mb-0 small text-muted">
+                  退回紀錄載入中…
+                </p>
+
+                <p
+                  v-else-if="rejectionRecordsError"
+                  class="mb-0 small text-danger"
+                >
+                  {{ rejectionRecordsError }}
+                </p>
+
+                <!-- 已經流轉到後續狀態時，先以中性摘要呈現過往退回歷程 -->
+                <div
+                  v-else-if="
+                    rejectionRecords.length &&
+                    !hasCurrentRejection &&
+                    !showRejectionHistory
+                  "
+                  class="rejection-history-summary border rounded px-3 py-2"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center flex-wrap gap-2"
+                  >
+                    <div
+                      class="d-flex align-items-center gap-2 small text-secondary"
+                    >
+                      <i class="bi bi-clock-history" aria-hidden="true"></i>
+                      此工單曾有 {{ rejectionRecords.length }} 筆退回紀錄
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-link text-secondary text-decoration-none p-0"
+                      @click="showRejectionHistory = true"
+                    >
+                      查看紀錄
+                      <i class="bi bi-chevron-down ms-1" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div v-else>
+                  <article
+                    v-for="record in visibleRejectionRecords"
+                    :key="record.historyId"
+                    :class="[
+                      'rejection-record-card',
+                      'border',
+                      'rounded',
+                      'p-3',
+                      'mb-2',
+                      isCurrentRejectionRecord(record)
+                        ? 'rejection-record-card-current'
+                        : 'rejection-record-card-history',
+                    ]"
+                  >
+                    <div
+                      class="d-flex justify-content-between align-items-start flex-wrap gap-2"
+                    >
+                      <div class="d-flex align-items-center flex-wrap gap-2">
+                        <i
+                          class="bi bi-arrow-return-left rejection-record-icon"
+                          aria-hidden="true"
+                        ></i>
+                        <span class="fw-semibold small">
+                          {{ record.rejectedByName || "未知人員" }}
+                        </span>
+                        <span
+                          class="badge rounded-pill rejection-type-badge fw-normal"
+                        >
+                          {{ rejectionTypeLabel(record.rejectionType) }}
+                        </span>
+                      </div>
+
+                      <time class="small text-muted text-nowrap">
+                        {{ formatDateTimeToMinute(record.rejectedTime) }}
+                      </time>
+                    </div>
+
+                    <div class="small text-muted mt-3 mb-1">退回原因</div>
+                    <div class="small rejection-record-reason">
+                      {{ record.reason }}
+                    </div>
+                  </article>
+
+                  <button
+                    v-if="!hasCurrentRejection && showRejectionHistory"
+                    type="button"
+                    class="btn btn-sm btn-link text-secondary text-decoration-none px-0"
+                    @click="showRejectionHistory = false"
+                  >
+                    <i class="bi bi-chevron-up me-1" aria-hidden="true"></i>
+                    收合過往紀錄
+                  </button>
+
+                  <button
+                    v-else-if="rejectionRecords.length > 1"
+                    type="button"
+                    class="btn btn-sm btn-link text-secondary text-decoration-none px-0"
+                    @click="showAllRejectionRecords = !showAllRejectionRecords"
+                  >
+                    <i
+                      :class="[
+                        'bi',
+                        showAllRejectionRecords
+                          ? 'bi-chevron-up'
+                          : 'bi-chevron-down',
+                        'me-1',
+                      ]"
+                      aria-hidden="true"
+                    ></i>
+                    {{
+                      showAllRejectionRecords
+                        ? "收合較早紀錄"
+                        : `顯示較早紀錄（${rejectionRecords.length - 1}）`
+                    }}
+                  </button>
+                </div>
+              </section>
+
+              <!-- 完整流程回饋僅供管理員查看 -->
+              <section
+                v-if="showFeedbackSection"
+                class="workflow-feedback-section border rounded p-3 mb-3"
+              >
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <h6 class="mb-0">流程回饋紀錄</h6>
+                  <span
+                    v-if="feedbackRecords.length"
+                    class="badge bg-light border text-secondary fw-normal feedback-count-badge"
+                  >
+                    共 {{ feedbackRecords.length }} 筆
+                  </span>
+                </div>
+
+                <p v-if="feedbackRecordsLoading" class="mb-0 small text-muted">
+                  流程回饋載入中…
+                </p>
+                <p
+                  v-else-if="feedbackRecordsError"
+                  class="mb-0 small text-danger"
+                >
+                  {{ feedbackRecordsError }}
+                </p>
+                <p
+                  v-else-if="!feedbackRecords.length"
+                  class="mb-0 small text-muted"
+                >
+                  尚無流程回饋
+                </p>
+
+                <template v-else>
+                  <article
+                    v-for="record in feedbackRecords"
+                    :key="record.historyId"
+                    class="workflow-feedback-card border rounded p-3 mb-2"
+                  >
+                    <div
+                      class="d-flex justify-content-between align-items-start flex-wrap gap-2"
+                    >
+                      <div class="d-flex align-items-center flex-wrap gap-2">
+                        <i
+                          class="bi bi-chat-square-text"
+                          aria-hidden="true"
+                        ></i>
+                        <span class="fw-semibold small">
+                          {{ record.submittedByName || "未知人員" }}
+                        </span>
+                        <span
+                          class="badge rounded-pill bg-light border text-secondary fw-normal"
+                        >
+                          {{ feedbackTypeLabel(record.feedbackType) }}
+                        </span>
+                      </div>
+
+                      <time class="small text-muted text-nowrap">
+                        {{ formatDateTimeToMinute(record.submittedTime) }}
+                      </time>
+                    </div>
+
+                    <div class="small workflow-feedback-content mt-2">
+                      {{ record.feedback }}
+                    </div>
+                  </article>
+                </template>
               </section>
 
               <div class="mb-3">
@@ -206,11 +414,14 @@
                         </span>
 
                         <span
-                          v-for="roleCode in record.authorRoleCodes || []"
-                          :key="`${record.recordId}-${roleCode}`"
+                          v-if="commentAuthorRoleCode(record.authorRoleCodes)"
                           class="badge rounded-pill text-bg-light border text-secondary fw-normal contact-role-badge"
                         >
-                          {{ userRoleLabel(roleCode) }}
+                          {{
+                            userRoleLabel(
+                              commentAuthorRoleCode(record.authorRoleCodes)
+                            )
+                          }}
                         </span>
                       </div>
 
@@ -382,7 +593,6 @@
                   {{ commentSubmitError }}
                 </div>
               </form>
-
             </div>
           </div>
         </div>
@@ -498,6 +708,8 @@ import { useRoute } from "vue-router";
 import { getAttachments, getAttachmentPreview } from "@/api/workOrder.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { getWorkOrderDetail } from "@/api/workOrderDetail.js";
+import { getWorkOrderFeedbackRecords } from "@/api/workOrderFeedback.js";
+import { getWorkOrderRejectionRecords } from "@/api/workOrderRejection.js";
 import WorkOrderActionPanel from "@/components/work-order/WorkOrderActionPanel.vue";
 import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
 import { userRoleLabel } from "@/constants/userRole.js";
@@ -525,6 +737,25 @@ const commentSubmitError = ref("");
 const contactRecords = ref([]);
 const contactRecordsLoading = ref(false);
 const contactRecordsError = ref("");
+const rejectionRecords = ref([]);
+const rejectionRecordsLoading = ref(false);
+const rejectionRecordsError = ref("");
+const feedbackRecords = ref([]);
+const feedbackRecordsLoading = ref(false);
+const feedbackRecordsError = ref("");
+const showAllRejectionRecords = ref(false);
+const showRejectionHistory = ref(false);
+const latestRejectionRecord = computed(() => rejectionRecords.value[0] || null);
+const hasCurrentRejection = computed(
+  () =>
+    Boolean(latestRejectionRecord.value) &&
+    latestRejectionRecord.value.resultingStatus === ticket.value?.status
+);
+const visibleRejectionRecords = computed(() =>
+  showRejectionHistory.value || showAllRejectionRecords.value
+    ? rejectionRecords.value
+    : rejectionRecords.value.slice(0, 1)
+);
 const visibleContactRecordCount = ref(5);
 const visibleContactRecords = computed(() =>
   contactRecords.value.slice(-visibleContactRecordCount.value)
@@ -532,17 +763,38 @@ const visibleContactRecords = computed(() =>
 const hasMoreContactRecords = computed(
   () => contactRecords.value.length > visibleContactRecordCount.value
 );
-const VALID_BACK_TARGETS = [
-  "ticket-list",
-  "my-tickets",
-  "ticket-assign",
-  "handler-workbench",
-];
-const backTarget = computed(() =>
-  VALID_BACK_TARGETS.includes(route.query.from)
-    ? route.query.from
-    : "ticket-list"
+
+// 返回按鈕
+const backButtonLable = computed(() => {
+  const labels = {
+    "ticket-list": "返回報修單總覽",
+    "my-tickets": "返回我的報修單",
+    "ticket-assign": "返回管理員工作台",
+    "handler-workbench": "返回工程師工作台",
+  };
+
+  return labels[backTarget.value] || "返回工作列表";
+});
+
+const BACK_TARGET_ROLES = {
+  "ticket-list": ["ADMIN"],
+  "my-tickets": ["ADMIN", "HANDLER", "EMPLOYEE"],
+  "ticket-assign": ["ADMIN"],
+  "handler-workbench": ["HANDLER"],
+};
+const defaultBackTarget = computed(() =>
+  authStore.hasRole("ADMIN") ? "ticket-list" : "my-tickets"
 );
+const backTarget = computed(() => {
+  const requestedTarget = route.query.from;
+  const allowedRoles = BACK_TARGET_ROLES[requestedTarget];
+
+  if (allowedRoles?.some((roleCode) => authStore.hasRole(roleCode))) {
+    return requestedTarget;
+  }
+
+  return defaultBackTarget.value;
+});
 const MAX_COMMENT_IMAGE_COUNT = 5;
 const MAX_COMMENT_IMAGE_SIZE = 10 * 1024 * 1024;
 const showScrollTopButton = ref(false);
@@ -612,8 +864,68 @@ function formatDateTimeToMinute(value) {
   return value.replace("T", " ").slice(0, 16);
 }
 
+// 留言作者只顯示一個主要身份，避免多角色管理員同時出現管理員與工程師標籤。
+function commentAuthorRoleCode(roleCodes = []) {
+  const displayPriority = ["ADMIN", "HANDLER", "EMPLOYEE"];
+
+  return (
+    displayPriority.find((roleCode) => roleCodes.includes(roleCode)) ||
+    roleCodes[0] ||
+    ""
+  );
+}
+
+// 將後端退回類型轉換為畫面顯示文字
+function rejectionTypeLabel(rejectionType) {
+  const labelMap = {
+    HANDLER_RETURNED: "工程師退回",
+    ADMIN_REJECTED: "管理員拒絕",
+    ADMIN_RETURNED_FOR_REWORK: "管理員退回重做",
+  };
+
+  return labelMap[rejectionType] || "工單退回";
+}
+
+function feedbackTypeLabel(feedbackType) {
+  const labelMap = {
+    ADMIN_REVIEW: "管理員審核",
+    HANDLER_COMPLETION: "工程師完修回報",
+    USER_ACCEPTANCE: "使用者驗收",
+    ADMIN_ACCEPTANCE: "管理員驗收",
+  };
+
+  return labelMap[feedbackType] || "流程回饋";
+}
+
+// 判斷這筆退回是否仍是工單目前所處的狀態
+function isCurrentRejectionRecord(record) {
+  return (
+    hasCurrentRejection.value &&
+    record.historyId === latestRejectionRecord.value?.historyId
+  );
+}
+
 const canViewPriority = computed(
   () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER")
+);
+const canViewAllFeedback = computed(() => authStore.hasRole("ADMIN"));
+const hasEnteredFeedbackFlow = computed(() => {
+  const feedbackFlowStatuses = [
+    "PENDING_USER_ACCEPTANCE",
+    "PENDING_ADMIN_ACCEPTANCE",
+    "COMPLETED",
+  ];
+  const hasBeenReturnedForRework = rejectionRecords.value.some(
+    (record) => record.rejectionType === "ADMIN_RETURNED_FOR_REWORK"
+  );
+
+  return (
+    feedbackFlowStatuses.includes(ticket.value?.status) ||
+    hasBeenReturnedForRework
+  );
+});
+const showFeedbackSection = computed(
+  () => canViewAllFeedback.value && hasEnteredFeedbackFlow.value
 );
 
 async function loadTicket() {
@@ -699,6 +1011,48 @@ async function loadContactRecords() {
   }
 }
 
+// 載入後端已依角色權限過濾的退回原因
+async function loadRejectionRecords() {
+  rejectionRecordsLoading.value = true;
+  rejectionRecordsError.value = "";
+
+  try {
+    rejectionRecords.value =
+      (await getWorkOrderRejectionRecords(route.params.id)) || [];
+    showAllRejectionRecords.value = false;
+    showRejectionHistory.value = false;
+  } catch (error) {
+    rejectionRecords.value = [];
+    rejectionRecordsError.value =
+      error.response?.data?.message || "退回紀錄載入失敗，請稍後再試";
+  } finally {
+    rejectionRecordsLoading.value = false;
+  }
+}
+
+// 完整接受流程回饋只在管理員畫面發送查詢，後端仍會再次驗證管理員權限。
+async function loadFeedbackRecords() {
+  if (!showFeedbackSection.value) {
+    feedbackRecords.value = [];
+    feedbackRecordsError.value = "";
+    return;
+  }
+
+  feedbackRecordsLoading.value = true;
+  feedbackRecordsError.value = "";
+
+  try {
+    feedbackRecords.value =
+      (await getWorkOrderFeedbackRecords(route.params.id)) || [];
+  } catch (error) {
+    feedbackRecords.value = [];
+    feedbackRecordsError.value =
+      error.response?.data?.message || "流程回饋載入失敗，請稍後再試";
+  } finally {
+    feedbackRecordsLoading.value = false;
+  }
+}
+
 // 每次增加顯示 5 則較早的聯繫紀錄
 function showMoreContactRecords() {
   visibleContactRecordCount.value += 5;
@@ -729,6 +1083,8 @@ onMounted(async () => {
   });
   try {
     await loadTicket();
+    await loadRejectionRecords();
+    await loadFeedbackRecords();
     await loadAttachments();
     await loadContactRecords();
   } catch (error) {
@@ -770,6 +1126,8 @@ onUnmounted(() => {
 
 async function handleWorkflowUpdated() {
   await loadTicket();
+  await loadRejectionRecords();
+  await loadFeedbackRecords();
 }
 // 選擇並驗證尚未送出的留言圖片
 function handleCommentFilesChange(event) {
@@ -885,6 +1243,71 @@ async function handleCommentSubmit() {
 
 .ticket-chip-dot {
   font-size: 0.55rem;
+}
+
+/* 目前仍有效的退回原因使用淡紅色提醒 */
+.rejection-record-card {
+  background-color: #ffffff;
+}
+
+.rejection-record-card-current {
+  background-color: #fff7f5;
+  border-color: #efc7bf !important;
+}
+
+/* 已經流轉完成的退回紀錄改用中性灰色，避免誤認為目前異常 */
+.rejection-record-card-history,
+.rejection-history-summary {
+  background-color: #f8f9fa;
+  border-color: #dee2e6 !important;
+}
+
+.rejection-record-icon {
+  color: #6c757d;
+}
+
+.rejection-type-badge {
+  color: #5f666d;
+  background-color: #e9ecef;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.7rem;
+}
+
+.rejection-record-card-current .rejection-record-icon {
+  color: #b54735;
+}
+
+.rejection-record-card-current .rejection-type-badge {
+  color: #8f3829;
+  background-color: #f9ded8;
+}
+
+.rejection-record-reason {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rejection-count-badge {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.workflow-feedback-section,
+.workflow-feedback-card {
+  background-color: #f8f9fa;
+  border-color: #dee2e6 !important;
+}
+
+.workflow-feedback-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.feedback-count-badge {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
 /* 留言輸入框底色 */

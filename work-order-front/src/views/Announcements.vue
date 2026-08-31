@@ -1,5 +1,5 @@
 <template>
-  <div class="announcements-page">
+  <div class="announcements-page px-2 px-sm-4">
     <!-- 頁面標題區塊 -->
     <div
       class="page-header d-flex justify-content-between align-items-end mb-4"

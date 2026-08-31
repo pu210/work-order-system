@@ -3,9 +3,7 @@
     <div class="wo-nav-inner">
       <router-link to="/dashboard" class="wo-logo">
         <img src="/favicon.ico" alt="logo" class="wo-logo-img" />
-        <div class="wo-logo-text">
-          Gongxiahuei<small>WORK ORDER SYSTEM</small>
-        </div>
+        <div class="wo-logo-text">GongXia</div>
       </router-link>
 
       <div class="wo-nav-links">
@@ -100,9 +98,8 @@ const ROLE_LABEL = { ADMIN: "管理員", HANDLER: "工程師", EMPLOYEE: "一般
 
 const visibleNavItems = computed(() =>
   NAV_ITEMS.filter(
-    (item) =>
-      item.enabled && item.roles.some((role) => authStore.hasRole(role)),
-  ),
+    (item) => item.enabled && item.roles.some((role) => authStore.hasRole(role))
+  )
 );
 
 const roleLabel = computed(() => {
