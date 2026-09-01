@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.eeit219.work_order_system.common.response.ApiResponse;
 import com.eeit219.work_order_system.common.security.AuthenticatedUser;
 import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.AdminCheckAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.ProgressAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.dto.ReviewAcceptRequest;
@@ -118,7 +119,7 @@ public class WorkOrderStateMachineController {
         @PostMapping("/{workOrderId}/admin-check/accept")
         public ResponseEntity<ApiResponse<Object>> adminCheckAccept(
                         @PathVariable Integer workOrderId,
-                        @Valid @RequestBody AcceptWorkOrderRequest request,
+                        @Valid @RequestBody AdminCheckAcceptRequest request,
                         @AuthenticationPrincipal AuthenticatedUser loginUser) {
 
                 adminCheckService.adminCheckAccept(request, workOrderId, loginUser.userId());

@@ -7,7 +7,7 @@ import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateExcep
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
-import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.AdminCheckAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
@@ -35,7 +35,7 @@ public class AdminCheckService {
         }
 
         @Transactional
-        public void adminCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId, Integer userId) {
+        public void adminCheckAccept(AdminCheckAcceptRequest request, Integer workOrderId, Integer userId) {
                 WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
 
@@ -46,7 +46,7 @@ public class AdminCheckService {
                         throw new AccessDeniedException("只有原審核管理員可以操作此工單");
                 }
 
-                workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
+                workOrderStateMachineService.changeState(workOrder, userId, request.toFeedback(),
                                 WorkOrderEvent.ACCEPT);
                 workOrderRepository.save(workOrder);
         }

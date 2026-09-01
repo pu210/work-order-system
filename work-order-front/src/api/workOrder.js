@@ -150,6 +150,19 @@ export function userCheckAccept(workOrderId, payload) {
 
 // 管理員最終驗收
 
+export function generateAdminArchiveSuggestion(workOrderId) {
+  return api
+    .post(
+      `/api/work-orders/${workOrderId}/admin-check/archive-suggestion`,
+      null,
+      {
+        skipGlobalError: true,
+        skipForbiddenRedirect: true,
+      },
+    )
+    .then((res) => res.data.data);
+}
+
 export function adminCheckAccept(workOrderId, payload) {
   return api
     .post(`/api/work-orders/${workOrderId}/admin-check/accept`, payload, {

@@ -129,7 +129,7 @@ const actionLabel = computed(() => {
     return effectiveOrder.value.adminUserId == null ? "審查與派工" : "重新審查";
   }
   if (actionType.value === "progress") return "編輯處理結果";
-  if (actionType.value === "user-acceptance") return "使用者驗收";
+  if (actionType.value === "user-acceptance") return "報修人驗收";
   if (actionType.value === "admin-acceptance") return "管理員驗收";
   return "處理工單";
 });
