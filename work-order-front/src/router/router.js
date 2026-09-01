@@ -195,6 +195,16 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
+  // OAuth 完成後必須先進入 Login.vue，
+  // 才能用後端 Session 換取本次登入的 JWT。
+  const isOAuthCallback =
+    to.name === "Login" &&
+    (to.query.oauth === "success" || to.query.oauth === "failed");
+
+  if (isOAuthCallback) {
+    return true;
+  }
+
   let isAuthenticated = hasValidToken();
 
   // 需要登入的頁面沒有有效 Access Token 時，嘗試刷新 Token。
@@ -263,10 +273,16 @@ router.beforeEach(async (to) => {
   // 檢查頁面角色權限。
   if (isAuthenticated && to.meta.roles) {
     const rawRoles = getCurrentUser()?.roleCodes ?? [];
-    const userRoles = rawRoles.map((r) => String(r).replace(/^ROLE_/, "").toUpperCase());
+    const userRoles = rawRoles.map((r) =>
+      String(r)
+        .replace(/^ROLE_/, "")
+        .toUpperCase(),
+    );
 
     const allowed = to.meta.roles.some((role) => {
-      const cleanRole = String(role).replace(/^ROLE_/, "").toUpperCase();
+      const cleanRole = String(role)
+        .replace(/^ROLE_/, "")
+        .toUpperCase();
       return (
         userRoles.includes(cleanRole) ||
         (cleanRole === "HANDLER" && userRoles.includes("ENGINEER")) ||
