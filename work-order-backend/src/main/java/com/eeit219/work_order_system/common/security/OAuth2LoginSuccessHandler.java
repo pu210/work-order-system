@@ -71,7 +71,7 @@ public class OAuth2LoginSuccessHandler
                                         user.name(),
                                         user.email(),
                                         user.roleCodes(),
-                                        false);
+                                        user.mustChangePassword());
 
                         HttpSession session = request.getSession(true);
                         session.setAttribute(
