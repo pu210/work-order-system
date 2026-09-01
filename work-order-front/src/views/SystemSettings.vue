@@ -103,16 +103,8 @@ const activeTab = ref("target");
   width: 100%;
 }
 
-/* ---------------------------------------------------------------------- */
-/* 頁首 */
-/* ---------------------------------------------------------------------- */
 .mt-page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 22px;
-  flex-wrap: wrap;
 }
 .mt-eyebrow {
   display: block;
@@ -136,11 +128,8 @@ const activeTab = ref("target");
   font-size: 13.5px;
 }
 
-/* ---------------------------------------------------------------------- */
-/* 卡片容器 */
-/* ---------------------------------------------------------------------- */
 .mt-card {
-  background: var(--color-surface);
+  background: #ffffff; /* 🌟 確保主卡片底色為純白 */
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow:
@@ -149,15 +138,12 @@ const activeTab = ref("target");
   padding: 20px 22px;
 }
 
-/* ---------------------------------------------------------------------- */
-/* 工具列與頁籤 (Pill Tabs) */
-/* ---------------------------------------------------------------------- */
 .mt-toolbar {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .mt-pill-tabs {
   display: flex;
@@ -166,7 +152,7 @@ const activeTab = ref("target");
   min-height: 40px;
   padding: 0;
   background: transparent;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: none !important; /* 🌟 拿掉整條底線 */
   border-radius: 0;
   flex-wrap: wrap;
   width: 100%;
@@ -177,7 +163,7 @@ const activeTab = ref("target");
   min-height: 40px;
   padding: 0 16px;
   border-radius: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -189,10 +175,13 @@ const activeTab = ref("target");
 .mt-pill-tab:hover {
   color: var(--color-primary);
 }
+
 .mt-pill-tab.active {
   background: transparent;
   color: var(--color-primary);
-  box-shadow: inset 0 -2px 0 var(--color-primary);
+  font-weight: 700;
+  box-shadow: none !important;
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .mt-mobile-filter {
@@ -203,32 +192,21 @@ const activeTab = ref("target");
   margin-top: 10px;
 }
 
-/* ---------------------------------------------------------------------- */
-/* 分頁切換絲滑動畫 (Fade & Slide) */
-/* ---------------------------------------------------------------------- */
 .fade-enter-active,
 .fade-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
 .fade-enter-from {
   opacity: 0;
   transform: translateY(6px);
 }
-
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-6px);
 }
 
-/* ---------------------------------------------------------------------- */
-/* 響應式調整 (對應第一份的斷點設計) */
-/* ---------------------------------------------------------------------- */
 @media (max-width: 850px) {
   .mt-page-header {
-    align-items: center;
     margin-bottom: 16px;
   }
   .mt-card {
@@ -241,23 +219,6 @@ const activeTab = ref("target");
     display: grid;
     gap: 10px;
     margin-bottom: 16px;
-  }
-  .mt-mobile-control {
-    box-sizing: border-box;
-    width: 100%;
-    min-height: 44px;
-    padding: 0 14px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: #fff;
-    color: var(--color-text);
-    font-family: var(--font-body);
-    font-size: 14px;
-  }
-  .mt-mobile-control:focus {
-    border-color: var(--color-primary);
-    outline: none;
-    box-shadow: 0 0 0 3px var(--color-primary-soft);
   }
 }
 </style>
