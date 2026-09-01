@@ -76,9 +76,15 @@
           v-model.trim="form.feedback"
           class="form-control"
           rows="4"
-          maxlength="1000"
+          maxlength="500"
           placeholder="請輸入審查意見"
         ></textarea>
+        <div
+          class="form-text text-end"
+          :class="form.feedback.length >= 500 ? 'text-danger' : form.feedback.length >= 450 ? 'text-warning' : 'text-muted'"
+        >
+          {{ form.feedback.length }} / 500 字
+        </div>
       </div>
     </form>
 

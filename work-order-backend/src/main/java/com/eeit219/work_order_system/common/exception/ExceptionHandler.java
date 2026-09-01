@@ -76,6 +76,17 @@ public class ExceptionHandler {
                                                 exception.getMessage()));
         }
 
+        @org.springframework.web.bind.annotation.ExceptionHandler(AiSuggestionUnavailableException.class)
+        public ResponseEntity<ApiResponse<Void>> handleAiSuggestionUnavailable(
+                        AiSuggestionUnavailableException exception) {
+
+                log.warn("AI archive suggestion unavailable: {}", exception.getMessage());
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                                .body(ApiResponse.error(
+                                                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                                                exception.getMessage()));
+        }
+
         @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiResponse<Void>> handleValidation(
                         MethodArgumentNotValidException exception) {

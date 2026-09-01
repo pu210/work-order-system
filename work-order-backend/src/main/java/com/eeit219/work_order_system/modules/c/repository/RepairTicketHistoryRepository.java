@@ -17,6 +17,8 @@ import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 
 public interface RepairTicketHistoryRepository extends JpaRepository<RepairTicketHistory, Integer> {
 
+    List<RepairTicketHistory> findByWorkOrderWorkOrderIdOrderByEditedTimeAscHistoryIdAsc(Integer workOrderId);
+
     Optional<RepairTicketHistory> findTopByWorkOrderWorkOrderIdAndEventOrderByHistoryIdDesc(
             Integer workOrderId, WorkOrderEvent event);
 
