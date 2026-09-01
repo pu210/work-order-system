@@ -46,7 +46,7 @@ public class RepairTicketHistory {
     private WorkOrderState status;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "event", length = 20)
+    @Column(name = "event", nullable = false, length = 20)
     private WorkOrderEvent event;
 
     @Column(name = "edited_time", nullable = false)

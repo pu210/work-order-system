@@ -26,16 +26,23 @@
       <div>
         <label for="progress-feedback" class="form-label">
           處理反饋
-          <span class="text-muted fw-normal">（回退管理員時必填）</span>
+          <span class="text-muted fw-normal">（必填）</span>
         </label>
         <textarea
           id="progress-feedback"
           v-model.trim="form.feedback"
           class="form-control"
           rows="5"
-          maxlength="1000"
+          maxlength="500"
           placeholder="請說明處理結果或退回原因"
+          required
         ></textarea>
+        <div
+          class="form-text text-end"
+          :class="form.feedback.length >= 500 ? 'text-danger' : form.feedback.length >= 450 ? 'text-warning' : 'text-muted'"
+        >
+          {{ form.feedback.length }} / 500 字
+        </div>
       </div>
     </form>
 
@@ -77,13 +84,17 @@ async function submitComplete() {
     errorMessage.value = "請填寫設備編號";
     return;
   }
+  if (!form.feedback) {
+    errorMessage.value = "回報完成時必須填寫處理反饋";
+    return;
+  }
   submitting.value = true;
   submittingAction.value = "complete";
   errorMessage.value = "";
   try {
     await progressAccept(props.workOrder.workOrderId, {
       targetNo: form.targetNo,
-      feedback: form.feedback || null,
+      feedback: form.feedback,
     });
     emit("completed", "工程處理結果已送出，等待使用者驗收");
   } catch (error) {

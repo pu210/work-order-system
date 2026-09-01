@@ -1,4 +1,4 @@
-USE workorderDB;
+USE repair_system_dev;
 
 -- [B 模組協助修復 D 模組]：留言允許純圖片、不帶文字，這種情況 content 會是 null，
 -- 原本欄位是 NOT NULL，寫入 null 會被資料庫拒絕，造成工單詳情頁「只有圖片的留言」直接報錯。

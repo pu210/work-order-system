@@ -50,6 +50,8 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                                                // 不需登入的公開 API
                                                 .requestMatchers("/api/auth/login", "/api/auth/refresh",
                                                                 "/api/auth/logout",
                                                                 "/api/auth/register",
@@ -64,20 +66,38 @@ public class SecurityConfig {
                                                                 HttpMethod.PATCH,
                                                                 "/api/account/initial-password")
                                                 .authenticated()
-                                                // 管理員權限
+
+                                                // 維修目標：管理員與工程師皆可新增、修改、查詢及切換狀態
+                                                .requestMatchers("/api/repair-targets/**")
+                                                .hasAnyRole("ADMIN", "HANDLER")
+
+                                                // 僅管理員權限可使用 API
                                                 .requestMatchers(HttpMethod.POST, "/api/users",
                                                                 "/api/repair-categories/**",
                                                                 "/api/priorities/**",
+                                                                "/api/sub-categories/**",
+                                                                "/api/announcements/**",
                                                                 "/api/work-orders/*/review/**",
                                                                 "/api/work-orders/*/admin-check/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/users/**",
+                                                                "/api/repair-categories/**",
+                                                                "/api/sub-categories/**",
+                                                                "/api/priorities/**",
                                                                 "/api/work-orders/*/review/edit-session/heartbeat")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.DELETE,
-                                                                "/api/work-orders/*/review/edit-session")
+                                                .requestMatchers(
+                                                                HttpMethod.PUT,
+                                                                "/api/repair-categories/**",
+                                                                "/api/sub-categories/**",
+                                                                "/api/priorities/**",
+                                                                "/api/announcements/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.DELETE,
+                                                                "/api/work-orders/*/review/edit-session",
+                                                                "/api/announcements/**")
+                                                .hasRole("ADMIN")
+
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/users/**",
                                                                 "/api/reports/**")
                                                 .hasRole("ADMIN")

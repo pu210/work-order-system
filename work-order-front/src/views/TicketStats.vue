@@ -805,8 +805,7 @@ onMounted(() => {
 
 <style scoped>
 .ticket-stats-container {
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .color-badge {
