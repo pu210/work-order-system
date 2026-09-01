@@ -69,7 +69,7 @@
           <button
             type="submit"
             class="btn btn-primary w-100"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || isLoggingOut"
           >
             <span
               v-if="isSubmitting"
@@ -78,6 +78,20 @@
             ></span>
 
             {{ isSubmitting ? "修改中…" : "確認修改密碼" }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100 mt-2"
+            :disabled="isSubmitting || isLoggingOut"
+            @click="handleReturnToLogin"
+          >
+            <span
+              v-if="isLoggingOut"
+              class="spinner-border spinner-border-sm me-2"
+              aria-hidden="true"
+            ></span>
+
+            {{ isLoggingOut ? "返回中…" : "返回登入" }}
           </button>
         </form>
       </div>
@@ -89,10 +103,10 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import axios from "@/plugins/axios.js";
-import { getCurrentUser } from "@/utils/auth.js";
-import { markPasswordChanged } from "@/utils/auth.js";
+import { useAuthStore } from "@/stores/auth.js";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const form = reactive({
   currentPassword: "",
@@ -103,8 +117,30 @@ const form = reactive({
 const errorMessage = ref("");
 const successMessage = ref("");
 const isSubmitting = ref(false);
+const isLoggingOut = ref(false);
+async function handleReturnToLogin() {
+  if (isSubmitting.value || isLoggingOut.value) {
+    return;
+  }
+
+  isLoggingOut.value = true;
+  errorMessage.value = "";
+
+  try {
+    await authStore.logout();
+  } catch (error) {
+    // logout() 的 finally 仍會清除前端登入資料。
+    console.warn("登出 API 呼叫失敗", error);
+  } finally {
+    isLoggingOut.value = false;
+    await router.replace({ name: "Login" });
+  }
+}
 
 async function handleSubmit() {
+  if (isSubmitting.value || isLoggingOut.value) {
+    return;
+  }
   errorMessage.value = "";
   successMessage.value = "";
 
@@ -138,12 +174,9 @@ async function handleSubmit() {
     });
 
     // 後端修改成功後，同步更新 localStorage 中的使用者狀態。
-    markPasswordChanged();
+    authStore.completeInitialPasswordChange();
     successMessage.value = response.data?.message || "密碼修改成功";
-
-    window.setTimeout(() => {
-      router.replace("/dashboard");
-    }, 1000);
+    await router.replace({ name: "Dashboard" });
   } catch (error) {
     errorMessage.value =
       error.response?.data?.message || "密碼修改失敗，請確認目前密碼";

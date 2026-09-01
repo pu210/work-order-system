@@ -12,7 +12,8 @@ import java.util.Objects;
 @Service
 public class WorkOrderAuthorizationService {
 
-    private boolean isCreator(WorkOrder workOrder, User currentUser) {
+    // 判斷目前使用者是否為工單建立人。
+    public boolean isCreator(WorkOrder workOrder, User currentUser) {
         if (workOrder == null || currentUser == null || workOrder.getCreator() == null) {
             return false;
         }
@@ -20,7 +21,8 @@ public class WorkOrderAuthorizationService {
 
     }
 
-    private boolean isAssignedHandler(WorkOrder workOrder, User currentUser) {
+    // 判斷目前使用者是否為工單目前指派的負責工程師。
+    public boolean isAssignedHandler(WorkOrder workOrder, User currentUser) {
         if (workOrder == null || currentUser == null || workOrder.getAssignedHandler() == null) {
             return false;
         }
@@ -28,7 +30,8 @@ public class WorkOrderAuthorizationService {
 
     }
 
-    private boolean isAdmin(User currentUser) {
+    // 判斷目前使用者是否具有管理員角色。
+    public boolean isAdmin(User currentUser) {
         if (currentUser == null || currentUser.getUserRoles() == null) {
             return false;
         }

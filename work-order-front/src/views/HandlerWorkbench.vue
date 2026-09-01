@@ -1,5 +1,5 @@
 <template>
-  <section class="engineer-lobby">
+  <section class="engineer-lobby px-2 px-sm-4">
     <div v-if="errorMessage" class="alert alert-danger py-2" role="alert">
       {{ errorMessage }}
     </div>

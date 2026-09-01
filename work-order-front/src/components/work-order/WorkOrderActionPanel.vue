@@ -75,6 +75,8 @@ let heartbeatTimer = null;
 
 const effectiveOrder = computed(() => {
   const order = { ...props.workOrder };
+  order.creatorUserId = order.creatorUserId ?? order.creatorId ?? order.creator?.userId;
+  order.assignedHandlerId = order.assignedHandlerId ?? order.assignedHandler?.userId;
   if (summaryLoaded.value && summary.value) {
     order.adminUserId = summary.value.adminUserId ?? null;
     order.adminName = summary.value.adminName ?? null;

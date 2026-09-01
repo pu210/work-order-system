@@ -1,13 +1,12 @@
 <template>
-  <div class="mt-page">
+  <div class="mt-page px-2 px-sm-4">
     <div class="mt-page-header">
       <div>
-        <span class="mt-eyebrow">MY TICKETS</span>
-        <h1 class="mt-title">我的工單</h1>
+        <h1 class="mt-title">我的報修單</h1>
         <p class="mt-subtitle">您所提交過的所有報修工單</p>
       </div>
       <router-link to="/ticket-create" class="mt-btn mt-btn-primary"
-        >+ 建立工單</router-link
+        >+ 建立報修單</router-link
       >
     </div>
 
@@ -216,7 +215,7 @@ const authStore = useAuthStore();
 
 // 純 EMPLOYEE（沒有 ADMIN/HANDLER 角色）不顯示優先級欄位
 const showPriority = computed(
-  () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER")
+  () => authStore.hasRole("ADMIN") || authStore.hasRole("HANDLER"),
 );
 
 const STATUS_OPTIONS = WORK_ORDER_STATUS_OPTIONS;
@@ -277,11 +276,6 @@ onMounted(fetchTickets);
 </script>
 
 <style scoped>
-.mt-page {
-  max-width: 1240px;
-  margin: 0 auto;
-}
-
 /* ---------------------------------------------------------------------- */
 /* 頁首 */
 /* ---------------------------------------------------------------------- */
@@ -322,7 +316,9 @@ onMounted(fetchTickets);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.05), 0 2px 8px rgba(20, 33, 61, 0.06);
+  box-shadow:
+    0 1px 2px rgba(20, 33, 61, 0.05),
+    0 2px 8px rgba(20, 33, 61, 0.06);
   padding: 20px 22px;
 }
 
@@ -353,7 +349,7 @@ onMounted(fetchTickets);
   min-height: 40px;
   padding: 0 12px;
   border-radius: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -445,11 +441,11 @@ onMounted(fetchTickets);
 .mt-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 14px;
 }
 .mt-table th {
   text-align: left;
-  font-size: 11.5px;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-faint);
@@ -631,7 +627,7 @@ onMounted(fetchTickets);
   color: var(--color-text-muted);
 }
 
-@media (max-width: 850px) {
+@media (max-width: 992px) {
   .mt-page-header {
     align-items: center;
     margin-bottom: 16px;
@@ -681,7 +677,9 @@ onMounted(fetchTickets);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     background: #fff;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
   }
   .mt-ticket-card:hover,
   .mt-ticket-card:focus-visible {
