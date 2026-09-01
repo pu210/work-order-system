@@ -1,11 +1,11 @@
 <template>
-  <div class="ticket-stats-container container-fluid py-4 px-2 px-sm-4">
+  <div class="ticket-stats-container">
     <!-- 1. 頁面頂部標題列 -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
       <div>
-        <h2 class="h4 fw-bold text-dark mb-1">
+        <h1 class="h3 fw-bold text-dark mb-1">
           統計報表
-        </h2>
+        </h1>
         <p class="text-muted small mb-0">針對全系統工單進行多維度視覺化數據分析與占比統計</p>
       </div>
 
@@ -42,7 +42,7 @@
               <div class="text-muted small mb-1 fw-medium">
                 {{ getDimensionTotalCardTitle() }}
               </div>
-              <div class="h3 fw-bold mb-0 text-success">{{ categoryReportList.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
+              <div class="h3 fw-bold mb-0 text-success">{{ filteredReportData.length }} <span class="fs-6 text-muted fw-normal">{{ getDimensionUnit() }}</span></div>
             </div>
             <div class="icon-avatar bg-success-subtle text-success rounded-circle p-3">
               <i class="bi bi-grid-3x3-gap-fill fs-4"></i>
@@ -87,80 +87,8 @@
       </div>
     </div>
 
-    <!-- 3. 客製化條件篩選控制列 (含 5 大維度快捷 Tab 按鈕) -->
+    <!-- 3. 客製化條件篩選控制列 -->
     <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
-      <div class="card-header bg-light bg-opacity-75 py-2.5 px-3 border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div class="d-flex align-items-center gap-1">
-            <span class="text-muted small fw-medium">資料來源：</span>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal">
-              <i class="bi bi-database me-1"></i>設備報修單
-            </span>
-          </div>
-
-          <!-- 5 大統計維度快速頁籤 Tab 按鈕 -->
-          <div class="btn-group rounded-pill p-1 bg-white border shadow-2xs flex-wrap">
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'CATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'CATEGORY'"
-            >
-              <i class="bi bi-grid-fill me-1"></i> 大分類
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'SUBCATEGORY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'SUBCATEGORY'"
-            >
-              <i class="bi bi-diagram-3-fill me-1"></i> 細項分類
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'STATUS' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'STATUS'"
-            >
-              <i class="bi bi-flag-fill me-1"></i> 依狀態
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'CREATOR' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'CREATOR'"
-            >
-              <i class="bi bi-person-fill me-1"></i> 依建立者
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'PRIORITY' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'PRIORITY'"
-            >
-              <i class="bi bi-exclamation-triangle-fill me-1"></i> 依優先級
-            </button>
-            <button 
-              type="button"
-              class="btn btn-sm rounded-pill px-3 py-1 transition-all" 
-              :class="filterDimension === 'ENGINEER_KPI' ? 'btn-primary shadow-xs fw-bold' : 'btn-light text-secondary border-0'"
-              @click="filterDimension = 'ENGINEER_KPI'"
-            >
-              <i class="bi bi-speedometer2 me-1"></i> 工程師 KPI
-            </button>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 text-nowrap" @click="resetFilters">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>重置篩選
-          </button>
-          <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 text-nowrap" @click="applyFilters">
-            套用篩選
-          </button>
-        </div>
-      </div>
-
       <div class="card-body p-3 bg-light-subtle">
         <div class="row g-2 align-items-center">
           <div class="col-12 col-sm-6 col-md-3">
@@ -181,10 +109,11 @@
               <select class="form-select border-start-0" id="dimension-select" v-model="filterDimension">
                 <option value="CATEGORY">按工單大分類</option>
                 <option value="SUBCATEGORY">按細項分類</option>
+                <option value="EQUIPMENT">依設備型號</option>
                 <option value="STATUS">依工單狀態</option>
                 <option value="CREATOR">依工單建立者</option>
-                <option value="PRIORITY">依優先級 (Priority)</option>
-                <option value="ENGINEER_KPI">依工程師處理 KPI (Engineer KPI)</option>
+                <option value="PRIORITY">依優先級</option>
+                <option value="ENGINEER_KPI">依工程師 KPI</option>
               </select>
             </div>
           </div>
@@ -356,6 +285,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import {
   getCategoryReport,
   getSubCategoryReport,
+  getEquipmentModelReport,
   getStatusReport,
   getCreatorReport,
   getPriorityReport,
@@ -401,7 +331,7 @@ const categoryReportList = ref([]) // 後端 API 抓回的原始分類數據
 
 // 下拉選單控制條件
 const filterLimit = ref('ALL')          // 限制筆數 ('ALL' | '3' | '5' | '10')
-const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY')
+const filterDimension = ref('CATEGORY') // 統計維度 ('CATEGORY' | 'SUBCATEGORY' | 'STATUS' | 'CREATOR' | 'PRIORITY' | 'EQUIPMENT')
 const filterField = ref('CATEGORY_NAME')// 選擇欄位
 const filterStartDate = ref('')         // 開始日期 YYYY-MM-DD
 const filterEndDate = ref('')           // 結束日期 YYYY-MM-DD
@@ -439,13 +369,14 @@ const formatStatus = (statusStr) => {
   return map[statusStr] || statusStr
 }
 
-// 取得項目的顯示名稱（相容大分類、細項名稱、狀態、建立者、優先級、工程師）
+// 取得項目的顯示名稱（相容大分類、細項名稱、設備型號、狀態、建立者、優先級、工程師）
 const getDisplayName = (item) => {
   if (!item) return '未指定'
   if (filterDimension.value === 'STATUS') {
     return formatStatus(item.statusName || item.status)
   }
   return (
+    item.equipmentModel ||
     item.engineerName ||
     item.categoryName ||
     item.subCategoryName ||
@@ -461,6 +392,8 @@ const getDimensionTitle = () => {
   switch (filterDimension.value) {
     case 'SUBCATEGORY':
       return '細項分類'
+    case 'EQUIPMENT':
+      return '設備型號'
     case 'STATUS':
       return '工單狀態'
     case 'CREATOR':
@@ -502,6 +435,8 @@ const getTopCategoryCardTitle = () => {
       return '最多的建立者'
     case 'PRIORITY':
       return '最多的優先級'
+    case 'EQUIPMENT':
+      return '報修最多設備'
     case 'ENGINEER_KPI':
       return '完成件數最高'
     case 'SUBCATEGORY':
@@ -522,6 +457,11 @@ const getChartTitle = () => {
 const filteredReportData = computed(() => {
   let list = [...categoryReportList.value]
 
+  // 當維度為依設備型號 (或 0 筆防呆) 時，自動過濾掉 0 筆報修次數的項目
+  if (filterDimension.value === 'EQUIPMENT') {
+    list = list.filter(item => (item.count || item.completedCount || 0) > 0)
+  }
+
   // 按數量高到低排序
   list.sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
 
@@ -540,9 +480,8 @@ const totalCount = computed(() => {
 
 // 計算最高報修項目
 const topCategory = computed(() => {
-  if (categoryReportList.value.length === 0) return null
-  const sorted = [...categoryReportList.value].sort((a, b) => ((b.count || b.completedCount || 0) - (a.count || a.completedCount || 0)))
-  return sorted[0]
+  if (filteredReportData.value.length === 0) return null
+  return filteredReportData.value[0]
 })
 
 // 計算最高占比百分比
@@ -552,10 +491,10 @@ const topCategoryPercentage = computed(() => {
   return ((count / totalCount.value) * 100).toFixed(1)
 })
 
-// 平均每個分類筆數 (保留小數點第一位)
+// 平均每個分類筆數 (排除 0 筆項目後整除，保留小數點第一位)
 const avgCount = computed(() => {
-  if (categoryReportList.value.length === 0) return '0.0'
-  return (totalCount.value / categoryReportList.value.length).toFixed(1)
+  if (filteredReportData.value.length === 0) return '0.0'
+  return (totalCount.value / filteredReportData.value.length).toFixed(1)
 })
 
 // 計算特定數量的百分比占比
@@ -640,6 +579,8 @@ const loadData = async () => {
     let data = []
     if (filterDimension.value === 'SUBCATEGORY') {
       data = await getSubCategoryReport(params)
+    } else if (filterDimension.value === 'EQUIPMENT') {
+      data = await getEquipmentModelReport(params)
     } else if (filterDimension.value === 'STATUS') {
       data = await getStatusReport(params)
     } else if (filterDimension.value === 'CREATOR') {

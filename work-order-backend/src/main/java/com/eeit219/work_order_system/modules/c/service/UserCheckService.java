@@ -67,13 +67,15 @@ public class UserCheckService {
         // 3. 如果有找到當初審核的管理員，發送驗收通知給該位管理員
         if (adminUserId != null) {
             String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName() : "未指定";
+            String feedbackStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
+            String feedbackPart = feedbackStr.isBlank() ? " 已完成，請確認。" : " 已完成並得到使用者回饋：" + feedbackStr + "，請確認。";
+
             notificationService.sendNotification(
                     adminUserId, // 接收通知者：當初審核此工單的管理員 ID
                     userId, // 發送通知者：該工單建立者 ID (使用者)
                     workOrderId, // 工單 ID
                     "使用者已驗收回饋，請確認！", // 通知標題
-                    "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName
-                            + " 已完成並得到使用者回饋：" + request.feedback() + "，請確認。", // 通知詳細內容
+                    "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName + feedbackPart, // 通知詳細內容
                     workOrder.getStatus()); // 當前狀態 (PENDING_ADMIN_ACCEPTANCE)
         }
     }

@@ -187,12 +187,15 @@ public class ReviewService {
                                         sessionToken);
                 }
                 // 傳送訊息給使用者
+                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
+                String reasonPart = reasonStr.isBlank() ? "已被管理員拒絕。" : "已被管理員拒絕，原因：" + reasonStr;
+
                 notificationService.sendNotification(
                                 workOrder.getCreator().getUserId(),
                                 userId,
                                 workOrderId,
                                 "審查拒絕！",
-                                "工單：" + workOrder.getWorkOrderNo() + ",已被管理員拒絕,原因：" + request.feedback(),
+                                "工單：" + workOrder.getWorkOrderNo() + "，" + reasonPart,
                                 workOrder.getStatus());
 
         }

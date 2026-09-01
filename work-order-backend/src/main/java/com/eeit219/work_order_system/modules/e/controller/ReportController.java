@@ -76,6 +76,15 @@ public class ReportController {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢優先級報表成功", report));
     }
 
+    // 5.1 依設備型號統計報表 (支援日期區間過濾)
+    @GetMapping("/equipment-models")
+    public ResponseEntity<ApiResponse<List<CategoryReportDto>>> getEquipmentModelReport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<CategoryReportDto> report = reportService.getEquipmentModelReport(startDate, endDate);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "查詢設備型號報表成功", report));
+    }
+
     // 6. 依月份統計報表 (折線圖用)
     @GetMapping("/monthly")
     public ResponseEntity<ApiResponse<List<MonthlyReportDto>>> getMonthlyReport(

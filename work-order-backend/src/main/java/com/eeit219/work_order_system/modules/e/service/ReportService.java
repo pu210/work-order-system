@@ -63,6 +63,11 @@ public class ReportService {
         return workOrderRepository.countWorkOrdersByPriority(toStartOfDay(startDate), toEndOfDay(endDate));
     }
 
+    // 5.1 依設備型號統計報表 (支援日期區間過濾)
+    public List<CategoryReportDto> getEquipmentModelReport(LocalDate startDate, LocalDate endDate) {
+        return workOrderRepository.countWorkOrdersByEquipmentModel(toStartOfDay(startDate), toEndOfDay(endDate));
+    }
+
     // 6. 依月份群組統計報表 (折線圖用)
     public List<MonthlyReportDto> getMonthlyReport(Integer year) {
         if (year != null) {

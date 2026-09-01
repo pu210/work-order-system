@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,6 +75,12 @@ public class NotificationController {
     public ResponseEntity<ApiResponse<Notification>> setNotificationsByRead(@PathVariable Integer notificationId) {
         Notification notification = notificationService.markAsRead(notificationId);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "已標示為已讀", notification));
+    }
+
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable Integer notificationId) {
+        notificationService.deleteNotification(notificationId);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "通知已從資料庫移除", null));
     }
 
     // 測試用發送通知 API (POST http://localhost:8080/api/notifications/test-send)
