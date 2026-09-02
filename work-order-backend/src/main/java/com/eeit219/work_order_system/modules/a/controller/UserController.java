@@ -21,6 +21,7 @@ import com.eeit219.work_order_system.modules.a.dto.UpdateUserRequestDTO;
 import com.eeit219.work_order_system.modules.a.dto.UpdateUserResponseDTO;
 import com.eeit219.work_order_system.modules.a.dto.UserResponseDTO;
 import com.eeit219.work_order_system.modules.a.service.UserService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -35,7 +36,7 @@ public class UserController {
         // 建立使用者
         @PostMapping
         public ResponseEntity<ApiResponse<CreateUserResponseDTO>> createUser(
-                        @RequestBody CreateUserRequestDTO request) {
+                        @Valid @RequestBody CreateUserRequestDTO request) {
 
                 CreateUserResponseDTO data = userService.createUser(request);
 
