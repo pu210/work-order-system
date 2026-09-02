@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eeit219.work_order_system.common.response.ApiResponse;
@@ -48,7 +49,7 @@ public class WorkOrderController {
                 this.currentUserProvider = currentUserProvider;
         }
 
-        // 建單與附件改成同一支 API、同一個交易：request 走 JSON part，files 走檔案 part（可不帶）。
+        // 建單與附件同一支 API、同一個交易：request 走 JSON part，files 走檔案 part（可不帶）。
         // 重試邏輯見 WorkOrderCreationCoordinator（只重試工單編號撞號，附件驗證失敗不重試、直接失敗）
         @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<ApiResponse<WorkOrderResponse>> create(
@@ -67,12 +68,21 @@ public class WorkOrderController {
                                 .body(ApiResponse.error(HttpStatus.CONFLICT.value(), "工單編號產生衝突，請重新嘗試"));
         }
 
-        // 前端已無呼叫端（改走 D 模組 GET /api/work-orders/{id}/detail，該端點有做權限檢查）。
-        // 這支目前沒有權限檢查，任何登入者帶 id 都能查到工單完整內容，屬於已知缺口；
-        // 模組範圍外，本次不處理，先記錄不展開。
+        // 整個 multipart 請求（JSON + 所有附件加總）超過 spring.servlet.multipart.max-request-size 時，
+        // Spring 會在還沒進到 create() 前就丟這個例外；沒接住的話連線會直接中斷、前端只看得到「無法連線」，
+        // 接住後才回得了正常的 413 + 訊息。
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseEntity<ApiResponse<Void>> handleUploadTooLarge(MaxUploadSizeExceededException exception) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                                .body(ApiResponse.error(HttpStatus.PAYLOAD_TOO_LARGE.value(), "附件圖片總大小超過上限（10MB）"));
+        }
+
+        // 僅限 ADMIN、建立者、被指派工程師查看，跟附件的權限規則一致（見 WorkOrderService.getById）。
+        // 前端主要走 D 模組的 /detail 端點，這支保留給直接呼叫的情況。
         @GetMapping("/{id}")
         public ResponseEntity<ApiResponse<WorkOrderResponse>> getById(@PathVariable Integer id) {
-                WorkOrderResponse response = workOrderService.getById(id);
+                WorkOrderResponse response = workOrderService.getById(id, currentUserProvider.getUserId(),
+                                currentUserProvider.getRoleCodes());
                 return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功",
                                 response));
         }

@@ -294,7 +294,7 @@ class WorkOrderServiceTest {
         when(workOrderRepository.findByIdWithDetails(999)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> workOrderService.getById(999));
+                () -> workOrderService.getById(999, 1, List.of("EMPLOYEE")));
         assertTrue(exception.getMessage().contains("999"));
         verifyNoInteractions(workOrderAttachmentService);
     }
