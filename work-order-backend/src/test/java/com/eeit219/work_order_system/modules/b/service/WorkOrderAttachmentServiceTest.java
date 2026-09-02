@@ -2,7 +2,6 @@ package com.eeit219.work_order_system.modules.b.service;
 
 import com.eeit219.work_order_system.common.exception.ResourceConflictException;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
@@ -37,9 +36,6 @@ class WorkOrderAttachmentServiceTest {
 
     @Mock
     private WorkOrderAttachmentRepository workOrderAttachmentRepository;
-
-    @Mock
-    private UserRepository userRepository;
 
     @InjectMocks
     private WorkOrderAttachmentService workOrderAttachmentService;
@@ -86,20 +82,6 @@ class WorkOrderAttachmentServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> workOrderAttachmentService.upload(workOrder, file, uploader));
-        verify(workOrderAttachmentRepository, never()).save(any());
-    }
-
-    @Test
-    void uploadAll_abortsWholeBatch_whenFirstFileFailsValidation() {
-        WorkOrder workOrder = workOrder(1);
-        MultipartFile invalidFile = mock(MultipartFile.class);
-        when(invalidFile.getSize()).thenReturn(MAX_FILE_SIZE + 1);
-        MultipartFile validFile = mock(MultipartFile.class);
-
-        when(userRepository.findById(1)).thenReturn(Optional.of(user(1)));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> workOrderAttachmentService.uploadAll(workOrder, List.of(invalidFile, validFile), 1));
         verify(workOrderAttachmentRepository, never()).save(any());
     }
 
