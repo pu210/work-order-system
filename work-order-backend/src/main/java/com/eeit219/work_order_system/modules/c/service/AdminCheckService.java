@@ -7,7 +7,7 @@ import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateExcep
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
-import com.eeit219.work_order_system.modules.c.dto.AcceptWorkOrderRequest;
+import com.eeit219.work_order_system.modules.c.dto.AdminCheckAcceptRequest;
 import com.eeit219.work_order_system.modules.c.dto.RejectWorkOrderRequest;
 import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
 import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
@@ -35,7 +35,7 @@ public class AdminCheckService {
         }
 
         @Transactional
-        public void adminCheckAccept(AcceptWorkOrderRequest request, Integer workOrderId, Integer userId) {
+        public void adminCheckAccept(AdminCheckAcceptRequest request, Integer workOrderId, Integer userId) {
                 WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單"));
 
@@ -46,7 +46,7 @@ public class AdminCheckService {
                         throw new AccessDeniedException("只有原審核管理員可以操作此工單");
                 }
 
-                workOrderStateMachineService.changeState(workOrder, userId, request.feedback(),
+                workOrderStateMachineService.changeState(workOrder, userId, request.toFeedback(),
                                 WorkOrderEvent.ACCEPT);
                 workOrderRepository.save(workOrder);
         }
@@ -78,12 +78,15 @@ public class AdminCheckService {
 
                 // 傳送退單通知給負責工程師（無論歷史紀錄是否存在，工程師都一定能收到通知）
                 if (workOrder.getAssignedHandler() != null) {
+                        String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
+                        String reasonPart = reasonStr.isBlank() ? "已被管理員退回驗收。" : "已被管理員退回驗收，原因：" + reasonStr;
+
                         notificationService.sendNotification(
                                         workOrder.getAssignedHandler().getUserId(), // 接收者：工程師
                                         senderAdminId, // 發送者：當初審核管理員 (或目前使用者)
                                         workOrderId,
                                         "管理員退回驗收，請重新處理！",
-                                        "工單：" + workOrder.getWorkOrderNo() + " 已被管理員退回驗收，原因：" + request.feedback(),
+                                        "工單：" + workOrder.getWorkOrderNo() + " " + reasonPart,
                                         workOrder.getStatus());
                 }
 

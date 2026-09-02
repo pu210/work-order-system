@@ -1,5 +1,8 @@
 package com.eeit219.work_order_system.modules.c.service;
 
+import java.time.LocalDateTime;
+import java.util.Locale;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -8,10 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.common.response.PageResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
-import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.dto.EquipmentHistoryResponse;
 import com.eeit219.work_order_system.modules.c.dto.EquipmentInfoResponse;
 import com.eeit219.work_order_system.modules.c.dto.EquipmentWorkOrderListItemResponse;
+import com.eeit219.work_order_system.modules.c.entity.RepairTicketHistory;
+import com.eeit219.work_order_system.modules.c.repository.RepairTicketHistoryRepository;
+import com.eeit219.work_order_system.modules.c.statemachine.WorkOrderState;
 import com.eeit219.work_order_system.modules.f.entity.RepairTarget;
 import com.eeit219.work_order_system.modules.f.repository.RepairTargetRepository;
 
@@ -19,14 +24,14 @@ import com.eeit219.work_order_system.modules.f.repository.RepairTargetRepository
 public class EquipmentHistoryService {
 
     private final RepairTargetRepository repairTargetRepository;
-    private final WorkOrderRepository workOrderRepository;
+    private final RepairTicketHistoryRepository repairTicketHistoryRepository;
 
     public EquipmentHistoryService(
             RepairTargetRepository repairTargetRepository,
-            WorkOrderRepository workOrderRepository
+            RepairTicketHistoryRepository repairTicketHistoryRepository
     ) {
         this.repairTargetRepository = repairTargetRepository;
-        this.workOrderRepository = workOrderRepository;
+        this.repairTicketHistoryRepository = repairTicketHistoryRepository;
     }
 
     /**
@@ -35,6 +40,7 @@ public class EquipmentHistoryService {
     @Transactional(readOnly = true)
     public EquipmentHistoryResponse getHistory(
             String targetNo,
+            String period,
             Pageable pageable
     ) {
         RepairTarget equipment = repairTargetRepository
@@ -45,10 +51,14 @@ public class EquipmentHistoryService {
                         )
                 );
 
+        LocalDateTime completedAfter = resolveCompletedAfter(period);
+
         Page<EquipmentWorkOrderListItemResponse> workOrderPage =
-                workOrderRepository
-                        .findByRepairTarget_TargetNoOrderByCreatedTimeDesc(
+                repairTicketHistoryRepository
+                        .findCompletedEquipmentHistory(
                                 targetNo,
+                                WorkOrderState.COMPLETED,
+                                completedAfter,
                                 pageable
                         )
                         .map(this::toWorkOrderListItem);
@@ -78,8 +88,9 @@ public class EquipmentHistoryService {
      * 將工單 Entity 轉換成歷史列表的一列。
      */
     private EquipmentWorkOrderListItemResponse toWorkOrderListItem(
-            WorkOrder workOrder
+            RepairTicketHistory history
     ) {
+        WorkOrder workOrder = history.getWorkOrder();
         return EquipmentWorkOrderListItemResponse.builder()
                 .workOrderId(workOrder.getWorkOrderId())
                 .workOrderNo(workOrder.getWorkOrderNo())
@@ -102,9 +113,29 @@ public class EquipmentHistoryService {
                                 : workOrder.getAssignedHandler().getName()
                 )
                 .createdTime(workOrder.getCreatedTime())
+                .completedTime(history.getEditedTime())
                 .dueTime(workOrder.getDueTime())
                 .isOverdue(workOrder.getIsOverdue())
                 .build();
+    }
+
+    private LocalDateTime resolveCompletedAfter(String period) {
+        String normalizedPeriod = period == null
+                ? "ALL"
+                : period.trim().toUpperCase(Locale.ROOT);
+        LocalDateTime now = LocalDateTime.now();
+
+        return switch (normalizedPeriod) {
+            case "ALL" -> null;
+            case "7D" -> now.minusDays(7);
+            case "1M" -> now.minusMonths(1);
+            case "3M" -> now.minusMonths(3);
+            case "6M" -> now.minusMonths(6);
+            case "1Y" -> now.minusYears(1);
+            default -> throw new IllegalArgumentException(
+                    "period 僅支援 ALL、7D、1M、3M、6M、1Y"
+            );
+        };
     }
 
     private String getCategoryName(WorkOrder workOrder) {

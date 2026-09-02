@@ -93,9 +93,4 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Integer> {
                   LocalDateTime now,
                   Collection<WorkOrderState> excludedStates);
 
-      // qrcode 歷史紀錄查詢
-      Page<WorkOrder> findByRepairTarget_TargetNoOrderByCreatedTimeDesc(
-                  String targetNo,
-                  Pageable pageable);
-
 }

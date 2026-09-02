@@ -11,5 +11,7 @@ public interface CategoryReportDto {
 
     String getPriorityName();
 
+    String getEquipmentModel();
+
     Long getCount();
 }

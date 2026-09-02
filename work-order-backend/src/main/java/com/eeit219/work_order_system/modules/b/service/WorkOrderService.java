@@ -17,7 +17,6 @@ import com.eeit219.work_order_system.common.exception.BusinessRuleViolationExcep
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
@@ -82,17 +81,18 @@ public class WorkOrderService {
 
                 WorkOrder saved = workOrderRepository.save(workOrder);
 
-                List<UserRole> adminRoles = userRoleRepository.findByIdRoleId(1);
+                List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus(
+                                Role.ADMIN, User.UserStatus.ACTIVE);
 
                 if (TransactionSynchronizationManager.isSynchronizationActive()) {
                         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                                 @Override
                                 public void afterCommit() {
-                                        notifyAdmins(adminRoles, saved, creator);
+                                        notifyAdmins(adminUserIds, saved, creator);
                                 }
                         });
                 } else {
-                        notifyAdmins(adminRoles, saved, creator);
+                        notifyAdmins(adminUserIds, saved, creator);
                 }
 
                 List<WorkOrderAttachmentResponse> attachments = List.of();
@@ -115,10 +115,8 @@ public class WorkOrderService {
                 }
         }
 
-        private void notifyAdmins(List<UserRole> adminRoles, WorkOrder saved, User creator) {
-                for (UserRole adminRole : adminRoles) {
-                        Integer adminUserId = adminRole.getId().getUserId(); // 取得管理員的 userId
-
+        private void notifyAdmins(List<Integer> adminUserIds, WorkOrder saved, User creator) {
+                for (Integer adminUserId : adminUserIds) {
                         notificationService.sendNotification(
                                         adminUserId, // 接收通知的人（管理員 ID）
                                         creator.getUserId(), // 發送通知的人（報修建單者 ID）
