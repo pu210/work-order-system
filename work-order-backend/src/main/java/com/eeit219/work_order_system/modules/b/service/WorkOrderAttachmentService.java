@@ -14,12 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.eeit219.work_order_system.common.exception.AuthenticatedUserNotFoundException;
 import com.eeit219.work_order_system.common.exception.ResourceConflictException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
@@ -31,12 +29,9 @@ public class WorkOrderAttachmentService {
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
 
     private final WorkOrderAttachmentRepository workOrderAttachmentRepository;
-    private final UserRepository userRepository;
 
-    public WorkOrderAttachmentService(WorkOrderAttachmentRepository workOrderAttachmentRepository,
-            UserRepository userRepository) {
+    public WorkOrderAttachmentService(WorkOrderAttachmentRepository workOrderAttachmentRepository) {
         this.workOrderAttachmentRepository = workOrderAttachmentRepository;
-        this.userRepository = userRepository;
     }
 
     // 建單附件上傳入口：固定 contactRecordId=null，代表這是工單本體的附件，不是留言附圖
@@ -88,21 +83,6 @@ public class WorkOrderAttachmentService {
 
         WorkOrderAttachment saved = workOrderAttachmentRepository.save(attachment);
         return toResponse(saved);
-    }
-
-    // 批次上傳：任何一張驗證失敗就整批中斷，不會部分成功。uploadedUserId 只查一次
-    @Transactional
-    public List<WorkOrderAttachmentResponse> uploadAll(WorkOrder workOrder, List<MultipartFile> files,
-            Integer uploadedUserId) {
-        if (files == null) {
-            return List.of();
-        }
-        User uploadedUser = userRepository.findById(uploadedUserId)
-                .orElseThrow(() -> new AuthenticatedUserNotFoundException("找不到使用者：" + uploadedUserId));
-
-        return files.stream()
-                .map(file -> upload(workOrder, file, uploadedUser))
-                .collect(Collectors.toList());
     }
 
     // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見

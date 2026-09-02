@@ -24,60 +24,60 @@ import com.eeit219.work_order_system.modules.b.service.WorkOrderService;
 @RestController
 public class WorkOrderAttachmentController {
 
-        private final WorkOrderAttachmentService workOrderAttachmentService;
-        private final WorkOrderService workOrderService;
-        private final CurrentUserProvider currentUserProvider;
+    private final WorkOrderAttachmentService workOrderAttachmentService;
+    private final WorkOrderService workOrderService;
+    private final CurrentUserProvider currentUserProvider;
 
-        public WorkOrderAttachmentController(WorkOrderAttachmentService workOrderAttachmentService,
-                        WorkOrderService workOrderService,
-                        CurrentUserProvider currentUserProvider) {
-                this.workOrderAttachmentService = workOrderAttachmentService;
-                this.workOrderService = workOrderService;
-                this.currentUserProvider = currentUserProvider;
+    public WorkOrderAttachmentController(WorkOrderAttachmentService workOrderAttachmentService,
+            WorkOrderService workOrderService,
+            CurrentUserProvider currentUserProvider) {
+        this.workOrderAttachmentService = workOrderAttachmentService;
+        this.workOrderService = workOrderService;
+        this.currentUserProvider = currentUserProvider;
+    }
+
+    // 查詢某工單的附件列表：僅限 ADMIN、該工單建立者、被指派工程師查看
+    @GetMapping("/api/work-orders/{workOrderId}/attachments")
+    public ResponseEntity<ApiResponse<List<WorkOrderAttachmentResponse>>> list(@PathVariable Integer workOrderId) {
+        WorkOrder workOrder = workOrderService.getWorkOrderEntity(workOrderId);
+        workOrderAttachmentService.validateViewPermission(workOrder, currentUserProvider.getUserId(),
+                currentUserProvider.getRoleCodes());
+
+        List<WorkOrderAttachmentResponse> response = workOrderAttachmentService.listByWorkOrder(workOrderId);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功", response));
+    }
+
+    // 預覽附件：inline 回傳給前端直接渲染
+    @GetMapping("/api/work-orders/attachments/{attachmentId}/view")
+    public ResponseEntity<byte[]> view(@PathVariable Integer attachmentId) {
+        WorkOrderAttachment attachment = workOrderAttachmentService.view(attachmentId);
+
+        // 留言圖片必須由 D 模組驗證工單與留言的查看權限。
+        // 若從 B 的原始附件預覽端點請求，統一回傳 404，避免繞過權限檢查。
+        if (attachment.getContactRecordId() != null) {
+            throw new EntityNotFoundException("找不到附件：" + attachmentId);
         }
 
-        // 查詢某工單的附件列表：僅限 ADMIN、該工單建立者、被指派工程師查看
-        @GetMapping("/api/work-orders/{workOrderId}/attachments")
-        public ResponseEntity<ApiResponse<List<WorkOrderAttachmentResponse>>> list(@PathVariable Integer workOrderId) {
-                WorkOrder workOrder = workOrderService.getWorkOrderEntity(workOrderId);
-                workOrderAttachmentService.validateViewPermission(workOrder, currentUserProvider.getUserId(),
-                                currentUserProvider.getRoleCodes());
+        // 一般工單附件：僅限 ADMIN、該工單建立者、被指派工程師查看
+        workOrderAttachmentService.validateViewPermission(attachment.getWorkOrder(),
+                currentUserProvider.getUserId(), currentUserProvider.getRoleCodes());
 
-                List<WorkOrderAttachmentResponse> response = workOrderAttachmentService.listByWorkOrder(workOrderId);
-                return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "成功", response));
-        }
+        String encodedFileName = java.net.URLEncoder
+                .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
 
-        // 預覽附件：inline 回傳給前端直接渲染
-        @GetMapping("/api/work-orders/attachments/{attachmentId}/view")
-        public ResponseEntity<byte[]> view(@PathVariable Integer attachmentId) {
-                WorkOrderAttachment attachment = workOrderAttachmentService.view(attachmentId);
+        return ResponseEntity.ok()
+                .contentType(attachment.getContentType() != null
+                        ? MediaType.parseMediaType(attachment.getContentType())
+                        : MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=UTF-8''" + encodedFileName)
+                .body(attachment.getFileData());
+    }
 
-                // 留言圖片必須由 D 模組驗證工單與留言的查看權限。
-                // 若從 B 的原始附件預覽端點請求，統一回傳 404，避免繞過權限檢查。
-                if (attachment.getContactRecordId() != null) {
-                        throw new EntityNotFoundException("找不到附件：" + attachmentId);
-                }
-
-                // 一般工單附件：僅限 ADMIN、該工單建立者、被指派工程師查看
-                workOrderAttachmentService.validateViewPermission(attachment.getWorkOrder(),
-                                currentUserProvider.getUserId(), currentUserProvider.getRoleCodes());
-
-                String encodedFileName = java.net.URLEncoder
-                                .encode(attachment.getOriginalFileName(), StandardCharsets.UTF_8)
-                                .replace("+", "%20");
-
-                return ResponseEntity.ok()
-                                .contentType(attachment.getContentType() != null
-                                                ? MediaType.parseMediaType(attachment.getContentType())
-                                                : MediaType.APPLICATION_OCTET_STREAM)
-                                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=UTF-8''" + encodedFileName)
-                                .body(attachment.getFileData());
-        }
-
-        // 刪除附件：僅限上傳者本人（見 WorkOrderAttachmentService.delete）
-        @DeleteMapping("/api/work-orders/attachments/{attachmentId}")
-        public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer attachmentId) {
-                workOrderAttachmentService.delete(attachmentId, currentUserProvider.getUserId());
-                return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "附件刪除成功", null));
-        }
+    // 刪除附件：僅限上傳者本人（見 WorkOrderAttachmentService.delete）
+    @DeleteMapping("/api/work-orders/attachments/{attachmentId}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer attachmentId) {
+        workOrderAttachmentService.delete(attachmentId, currentUserProvider.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "附件刪除成功", null));
+    }
 }

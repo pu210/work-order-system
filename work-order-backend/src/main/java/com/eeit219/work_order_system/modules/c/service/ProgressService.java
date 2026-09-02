@@ -113,9 +113,12 @@ public class ProgressService {
                         }
                 }
 
-                String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName() : "工程師";
-                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
-                String reasonPart = reasonStr.isBlank() ? " 已退回處理，請重新審核與指派。" : " 已退回處理，退回原因：" + reasonStr + "，請重新審核與指派。";
+                String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName()
+                                : "工程師";
+                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback()
+                                : "";
+                String reasonPart = reasonStr.isBlank() ? " 已退回處理，請重新審核與指派。"
+                                : " 已退回處理，退回原因：" + reasonStr + "，請重新審核與指派。";
                 String title = "工程師已退回工單，待重新審核！";
                 String message = "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName + reasonPart;
 
@@ -130,7 +133,8 @@ public class ProgressService {
                                         workOrder.getStatus()); // 當前狀態 (PENDING_REVIEW)
                 } else {
                         // 保底備用：如果沒有指定特定管理員，廣播發送給所有活躍管理員
-                        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus("ADMIN", User.UserStatus.ACTIVE);
+                        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus("ADMIN",
+                                        User.UserStatus.ACTIVE);
                         for (Integer adminId : adminUserIds) {
                                 notificationService.sendNotification(
                                                 adminId,

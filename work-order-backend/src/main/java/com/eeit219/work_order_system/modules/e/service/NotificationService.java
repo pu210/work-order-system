@@ -3,6 +3,7 @@ package com.eeit219.work_order_system.modules.e.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.eeit219.work_order_system.common.websocket.NotificationWebSocketHandler;
@@ -23,7 +24,11 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final WorkOrderRepository workOrderRepository;
 
-    @Transactional
+    // REQUIRES_NEW：確保呼叫端在 TransactionSynchronization.afterCommit() 中呼叫本方法時，
+    // 一定會開一個全新的實體交易並真正 commit——若沿用預設 REQUIRED，
+    // Spring 會誤判外層（其實已經 commit 完畢、只是尚未解除綁定）的交易資源為「現有交易」而直接加入，
+    // 導致這裡的 save() 進了持久化上下文卻永遠不會被真正 commit，資料悄悄消失在 DB 之外。
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Notification sendNotification(Integer receiverId, Integer senderId, Integer workOrderId, String title,
             String message, WorkOrderState status) {
         Notification notification = new Notification();
