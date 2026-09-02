@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
@@ -128,11 +129,11 @@ public class ProgressService {
                                         message, // 通知詳細內容
                                         workOrder.getStatus()); // 當前狀態 (PENDING_REVIEW)
                 } else {
-                        // 保底備用：如果沒有指定特定管理員，廣播發送給所有管理員 (role_id = 1)
-                        List<UserRole> adminRoles = userRoleRepository.findByIdRoleId(1);
-                        for (UserRole adminRole : adminRoles) {
+                        // 保底備用：如果沒有指定特定管理員，廣播發送給所有活躍管理員
+                        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus("ADMIN", User.UserStatus.ACTIVE);
+                        for (Integer adminId : adminUserIds) {
                                 notificationService.sendNotification(
-                                                adminRole.getId().getUserId(),
+                                                adminId,
                                                 userId,
                                                 workOrderId,
                                                 title,

@@ -52,9 +52,14 @@ export const useNotificationStore = defineStore('notification', () => {
 
     if (!token && !userId) return
 
-    // 如果已經連線中，避免重複建立連線
-    if (socket.value && (socket.value.readyState === WebSocket.OPEN || socket.value.readyState === WebSocket.CONNECTING)) {
-      return
+    // 💡 每次連線時，若已有舊的 Socket 物件則先關閉，確保切換帳號時能帶著最新 Token/userId 連線
+    if (socket.value) {
+      try {
+        socket.value.close()
+      } catch (e) {
+        console.warn('關閉舊 WebSocket 失敗：', e)
+      }
+      socket.value = null
     }
 
     const wsUrl = token

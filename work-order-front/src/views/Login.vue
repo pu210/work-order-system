@@ -116,6 +116,7 @@ import { useRoute, useRouter } from "vue-router";
 import axios from "@/plugins/axios.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { notify } from "@/plugins/notify.js";
+import { useNotificationStore } from "@/stores/notification.js";
 
 const showPassword = ref(false);
 const account = ref("");
@@ -125,6 +126,7 @@ const isSubmitting = ref(false);
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -161,6 +163,9 @@ onMounted(async () => {
     }
 
     authStore.login(data);
+    notificationStore.disconnectWebSocket();
+    notificationStore.connectWebSocket(data.userId);
+    notificationStore.fetchNotifications();
 
     await router.replace("/dashboard");
   } catch (error) {
@@ -198,6 +203,10 @@ async function handleLogin() {
     }
 
     authStore.login(data);
+    notificationStore.disconnectWebSocket();
+    notificationStore.connectWebSocket(data.userId);
+    notificationStore.fetchNotifications();
+
     if (data.mustChangePassword) {
       await router.push({ name: "initial-password" });
       return;
