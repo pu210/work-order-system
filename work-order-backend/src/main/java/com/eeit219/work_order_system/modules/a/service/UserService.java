@@ -282,6 +282,13 @@ public class UserService {
 
         String account = request.account().trim();
         String email = request.email().trim().toLowerCase();
+        String phone = request.phone() == null
+                ? null
+                : request.phone().trim();
+
+        if (phone != null && phone.isEmpty()) {
+            phone = null;
+        }
 
         if (!account.matches("^[A-Za-z0-9]+$")) {
             throw new IllegalArgumentException("帳號只能包含英文字母與數字");
@@ -303,7 +310,7 @@ public class UserService {
         user.setAccount(account);
         user.setName(request.name().trim());
         user.setEmail(email);
-        user.setPhone(request.phone());
+        user.setPhone(phone);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setStatus(User.UserStatus.ACTIVE);
         user.setMustChangePassword(true);

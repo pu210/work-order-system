@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import axios from '@/plugins/axios.js'
 import { notify } from '@/plugins/notify.js'
 import { useAuthStore } from '@/stores/auth.js'
+import router from '@/router/router.js'
 
 export const useNotificationStore = defineStore('notification', () => {
   // ---- 1. State (狀態：用 ref 定義) ----
@@ -51,9 +52,14 @@ export const useNotificationStore = defineStore('notification', () => {
 
     if (!token && !userId) return
 
-    // 如果已經連線中，避免重複建立連線
-    if (socket.value && (socket.value.readyState === WebSocket.OPEN || socket.value.readyState === WebSocket.CONNECTING)) {
-      return
+    // 💡 每次連線時，若已有舊的 Socket 物件則先關閉，確保切換帳號時能帶著最新 Token/userId 連線
+    if (socket.value) {
+      try {
+        socket.value.close()
+      } catch (e) {
+        console.warn('關閉舊 WebSocket 失敗：', e)
+      }
+      socket.value = null
     }
 
     const wsUrl = token
@@ -81,8 +87,30 @@ export const useNotificationStore = defineStore('notification', () => {
         // 2. 未讀計數 + 1
         unreadCount.value++
 
-        // 3. 彈出 Toast 小浮窗提示
-        notify.info(`🔔 新通知：${newNotification.title || '工單狀態異動通知'}`)
+        // 3. 組裝包含工單單號的標題 (如：工單:WO-2026-0015 管理員退回驗收，請重新處理！)
+        const workOrderNoStr = newNotification.workOrderNo
+          ? `工單:${newNotification.workOrderNo} `
+          : newNotification.workOrderId
+            ? `工單:#${newNotification.workOrderId} `
+            : ''
+        const notificationTitle = newNotification.title || '工單狀態異動通知'
+        const targetWorkOrderId = newNotification.workOrderId || newNotification.work_order_id
+
+        // 4. 彈出 Toast 小浮窗提示 (點擊直達該工單詳情頁)
+        notify.info(`🔔 ${workOrderNoStr}${notificationTitle}`, {
+          onClick: () => {
+            if (targetWorkOrderId) {
+              const targetPath = `/tickets/${targetWorkOrderId}`
+              const currentPath = router.currentRoute.value?.path
+              if (currentPath === targetPath) {
+                // 若當前已經在該工單詳情頁，強制刷新以載入最新狀態與操作按鈕
+                window.location.reload()
+              } else {
+                router.push(targetPath)
+              }
+            }
+          }
+        })
       } catch (err) {
         console.error('解析 WebSocket 推播訊息失敗：', err)
       }
@@ -135,6 +163,24 @@ export const useNotificationStore = defineStore('notification', () => {
     unreadCount.value = 0
   }
 
+  // F. 從前端與資料庫移除單筆通知
+  const removeNotification = async (notificationId) => {
+    const index = notifications.value.findIndex(n => n.notificationId === notificationId)
+    if (index !== -1) {
+      const item = notifications.value[index]
+      if (!item.isRead && unreadCount.value > 0) {
+        unreadCount.value--
+      }
+      notifications.value.splice(index, 1)
+    }
+
+    try {
+      await axios.delete(`/api/notifications/${notificationId}`)
+    } catch (error) {
+      console.error('刪除後端通知失敗：', error)
+    }
+  }
+
   // ---- 4. 匯出要對外公開的狀態與方法 ----
   return {
     notifications,
@@ -146,6 +192,7 @@ export const useNotificationStore = defineStore('notification', () => {
     connectWebSocket,
     disconnectWebSocket,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    removeNotification
   }
 })

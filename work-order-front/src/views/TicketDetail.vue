@@ -703,7 +703,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { getAttachments, getAttachmentPreview } from "@/api/workOrder.js";
 import { useAuthStore } from "@/stores/auth.js";
@@ -1094,6 +1094,27 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+// 當路由工單 ID 發生變化時 (例如點擊通知彈窗切換工單)，自動重新載入工單詳情
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (newId) {
+      loading.value = true;
+      errorMessage.value = "";
+      try {
+        await loadTicket();
+        await loadAttachments();
+        await loadContactRecords();
+      } catch (error) {
+        errorMessage.value =
+          error.response?.data?.message || "找不到這張工單，或無法載入";
+      } finally {
+        loading.value = false;
+      }
+    }
+  }
+);
 
 onUnmounted(() => {
   scrollContainer?.removeEventListener("scroll", handleWindowScroll);

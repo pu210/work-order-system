@@ -82,9 +82,13 @@
             >
             <input
               type="tel"
-              v-model="form.phone"
+              v-model.trim="form.phone"
               class="form-control extra-small"
               placeholder="例如：0912345678"
+              maxlength="10"
+              inputmode="numeric"
+              pattern="\d{10}"
+              title="聯絡電話需為 10 碼數字"
             />
           </div>
           <div class="col-md-6">
@@ -209,9 +213,15 @@ const generateRandomPassword = () => {
 // 送出表單處理
 const handleSubmit = async () => {
   const accountPattern = /^[A-Za-z0-9]+$/;
+  const phonePattern = /^\d{10}$/;
+  const phone = form.value.phone.trim();
 
   if (!accountPattern.test(form.value.account)) {
     notify.warning("帳號只能輸入英文字母與數字");
+    return;
+  }
+  if (phone && !phonePattern.test(phone)) {
+    notify.warning("聯絡電話需為 10 碼數字");
     return;
   }
 

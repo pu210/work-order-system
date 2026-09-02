@@ -272,7 +272,7 @@ const loadUsersMap = async () => {
   if (!authStore.hasRole('ADMIN')) return
 
   try {
-    const res = await getUsers({ size: 1000 })
+    const res = await getUsers({ size: 100 })
     const list = res?.content || (Array.isArray(res) ? res : [])
     const map = {}
     list.forEach(u => {
@@ -335,11 +335,11 @@ const getCategoryLabel = (cat) => {
   return map[cat] || cat;
 };
 
-// 格式化時間顯示
+// 格式化時間顯示 (例如：2026-08-28 16:12)
 const formatTime = (timeStr) => {
-  if (!timeStr) return "";
-  return timeStr.replace("T", " ");
-};
+  if (!timeStr) return ''
+  return String(timeStr).replace('T', ' ').slice(0, 16)
+}
 
 // ---- API 1: 載入所有公告 (GET) ----
 const loadAnnouncements = async () => {

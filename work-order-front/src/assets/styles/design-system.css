@@ -449,6 +449,7 @@ body {
 
   .wo-mobile-menu.open {
     display: grid;
+    padding: 12px 14px 16px;
   }
 }
 
@@ -478,4 +479,14 @@ body {
     padding-right: 44px;
     padding-left: 44px;
   }
+}
+
+/* SweetAlert2 即時通知小浮窗游標強制為手指點擊圖案 */
+.swal2-container.swal2-top-end .swal2-popup,
+.swal2-popup.swal2-toast,
+.swal2-popup.swal2-toast *,
+.swal2-popup.swal2-toast .swal2-title,
+.swal2-popup.swal2-toast .swal2-html-container {
+  cursor: pointer !important;
+  user-select: none !important;
 }

@@ -5,7 +5,8 @@
       class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3"
     >
       <div>
-        <h3 class="fw-bold text-slate-800 mb-1">帳號管理</h3>
+        <h3 class="users-title">帳號管理</h3>
+        <p class="users-subtitle">管理使用者帳號、權限與審核狀態</p>
       </div>
 
       <router-link
@@ -45,7 +46,7 @@
       <!-- 表格內容 -->
       <div class="table-responsive d-none d-md-block">
         <table class="table users-table table-hover align-middle mb-0">
-          <thead class="table-light extra-small text-secondary">
+          <thead class="table-light text-secondary">
             <tr>
               <th class="ps-4 py-2" style="width: 20%">姓名</th>
               <th class="py-2" style="width: 30%">電子郵件</th>
@@ -55,7 +56,7 @@
               <th class="pe-4 py-2 text-center" style="width: 20%">操作</th>
             </tr>
           </thead>
-          <tbody class="extra-small text-dark">
+          <tbody class="text-dark">
             <tr
               v-for="user in users"
               :key="user.userId"
@@ -649,10 +650,27 @@ async function toggleStatus(user) {
 
 <style scoped>
 .users-page {
-  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
 }
+
+.users-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.users-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
 .users-table {
   min-width: 820px;
+  font-family: var(--font-body);
+  font-size: 14px;
 }
 
 .users-table th,
@@ -714,6 +732,7 @@ async function toggleStatus(user) {
 .users-page thead th {
   color: #64748b;
   background-color: #f8fafc;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.03em;
   border-bottom-color: #e2e8f0;
@@ -857,10 +876,6 @@ async function toggleStatus(user) {
 }
 
 @media (max-width: 576px) {
-  .users-page {
-    padding: 0;
-  }
-
   .search-input-group {
     max-width: none;
   }

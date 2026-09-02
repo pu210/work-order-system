@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
@@ -112,9 +113,12 @@ public class ProgressService {
                         }
                 }
 
-                String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName() : "工程師";
-                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback() : "";
-                String reasonPart = reasonStr.isBlank() ? " 已退回處理，請重新審核與指派。" : " 已退回處理，退回原因：" + reasonStr + "，請重新審核與指派。";
+                String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName()
+                                : "工程師";
+                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback()
+                                : "";
+                String reasonPart = reasonStr.isBlank() ? " 已退回處理，請重新審核與指派。"
+                                : " 已退回處理，退回原因：" + reasonStr + "，請重新審核與指派。";
                 String title = "工程師已退回工單，待重新審核！";
                 String message = "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName + reasonPart;
 
@@ -128,11 +132,12 @@ public class ProgressService {
                                         message, // 通知詳細內容
                                         workOrder.getStatus()); // 當前狀態 (PENDING_REVIEW)
                 } else {
-                        // 保底備用：如果沒有指定特定管理員，廣播發送給所有管理員 (role_id = 1)
-                        List<UserRole> adminRoles = userRoleRepository.findByIdRoleId(1);
-                        for (UserRole adminRole : adminRoles) {
+                        // 保底備用：如果沒有指定特定管理員，廣播發送給所有活躍管理員
+                        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus("ADMIN",
+                                        User.UserStatus.ACTIVE);
+                        for (Integer adminId : adminUserIds) {
                                 notificationService.sendNotification(
-                                                adminRole.getId().getUserId(),
+                                                adminId,
                                                 userId,
                                                 workOrderId,
                                                 title,
