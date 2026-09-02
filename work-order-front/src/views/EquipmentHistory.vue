@@ -30,7 +30,6 @@
     <template v-else-if="equipment">
       <section class="eh-equipment-card" aria-labelledby="equipment-name">
         <div class="eh-equipment-heading">
-          <div class="eh-equipment-icon" aria-hidden="true">EQ</div>
           <div>
             <div class="eh-equipment-meta">
               <span class="eh-target-no">{{ equipment.targetNo }}</span>
@@ -69,20 +68,19 @@
             <h2 id="history-title">歷史工單</h2>
             <p>點擊任一筆紀錄即可查看完整工單內容</p>
           </div>
-          <button
-            type="button"
-            class="eh-btn eh-btn-secondary"
-            :disabled="loading"
-            @click="fetchHistory"
-          >
-            {{ loading ? "更新中…" : "重新整理" }}
-          </button>
+          <label class="eh-period-filter">
+            <select v-model="selectedPeriod" :disabled="loading" @change="changePeriod">
+              <option v-for="option in periodOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
         </div>
 
         <div v-if="workOrders.length === 0" class="eh-empty-state">
           <div class="eh-empty-icon" aria-hidden="true">—</div>
           <h3>目前沒有維修紀錄</h3>
-          <p>這台設備尚未建立任何關聯工單。</p>
+          <p>{{ selectedPeriod === "ALL" ? "這台設備目前沒有已完成工單。" : "所選期間內沒有已完成工單。" }}</p>
         </div>
 
         <div v-else class="eh-table-wrap">
@@ -92,11 +90,9 @@
                 <th>工單編號</th>
                 <th>標題</th>
                 <th>類別</th>
-                <th>優先級</th>
-                <th>狀態</th>
                 <th>報修人</th>
                 <th>負責工程師</th>
-                <th>建立時間</th>
+                <th>完成時間</th>
               </tr>
             </thead>
             <tbody>
@@ -112,19 +108,9 @@
                 <td class="eh-mono">{{ workOrder.workOrderNo }}</td>
                 <td class="eh-ticket-title">{{ workOrder.title }}</td>
                 <td>{{ workOrder.categoryName || "—" }}</td>
-                <td>{{ workOrder.priorityName || "—" }}</td>
-                <td>
-                  <span
-                    :class="['eh-badge', statusBadgeClass(workOrder.status)]"
-                  >
-                    {{ statusLabel(workOrder.status) }}
-                  </span>
-                </td>
                 <td>{{ workOrder.creatorName || "—" }}</td>
                 <td>{{ workOrder.assignedHandlerName || "尚未指派" }}</td>
-                <td class="eh-nowrap">
-                  {{ formatTime(workOrder.createdTime) }}
-                </td>
+                <td class="eh-nowrap">{{ formatTime(workOrder.completedTime) }}</td>
               </tr>
             </tbody>
           </table>
@@ -239,26 +225,14 @@ import QRCode from "qrcode";
 import { getEquipmentHistory } from "@/api/equipmentHistory.js";
 
 const PAGE_SIZE = 20;
-
-const STATUS_LABELS = {
-  PENDING_REVIEW: "待審核",
-  RE_REVIEW: "重新審核",
-  IN_PROGRESS: "處理中",
-  PENDING_USER_ACCEPTANCE: "待使用者驗收",
-  PENDING_ADMIN_ACCEPTANCE: "待管理員驗收",
-  COMPLETED: "已完成",
-  CANCELLED: "已取消",
-};
-
-const STATUS_BADGES = {
-  PENDING_REVIEW: "eh-badge-neutral",
-  RE_REVIEW: "eh-badge-warning",
-  IN_PROGRESS: "eh-badge-primary",
-  PENDING_USER_ACCEPTANCE: "eh-badge-warning",
-  PENDING_ADMIN_ACCEPTANCE: "eh-badge-warning",
-  COMPLETED: "eh-badge-success",
-  CANCELLED: "eh-badge-neutral",
-};
+const periodOptions = [
+  { value: "ALL", label: "全部" },
+  { value: "7D", label: "最近 7 天" },
+  { value: "1M", label: "最近 1 個月" },
+  { value: "3M", label: "最近 3 個月" },
+  { value: "6M", label: "最近 6 個月" },
+  { value: "1Y", label: "最近 1 年" },
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -268,6 +242,7 @@ const workOrders = ref([]);
 const page = ref(0);
 const totalPages = ref(0);
 const totalElements = ref(0);
+const selectedPeriod = ref("ALL");
 const loading = ref(false);
 const errorMessage = ref("");
 const qrModalOpen = ref(false);
@@ -277,14 +252,6 @@ const qrUrl = ref("");
 const qrError = ref("");
 
 const targetNo = computed(() => String(route.params.targetNo || ""));
-
-function statusLabel(status) {
-  return STATUS_LABELS[status] || status || "未知";
-}
-
-function statusBadgeClass(status) {
-  return STATUS_BADGES[status] || "eh-badge-neutral";
-}
 
 function formatTime(value) {
   if (!value) return "—";
@@ -325,6 +292,7 @@ async function fetchHistory() {
     const result = await getEquipmentHistory(targetNo.value, {
       page: page.value,
       size: PAGE_SIZE,
+      period: selectedPeriod.value,
     });
 
     equipment.value = result.equipment;
@@ -337,6 +305,11 @@ async function fetchHistory() {
   } finally {
     loading.value = false;
   }
+}
+
+function changePeriod() {
+  page.value = 0;
+  fetchHistory();
 }
 
 function goToPage(targetPage) {
@@ -533,20 +506,6 @@ onMounted(fetchHistory);
   min-width: 240px;
 }
 
-.eh-equipment-icon {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
-  place-items: center;
-  border-radius: 12px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .eh-equipment-meta {
   display: flex;
   align-items: center;
@@ -638,6 +597,31 @@ onMounted(fetchHistory);
   font-size: 12.5px;
 }
 
+.eh-period-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eh-period-filter select {
+  min-width: 132px;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.eh-period-filter select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .eh-btn {
   padding: 8px 15px;
   border: 1px solid transparent;
@@ -720,36 +704,6 @@ onMounted(fetchHistory);
 
 .eh-nowrap {
   white-space: nowrap;
-}
-
-.eh-badge {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 700;
-  line-height: 1.6;
-  white-space: nowrap;
-}
-
-.eh-badge-primary {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
-}
-
-.eh-badge-success {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.eh-badge-warning {
-  background: var(--color-warning-soft);
-  color: #92600f;
-}
-
-.eh-badge-neutral {
-  background: #eef0f4;
-  color: var(--color-text-muted);
 }
 
 .eh-state,
@@ -971,6 +925,10 @@ onMounted(fetchHistory);
   .eh-card-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .eh-period-filter {
+    justify-content: space-between;
   }
 
   .eh-card-header .eh-btn {

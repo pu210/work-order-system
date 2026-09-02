@@ -33,11 +33,12 @@ public class EquipmentHistoryController {
      * 查詢指定設備的歷史工單。
      *
      * 範例：
-     * GET /api/equipment/PC-001/work-orders?page=0&size=20
+     * GET /api/equipment/PC-001/work-orders?period=3M&page=0&size=20
      */
     @GetMapping("/{targetNo}/work-orders")
     public ResponseEntity<ApiResponse<EquipmentHistoryResponse>> getHistory(
             @PathVariable String targetNo,
+            @RequestParam(defaultValue = "ALL") String period,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "" + DEFAULT_PAGE_SIZE) int size
     ) {
@@ -55,6 +56,7 @@ public class EquipmentHistoryController {
         EquipmentHistoryResponse response =
                 equipmentHistoryService.getHistory(
                         targetNo,
+                        period,
                         pageable
                 );
 

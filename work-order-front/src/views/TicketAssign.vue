@@ -71,7 +71,7 @@
                 <span :class="['priority-pill', priorityClass(ticket.priorityName)]">
                   {{ ticket.priorityName || '未設定優先級' }}
                 </span>
-                <span :class="['status-pill', statusClass(ticket.status)]">
+                <span :class="['status-pill', statusBadgeClass(ticket.status)]">
                   待審查
                 </span>
               </div>
@@ -81,7 +81,7 @@
               <h5>{{ ticket.title }}</h5>
               <span class="todo-created"><i class="bi bi-calendar3 me-1"></i>建立：{{ formatDate(ticket.createdTime) }}</span>
             </div>
-            <p class="todo-applicant"><i class="bi bi-person me-1"></i>申請人：{{ ticket.creatorName || '—' }}</p>
+            <p class="todo-applicant"><i class="bi bi-person me-1"></i>報修人：{{ ticket.creatorName || '—' }}</p>
             <div class="detail-hint"><i class="bi bi-chevron-right"></i></div>
           </article>
 
@@ -197,13 +197,12 @@
                   v-if="!isClosed(ticket)"
                   :class="['priority-pill', priorityClass(ticket.priorityName)]"
                 >
-                  <i class="bi bi-exclamation-triangle-fill me-1"></i>
                   {{ ticket.priorityName || '未設定優先級' }}
                 </span>
                 <span v-if="!isClosed(ticket)" :class="['overdue-pill', overdueClass(ticket)]">
                   {{ overdueLabel(ticket) }}
                 </span>
-                <span :class="['status-pill', statusClass(ticket.status)]">
+                <span :class="['status-pill', statusBadgeClass(ticket.status)]">
                   {{ displayStatusLabel(ticket) }}
                 </span>
               </div>
@@ -213,12 +212,12 @@
               <div class="order-main min-width-0">
                 <h4 class="mb-2">{{ ticket.title }}</h4>
                 <p class="mb-1">
-                  申請人：{{ ticket.creatorName || '—' }}
+                  報修人：{{ ticket.creatorName || '—' }}
                   <span class="mx-1">｜</span>
                   負責管理員：{{ ticket.adminName || '尚未指定' }}
                 </p>
                 <p class="mb-0">
-                  指派工程師：{{ ticket.assignedHandlerName || '尚未指派' }}
+                  負責工程師：{{ ticket.assignedHandlerName || '尚未指派' }}
                   <span class="mx-1">｜</span>
                   完成期限：{{ formatDateTime(ticket.dueTime) }}
                 </p>
@@ -267,17 +266,18 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { getWorkOrderList } from "@/api/workOrder.js";
+import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
 
 const router = useRouter();
 
 const statusTabs = [
   { value: "", label: "未結案" },
   { value: "RE_REVIEW", label: "重新審查" },
-  { value: "IN_PROGRESS", label: "進行中" },
-  { value: "PENDING_USER_ACCEPTANCE", label: "使用者驗收" },
-  { value: "PENDING_ADMIN_ACCEPTANCE", label: "管理員驗收" },
-  { value: "COMPLETED", label: "已完成" },
-  { value: "CANCELLED", label: "已取消" },
+  { value: "IN_PROGRESS", label: statusLabel("IN_PROGRESS") },
+  { value: "PENDING_USER_ACCEPTANCE", label: statusLabel("PENDING_USER_ACCEPTANCE") },
+  { value: "PENDING_ADMIN_ACCEPTANCE", label: statusLabel("PENDING_ADMIN_ACCEPTANCE") },
+  { value: "COMPLETED", label: statusLabel("COMPLETED") },
+  { value: "CANCELLED", label: statusLabel("CANCELLED") },
 ];
 
 const tickets = ref([]);
@@ -445,19 +445,8 @@ function priorityClass(priorityName) {
   return "priority-low";
 }
 
-function statusLabel(status) {
-  return statusTabs.find((tab) => tab.value === status)?.label || status || "未知狀態";
-}
-
 function displayStatusLabel(ticket) {
-  if (ticket.status === "PENDING_REVIEW") {
-    return ticket.adminUserId == null ? "待審查" : "重新審查";
-  }
   return statusLabel(ticket.status);
-}
-
-function statusClass(status) {
-  return `status-${String(status || "unknown").toLowerCase().replaceAll("_", "-")}`;
 }
 
 function statusCount(status) {
@@ -580,16 +569,7 @@ onMounted(loadTickets);
 .work-order-no { color: #67758a; font-size: 0.88rem; }
 .card-badges { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 0.4rem; }
 .status-pill, .priority-pill, .overdue-pill { display: inline-flex; align-items: center; padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-.status-in-progress { background: #dcecff; color: #2563b8; }
-.status-pending-review { background: #f3e6ff; color: #8b3cc7; }
-.status-pending-user-acceptance { background: #fff0d6; color: #a96500; }
-.status-pending-admin-acceptance { background: #e9e5ff; color: #5e45bd; }
-.status-completed { background: #dcf7e8; color: #198754; }
-.status-cancelled, .status-unknown { background: #eef1f5; color: #6b7280; }
-.priority-pill { border: 1px solid transparent; border-radius: 6px; }
-.priority-critical, .priority-high { border-color: #ffc9c9; background: #fff0f0; color: #e13c3c; }
-.priority-medium { border-color: #ffe1a8; background: #fff8e7; color: #b66d00; }
-.priority-low { border-color: #d8e1ec; background: #f4f7fa; color: #65758a; }
+.priority-pill { border: 1px solid #d8e1ec; border-radius: 6px; background: #fff; color: #65758a; }
 .overdue-danger { background: #ffe1e1; color: #c92a2a; }
 .overdue-ok { background: #dcf7e8; color: #198754; }
 .overdue-neutral { background: #eef1f5; color: #6b7280; }

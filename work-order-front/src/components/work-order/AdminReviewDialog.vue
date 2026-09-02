@@ -3,7 +3,7 @@
     :title="isReReview ? '重新審查工單' : '審查與派工'"
     :busy="submitting"
     title-id="admin-review-dialog-title"
-    @close="$emit('close')"
+    @close="handleDialogClose"
   >
     <div v-if="loadingOptions" class="py-4 text-center text-muted">
       <span class="spinner-border spinner-border-sm me-2"></span>正在載入派工選項…
@@ -30,12 +30,27 @@
 
       <div class="mb-3">
         <label for="review-handler" class="form-label">指派工程師</label>
-        <select id="review-handler" v-model="form.assignedHandlerId" class="form-select" required>
-          <option value="" disabled>請選擇工程師</option>
-          <option v-for="handler in handlers" :key="handler.userId" :value="handler.userId">
-            {{ handler.name }}
-          </option>
-        </select>
+        <div class="input-group">
+          <select
+            id="review-handler"
+            v-model="form.assignedHandlerId"
+            class="form-select"
+            required
+          >
+            <option value="" disabled>請選擇工程師</option>
+            <option v-for="handler in handlers" :key="handler.userId" :value="handler.userId">
+              {{ handler.name }}
+            </option>
+          </select>
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            :disabled="!form.assignedHandlerId"
+            @click="openHandlerSchedule"
+          >
+            顯示行事曆
+          </button>
+        </div>
       </div>
 
       <div class="mb-3">
@@ -45,6 +60,8 @@
           v-model="form.dueTime"
           type="datetime-local"
           class="form-control"
+          :min="minimumDueTime"
+          @focus="refreshMinimumDueTime"
           required
         />
       </div>
@@ -59,9 +76,15 @@
           v-model.trim="form.feedback"
           class="form-control"
           rows="4"
-          maxlength="1000"
+          maxlength="500"
           placeholder="請輸入審查意見"
         ></textarea>
+        <div
+          class="form-text text-end"
+          :class="form.feedback.length >= 500 ? 'text-danger' : form.feedback.length >= 450 ? 'text-warning' : 'text-muted'"
+        >
+          {{ form.feedback.length }} / 500 字
+        </div>
       </div>
     </form>
 
@@ -87,13 +110,21 @@
       </button>
     </template>
   </WorkOrderDialogShell>
+
+  <EngineerScheduleDialog
+    v-if="scheduleDialogOpen"
+    :handler-id="Number(form.assignedHandlerId)"
+    :handler-name="selectedHandlerName"
+    @close="scheduleDialogOpen = false"
+  />
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { getPriorities } from "@/api/priority.js";
 import { getUsers } from "@/api/user.js";
 import { reviewAccept, reviewReject } from "@/api/workOrder.js";
+import EngineerScheduleDialog from "./EngineerScheduleDialog.vue";
 import WorkOrderDialogShell from "./WorkOrderDialogShell.vue";
 
 const props = defineProps({
@@ -109,6 +140,8 @@ const loadingOptions = ref(true);
 const submitting = ref(false);
 const submittingAction = ref("");
 const errorMessage = ref("");
+const scheduleDialogOpen = ref(false);
+const minimumDueTime = ref(currentDateTimeLocal());
 const form = reactive({
   priorityId: "",
   assignedHandlerId: props.workOrder.assignedHandlerId ?? "",
@@ -116,9 +149,36 @@ const form = reactive({
   feedback: "",
 });
 
+const selectedHandlerName = computed(() => {
+  const selectedId = Number(form.assignedHandlerId);
+  return handlers.value.find((handler) => Number(handler.userId) === selectedId)?.name || "";
+});
+
+function openHandlerSchedule() {
+  if (form.assignedHandlerId) scheduleDialogOpen.value = true;
+}
+
+function handleDialogClose() {
+  if (scheduleDialogOpen.value) {
+    scheduleDialogOpen.value = false;
+    return;
+  }
+  emit("close");
+}
+
 function toDateTimeLocal(value) {
   if (!value) return "";
   return String(value).replace(" ", "T").slice(0, 16);
+}
+
+function currentDateTimeLocal() {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 16);
+}
+
+function refreshMinimumDueTime() {
+  minimumDueTime.value = currentDateTimeLocal();
 }
 
 function normalizeList(response) {
@@ -155,6 +215,10 @@ async function loadOptions() {
 function validateAccept() {
   if (!form.priorityId || !form.assignedHandlerId || !form.dueTime) {
     errorMessage.value = "請完整填寫優先級、指派工程師與預計完成時間";
+    return false;
+  }
+  if (new Date(form.dueTime).getTime() < Date.now()) {
+    errorMessage.value = "預計完成時間不能早於現在時間";
     return false;
   }
   return true;

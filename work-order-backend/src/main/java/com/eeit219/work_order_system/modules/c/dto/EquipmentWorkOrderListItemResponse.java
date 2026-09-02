@@ -21,6 +21,7 @@ public class EquipmentWorkOrderListItemResponse {
     private String assignedHandlerName;
 
     private LocalDateTime createdTime;
+    private LocalDateTime completedTime;
     private LocalDateTime dueTime;
     private Boolean isOverdue;
 }
