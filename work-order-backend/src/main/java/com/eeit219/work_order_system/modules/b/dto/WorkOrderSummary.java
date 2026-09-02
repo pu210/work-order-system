@@ -21,7 +21,7 @@ public abstract class WorkOrderSummary {
     private Integer creatorId;
     private String creatorName;
     private Integer adminUserId;
-    
+
     // 負責管理員姓名
     private String adminName;
 
