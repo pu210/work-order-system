@@ -6,8 +6,9 @@ import org.springframework.data.domain.Sort;
 
 final class WorkOrderPageableFactory {
 
-    // 暫時
     static final int DEFAULT_PAGE_SIZE = 10;
+
+    // 單頁上限，擋掉呼叫端帶超大 size 一次撈走整張表；需要全部資料的呼叫端請自行分頁迴圈打完，不要調高這個值
     private static final int MAX_PAGE_SIZE = 100;
 
     // 預設排序：建立時間新到舊，符合使用者直覺，未指定或指定無效的 sort 值時皆套用

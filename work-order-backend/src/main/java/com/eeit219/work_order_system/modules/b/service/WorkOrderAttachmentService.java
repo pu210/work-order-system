@@ -39,7 +39,7 @@ public class WorkOrderAttachmentService {
         this.userRepository = userRepository;
     }
 
-    // 保留B模組原有的工單附件上傳方式。
+    // 建單附件上傳入口：固定 contactRecordId=null，代表這是工單本體的附件，不是留言附圖
     @Transactional
     public WorkOrderAttachmentResponse upload(
             WorkOrder workOrder,
@@ -68,8 +68,6 @@ public class WorkOrderAttachmentService {
         } catch (IOException e) {
             throw new IllegalArgumentException("讀取上傳檔案失敗：" + file.getOriginalFilename(), e);
         }
-
-        // contentType 是使用者端自報、可偽造，實際解碼一次確認內容真的是可辨識的圖片格式
         try {
             if (ImageIO.read(new ByteArrayInputStream(fileBytes)) == null) {
                 throw new IllegalArgumentException("檔案內容不是有效的圖片格式：" + file.getOriginalFilename());
@@ -115,7 +113,6 @@ public class WorkOrderAttachmentService {
 
     // 附件查看權限：ADMIN，或該附件所屬工單的建立者／被指派工程師，其餘一律拒絕。
     // 只給 WorkOrderAttachmentController 的 list()/view() 用；D 模組留言圖片走自己的
-    // WorkOrderAuthorizationService，那條路徑已經驗證過，不重複呼叫這支。
     public void validateViewPermission(WorkOrder workOrder, Integer currentUserId, List<String> roleCodes) {
         boolean isAdmin = roleCodes != null
                 && roleCodes.stream().anyMatch(Role.ADMIN::equalsIgnoreCase);

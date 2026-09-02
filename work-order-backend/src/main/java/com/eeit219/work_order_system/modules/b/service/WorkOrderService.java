@@ -153,98 +153,51 @@ public class WorkOrderService {
             return workOrderRepository.search(keyword, status, priorityId, categoryId, assignedHandlerId,
                     adminUserId, null, pageable).map(this::toListItem);
         }
-        if (roleCodes.contains(Role.HANDLER)) {
-            return workOrderRepository.search(keyword, status, priorityId, categoryId, null, null, currentUserId,
-                    pageable).map(this::toListItem);
+
+        // 工單編號產生：WO-年度-4碼流水號，取當年度目前最大號碼 +1
+        private String generateWorkOrderNo() {
+                String prefix = "WO-" + Year.now().getValue() + "-";
+
+                int nextSequence = workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(prefix)
+                                .map(latest -> {
+                                        String sequencePart = latest.getWorkOrderNo()
+                                                        .substring(latest.getWorkOrderNo().length() - 4);
+                                        return Integer.parseInt(sequencePart) + 1;
+                                })
+                                .orElse(1);
+
+                return prefix + String.format("%04d", nextSequence);
         }
-        return workOrderRepository.findMySubmissions(keyword, status, currentUserId, pageable)
-                .map(this::toListItem);
-    }
 
-    // 一般使用者視角列表：只查自己建立的工單，只開放 keyword/status 篩選
-    public Page<WorkOrderListItemResponse> listMySubmissions(String keyword, WorkOrderState status,
-            Integer creatorId, Pageable pageable) {
-        return workOrderRepository.findMySubmissions(keyword, status, creatorId, pageable).map(this::toListItem);
-    }
-
-    // 優先級判斷：子類別自己有 override 就用它，否則往上抓大類別的預設優先級
-    private Priority resolvePriority(SubCategory subCategory) {
-        if (subCategory.getOverridePriority() != null) {
-            return subCategory.getOverridePriority();
+        // 工單詳情 DTO 組裝
+        private WorkOrderResponse toResponse(WorkOrder workOrder, SubCategory subCategory,
+                        Priority priority, User creator, List<WorkOrderAttachmentResponse> attachments) {
+                return WorkOrderResponse.builder()
+                                .workOrderId(workOrder.getWorkOrderId())
+                                .workOrderNo(workOrder.getWorkOrderNo())
+                                .title(workOrder.getTitle())
+                                .categoryName(subCategory.getRepairCategory().getName())
+                                .subCategoryName(subCategory.getName())
+                                .priorityName(priority.getName())
+                                .locationDetail(workOrder.getLocationDetail())
+                                .contactPhone(workOrder.getContactPhone())
+                                .description(workOrder.getDescription())
+                                .dueTime(workOrder.getDueTime())
+                                .status(workOrder.getStatus().name())
+                                .createdTime(workOrder.getCreatedTime())
+                                .creatorName(creator.getName())
+                                .adminUserId(workOrder.getAdmin() != null
+                                                ? workOrder.getAdmin().getUserId()
+                                                : null)
+                                .adminName(workOrder.getAdmin() != null
+                                                ? workOrder.getAdmin().getName()
+                                                : null)
+                                .isOverdue(workOrder.getIsOverdue())
+                                .attachments(attachments)
+                                .build();
         }
         Priority defaultPriority = subCategory.getRepairCategory().getDefaultPriority();
         if (defaultPriority == null) {
             throw new BusinessRuleViolationException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
         }
-        return defaultPriority;
-    }
-
-    // 工單編號產生：WO-年度-4碼流水號，取當年度目前最大號碼 +1
-    private String generateWorkOrderNo() {
-        String prefix = "WO-" + Year.now().getValue() + "-";
-
-        int nextSequence = workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(prefix)
-                .map(latest -> {
-                    String sequencePart = latest.getWorkOrderNo().substring(latest.getWorkOrderNo().length() - 4);
-                    return Integer.parseInt(sequencePart) + 1;
-                })
-                .orElse(1);
-
-        return prefix + String.format("%04d", nextSequence);
-    }
-
-    // 工單詳情 DTO 組裝
-    private WorkOrderResponse toResponse(WorkOrder workOrder, SubCategory subCategory,
-            Priority priority, User creator, List<WorkOrderAttachmentResponse> attachments) {
-        return WorkOrderResponse.builder()
-                .workOrderId(workOrder.getWorkOrderId())
-                .workOrderNo(workOrder.getWorkOrderNo())
-                .title(workOrder.getTitle())
-                .categoryName(subCategory.getRepairCategory().getName())
-                .subCategoryName(subCategory.getName())
-                .priorityName(priority.getName())
-                .locationDetail(workOrder.getLocationDetail())
-                .contactPhone(workOrder.getContactPhone())
-                .description(workOrder.getDescription())
-                .dueTime(workOrder.getDueTime())
-                .status(workOrder.getStatus().name())
-                .createdTime(workOrder.getCreatedTime())
-                .creatorName(creator.getName())
-                .adminUserId(workOrder.getAdmin() != null
-                        ? workOrder.getAdmin().getUserId()
-                        : null)
-                .adminName(workOrder.getAdmin() != null
-                        ? workOrder.getAdmin().getName()
-                        : null)
-                .isOverdue(workOrder.getIsOverdue())
-                .attachments(attachments)
-                .build();
-    }
-
-    // 工單列表項目 DTO 組裝
-    private WorkOrderListItemResponse toListItem(WorkOrder workOrder) {
-        return WorkOrderListItemResponse.builder()
-                .workOrderId(workOrder.getWorkOrderId())
-                .workOrderNo(workOrder.getWorkOrderNo())
-                .title(workOrder.getTitle())
-                .categoryName(workOrder.getSubCategory().getRepairCategory().getName())
-                .priorityName(workOrder.getPriority().getName())
-                .status(workOrder.getStatus().name())
-                .creatorId(workOrder.getCreator() != null ? workOrder.getCreator().getUserId() : null)
-                .creatorName(workOrder.getCreator() != null ? workOrder.getCreator().getName() : null)
-                .assignedHandlerId(workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getUserId() : null)
-                .assignedHandlerName(workOrder.getAssignedHandler() != null
-                        ? workOrder.getAssignedHandler().getName()
-                        : null)
-                .adminUserId(workOrder.getAdmin() != null
-                        ? workOrder.getAdmin().getUserId()
-                        : null)
-                .adminName(workOrder.getAdmin() != null
-                        ? workOrder.getAdmin().getName()
-                        : null)
-                .dueTime(workOrder.getDueTime())
-                .isOverdue(workOrder.getIsOverdue())
-                .createdTime(workOrder.getCreatedTime())
-                .build();
-    }
 }

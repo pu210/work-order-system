@@ -12,13 +12,7 @@
         <form @submit.prevent="handleSubmit">
           <div class="tc-field">
             <label class="tc-label tc-required">標題</label>
-            <input
-              v-model.trim="form.title"
-              type="text"
-              class="tc-input"
-              maxlength="50"
-              required
-            />
+            <input v-model.trim="form.title" type="text" class="tc-input" maxlength="50" required />
             <div class="tc-hint">{{ form.title.length }} / 50</div>
           </div>
 
@@ -27,29 +21,16 @@
               <label class="tc-label tc-required">報修大類</label>
               <select v-model="selectedCategoryId" class="tc-input" required>
                 <option value="" disabled>請選擇大類</option>
-                <option
-                  v-for="c in categories"
-                  :key="c.repairCategoriesId"
-                  :value="c.repairCategoriesId"
-                >
+                <option v-for="c in categories" :key="c.repairCategoriesId" :value="c.repairCategoriesId">
                   {{ c.name }}
                 </option>
               </select>
             </div>
             <div class="tc-field">
               <label class="tc-label tc-required">細項類別</label>
-              <select
-                v-model="form.subCategoryId"
-                class="tc-input"
-                required
-                :disabled="!selectedCategoryId"
-              >
+              <select v-model="form.subCategoryId" class="tc-input" required :disabled="!selectedCategoryId">
                 <option value="" disabled>請選擇細項</option>
-                <option
-                  v-for="s in filteredSubCategories"
-                  :key="s.subCategoriesId"
-                  :value="s.subCategoriesId"
-                >
+                <option v-for="s in filteredSubCategories" :key="s.subCategoriesId" :value="s.subCategoriesId">
                   {{ s.name }}
                 </option>
               </select>
@@ -58,26 +39,14 @@
 
           <div class="tc-field">
             <label class="tc-label tc-required">位置</label>
-            <input
-              v-model.trim="form.locationDetail"
-              type="text"
-              class="tc-input"
-              maxlength="100"
-              required
-            />
+            <input v-model.trim="form.locationDetail" type="text" class="tc-input" maxlength="100" required />
             <div class="tc-hint">{{ form.locationDetail.length }} / 100</div>
           </div>
 
           <div class="tc-field">
             <label class="tc-label">聯絡電話</label>
-            <input
-              v-model.trim="form.contactPhone"
-              type="text"
-              class="tc-input"
-              maxlength="10"
-              pattern="\d{10}"
-              title="請輸入 10 碼數字"
-            />
+            <input v-model.trim="form.contactPhone" type="text" class="tc-input" maxlength="10" pattern="\d{10}"
+              title="請輸入 10 碼數字" />
             <div class="tc-hint">
               {{ form.contactPhone.length }} / 10（選填，若填寫須為 10 碼數字）
             </div>
@@ -85,50 +54,23 @@
 
           <div class="tc-field">
             <label class="tc-label">描述</label>
-            <textarea
-              v-model.trim="form.description"
-              class="tc-input tc-textarea"
-              rows="4"
-              maxlength="300"
-            ></textarea>
+            <textarea v-model.trim="form.description" class="tc-input tc-textarea" rows="4" maxlength="300"></textarea>
             <div class="tc-hint">{{ form.description.length }} / 300</div>
           </div>
 
           <div class="tc-field">
-            <label class="tc-label">附件（限圖片，單檔 10MB 以內）</label>
-            <input
-              ref="fileInputRef"
-              type="file"
-              accept="image/*"
-              multiple
-              class="d-none"
-              @change="handleFilesSelected"
-            />
+            <label class="tc-label">附件（限圖片，全部圖片總量 10MB 以內）</label>
+            <input ref="fileInputRef" type="file" accept="image/*" multiple class="d-none"
+              @change="handleFilesSelected" />
             <div class="attachment-grid">
-              <div
-                v-for="(item, index) in selectedFiles"
-                :key="item.id"
-                class="attachment-tile"
-              >
-                <img
-                  :src="item.previewUrl"
-                  :alt="item.file.name"
-                  class="attachment-thumb"
-                />
-                <button
-                  type="button"
-                  class="attachment-remove"
-                  :title="`移除 ${item.file.name}`"
-                  @click="removeFile(index)"
-                >
+              <div v-for="(item, index) in selectedFiles" :key="item.id" class="attachment-tile">
+                <img :src="item.previewUrl" :alt="item.file.name" class="attachment-thumb" />
+                <button type="button" class="attachment-remove" :title="`移除 ${item.file.name}`"
+                  @click="removeFile(index)">
                   ✕
                 </button>
               </div>
-              <button
-                type="button"
-                class="attachment-add-tile"
-                @click="fileInputRef.click()"
-              >
+              <button type="button" class="attachment-add-tile" @click="fileInputRef.click()">
                 <span class="fs-3 d-block">＋</span>
                 <span class="small">添加圖片</span>
               </button>
@@ -141,19 +83,10 @@
           </div>
 
           <div class="tc-actions">
-            <button
-              type="submit"
-              class="tc-btn tc-btn-primary"
-              :disabled="submitting"
-            >
+            <button type="submit" class="tc-btn tc-btn-primary" :disabled="submitting">
               {{ submitting ? "送出中…" : "送出工單" }}
             </button>
-            <button
-              type="button"
-              class="tc-btn tc-btn-secondary"
-              :disabled="submitting"
-              @click="router.back()"
-            >
+            <button type="button" class="tc-btn tc-btn-secondary" :disabled="submitting" @click="router.back()">
               取消
             </button>
           </div>
@@ -185,7 +118,7 @@ import {
 
 const router = useRouter();
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_TOTAL_ATTACHMENT_SIZE = 10 * 1024 * 1024
 
 const categories = ref([]);
 const subCategories = ref([]);
@@ -228,21 +161,25 @@ onMounted(async () => {
 });
 
 function handleFilesSelected(event) {
-  fileError.value = "";
-  const files = Array.from(event.target.files || []);
-  const invalid = files.find(
-    (f) => !f.type.startsWith("image/") || f.size > MAX_FILE_SIZE,
-  );
-  if (invalid) {
-    fileError.value = `「${invalid.name}」不是圖片或超過 10MB，請重新選擇`;
+  fileError.value = ''
+  const files = Array.from(event.target.files || [])
+  const invalidType = files.find((f) => !f.type.startsWith('image/'))
+  if (invalidType) {
+    fileError.value = `「${invalidType.name}」不是圖片，請重新選擇`
   } else {
-    selectedFiles.value.push(
-      ...files.map((file) => ({
-        id: nextFileId++,
-        file,
-        previewUrl: URL.createObjectURL(file),
-      })),
-    );
+    const existingTotal = selectedFiles.value.reduce((sum, item) => sum + item.file.size, 0)
+    const incomingTotal = files.reduce((sum, file) => sum + file.size, 0)
+    if (existingTotal + incomingTotal > MAX_TOTAL_ATTACHMENT_SIZE) {
+      fileError.value = '圖片附件總大小超過上限（10MB），請減少張數或縮小圖片後再試'
+    } else {
+      selectedFiles.value.push(
+        ...files.map((file) => ({
+          id: nextFileId++,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }))
+      )
+    }
   }
   // 清空原生 input，讓下一次選檔（含選到同一個檔案）都會觸發 change，且不留原生「已選擇 N 個檔案」殘留字樣
   event.target.value = "";
