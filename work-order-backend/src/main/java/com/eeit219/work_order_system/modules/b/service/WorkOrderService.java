@@ -9,13 +9,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eeit219.work_order_system.common.exception.BusinessRuleViolationException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.entity.UserRole;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
@@ -31,6 +32,10 @@ import com.eeit219.work_order_system.modules.f.repository.SubCategoryRepository;
 
 @Service
 public class WorkOrderService {
+
+    // 建單附件上限：不是限制單一檔案大小（那是 WorkOrderAttachmentService.MAX_FILE_SIZE 的事），
+    // 是限制這次一起送出的所有圖片加總不能超過這個數字
+    private static final long MAX_ATTACHMENTS_TOTAL_SIZE = 10L * 1024 * 1024;
 
     private final WorkOrderRepository workOrderRepository;
     private final SubCategoryRepository subCategoryRepository;
@@ -52,11 +57,13 @@ public class WorkOrderService {
 
     // 建立工單：解析優先級、寫入工單本體，附件在同一個交易內一併驗證與寫入——
     // 只要其中一張附件驗證失敗（格式/大小/損毀），整個方法會拋出例外，工單本體連同已寫入的附件一起 rollback，
-    // 不會留下「工單建立成功但附件缺漏」的髒資料。
     @Transactional
     public WorkOrderResponse create(WorkOrderCreateRequest request, User creator, List<MultipartFile> files) {
+        validateAttachmentsTotalSize(files);
+
         SubCategory subCategory = subCategoryRepository.findByIdWithPriorityDetails(request.getSubCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("找不到子類別：" + request.getSubCategoryId()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "找不到子類別：" + request.getSubCategoryId()));
 
         Priority priority = resolvePriority(subCategory);
 
@@ -74,22 +81,18 @@ public class WorkOrderService {
 
         WorkOrder saved = workOrderRepository.save(workOrder);
 
-        // ===== 觸發發送通知給所有管理員 =====
-        // 1. 查詢所有 role_id = 1 (管理員) 的使用者角色關聯紀錄
-        List<UserRole> adminRoles = userRoleRepository.findByIdRoleId(1);
+        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus(
+                Role.ADMIN, User.UserStatus.ACTIVE);
 
-        // 2. 透過 for 迴圈，發送通知給每一位管理員
-        for (UserRole adminRole : adminRoles) {
-            Integer adminUserId = adminRole.getId().getUserId(); // 取得管理員的 userId
-
-            notificationService.sendNotification(
-                    adminUserId, // 接收通知的人（管理員 ID）
-                    creator.getUserId(), // 發送通知的人（報修建單者 ID）
-                    saved.getWorkOrderId(), // 工單 ID
-                    "有新工單待審核！", // 通知標題
-                    "使用者 " + creator.getName() + " 建立了一筆新工單：" + saved.getWorkOrderNo() + "，等待審核。", // 通知詳細內容
-                    saved.getStatus() // 當時工單狀態 (PENDING_REVIEW)
-            );
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    notifyAdmins(adminUserIds, saved, creator);
+                }
+            });
+        } else {
+            notifyAdmins(adminUserIds, saved, creator);
         }
 
         List<WorkOrderAttachmentResponse> attachments = List.of();
@@ -102,14 +105,41 @@ public class WorkOrderService {
         return toResponse(saved, subCategory, priority, creator, attachments);
     }
 
-    // 查詢工單詳情
-    public WorkOrderResponse getById(Integer workOrderId) {
+    private void validateAttachmentsTotalSize(List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+        long totalSize = files.stream().mapToLong(MultipartFile::getSize).sum();
+        if (totalSize > MAX_ATTACHMENTS_TOTAL_SIZE) {
+            throw new IllegalArgumentException("附件圖片總大小超過上限（10MB）");
+        }
+    }
+
+    private void notifyAdmins(List<Integer> adminUserIds, WorkOrder saved, User creator) {
+        for (Integer adminUserId : adminUserIds) {
+            notificationService.sendNotification(
+                    adminUserId, // 接收通知的人（管理員 ID）
+                    creator.getUserId(), // 發送通知的人（報修建單者 ID）
+                    saved.getWorkOrderId(), // 工單 ID
+                    "有新工單待審核！", // 通知標題
+                    "使用者 " + creator.getName() + " 建立了一筆新工單：" + saved.getWorkOrderNo() + "，等待審核。", // 通知詳細內容
+                    saved.getStatus() // 當時工單狀態 (PENDING_REVIEW)
+            );
+        }
+    }
+
+    // 查詢工單詳情：僅限 ADMIN、該工單建立者、被指派工程師查看，跟附件的權限規則一致（見
+    // WorkOrderAttachmentService.validateViewPermission）
+    public WorkOrderResponse getById(Integer workOrderId, Integer currentUserId, List<String> callerRoleCodes) {
         WorkOrder workOrder = workOrderRepository.findByIdWithDetails(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("找不到工單：" + workOrderId));
 
+        workOrderAttachmentService.validateViewPermission(workOrder, currentUserId, callerRoleCodes);
+
         List<WorkOrderAttachmentResponse> attachments = workOrderAttachmentService.listByWorkOrder(workOrderId);
 
-        return toResponse(workOrder, workOrder.getSubCategory(), workOrder.getPriority(), workOrder.getCreator(),
+        return toResponse(workOrder, workOrder.getSubCategory(), workOrder.getPriority(),
+                workOrder.getCreator(),
                 attachments);
     }
 
@@ -135,8 +165,10 @@ public class WorkOrderService {
                     adminUserId, null, pageable).map(this::toListItem);
         }
         if (roleCodes.contains(Role.HANDLER)) {
-            return workOrderRepository.search(keyword, status, priorityId, categoryId, null, null, currentUserId,
-                    pageable).map(this::toListItem);
+            return workOrderRepository
+                    .search(keyword, status, priorityId, categoryId, null, null, currentUserId,
+                            pageable)
+                    .map(this::toListItem);
         }
         return workOrderRepository.findMySubmissions(keyword, status, currentUserId, pageable)
                 .map(this::toListItem);
@@ -145,7 +177,8 @@ public class WorkOrderService {
     // 一般使用者視角列表：只查自己建立的工單，只開放 keyword/status 篩選
     public Page<WorkOrderListItemResponse> listMySubmissions(String keyword, WorkOrderState status,
             Integer creatorId, Pageable pageable) {
-        return workOrderRepository.findMySubmissions(keyword, status, creatorId, pageable).map(this::toListItem);
+        return workOrderRepository.findMySubmissions(keyword, status, creatorId, pageable)
+                .map(this::toListItem);
     }
 
     // 優先級判斷：子類別自己有 override 就用它，否則往上抓大類別的預設優先級
@@ -156,7 +189,8 @@ public class WorkOrderService {
         // override_priority 為 null 時，往上抓大類別的預設優先級
         Priority defaultPriority = subCategory.getRepairCategory().getDefaultPriority();
         if (defaultPriority == null) {
-            throw new BusinessRuleViolationException("子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
+            throw new BusinessRuleViolationException(
+                    "子類別與所屬大類別皆未設定優先級：" + subCategory.getSubCategoriesId());
         }
         return defaultPriority;
     }
@@ -167,7 +201,8 @@ public class WorkOrderService {
 
         int nextSequence = workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(prefix)
                 .map(latest -> {
-                    String sequencePart = latest.getWorkOrderNo().substring(latest.getWorkOrderNo().length() - 4);
+                    String sequencePart = latest.getWorkOrderNo()
+                            .substring(latest.getWorkOrderNo().length() - 4);
                     return Integer.parseInt(sequencePart) + 1;
                 })
                 .orElse(1);
@@ -214,7 +249,9 @@ public class WorkOrderService {
                 .status(workOrder.getStatus().name())
                 .creatorId(workOrder.getCreator() != null ? workOrder.getCreator().getUserId() : null)
                 .creatorName(workOrder.getCreator() != null ? workOrder.getCreator().getName() : null)
-                .assignedHandlerId(workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getUserId() : null)
+                .assignedHandlerId(workOrder.getAssignedHandler() != null
+                        ? workOrder.getAssignedHandler().getUserId()
+                        : null)
                 .assignedHandlerName(workOrder.getAssignedHandler() != null
                         ? workOrder.getAssignedHandler().getName()
                         : null)

@@ -2,9 +2,8 @@ package com.eeit219.work_order_system.modules.b.service;
 
 import com.eeit219.work_order_system.common.exception.BusinessRuleViolationException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.entity.UserRole;
-import com.eeit219.work_order_system.modules.a.entity.UserRoleId;
 import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
@@ -81,7 +80,8 @@ class WorkOrderServiceTest {
         // 編號產生、管理員通知在 create() 成功路徑一定會被呼叫到，不需要 lenient
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(any()))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         WorkOrderResponse response = workOrderService.create(request, creator, List.of());
@@ -106,7 +106,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(any()))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         WorkOrderResponse response = workOrderService.create(request, creator, List.of());
@@ -165,7 +166,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(any()))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of(userRole(10), userRole(20)));
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of(10, 20));
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> {
             WorkOrder workOrder = invocation.getArgument(0);
             workOrder.setWorkOrderId(88);
@@ -199,7 +201,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(prefix))
                 .thenReturn(Optional.of(latest));
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         WorkOrderResponse response = workOrderService.create(request, creator, List.of());
@@ -222,7 +225,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(prefix))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         WorkOrderResponse response = workOrderService.create(request, creator, List.of());
@@ -250,7 +254,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(any()))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(workOrderAttachmentService.upload(any(WorkOrder.class), eq(file), eq(creator)))
                 .thenReturn(attachmentResponse);
@@ -280,7 +285,8 @@ class WorkOrderServiceTest {
         when(subCategoryRepository.findByIdWithPriorityDetails(5)).thenReturn(Optional.of(subCategory));
         when(workOrderRepository.findFirstByWorkOrderNoStartingWithOrderByWorkOrderNoDesc(any()))
                 .thenReturn(Optional.empty());
-        when(userRoleRepository.findByIdRoleId(1)).thenReturn(List.of());
+        when(userRoleRepository.findUserIdsByRoleCodeAndStatus(Role.ADMIN, User.UserStatus.ACTIVE))
+                .thenReturn(List.of());
         when(workOrderRepository.save(any(WorkOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(workOrderAttachmentService.upload(any(WorkOrder.class), eq(invalidFile), eq(creator)))
                 .thenThrow(new IllegalArgumentException("檔案大小超過上限（10MB）：huge.png"));
@@ -294,7 +300,7 @@ class WorkOrderServiceTest {
         when(workOrderRepository.findByIdWithDetails(999)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> workOrderService.getById(999));
+                () -> workOrderService.getById(999, 1, List.of("EMPLOYEE")));
         assertTrue(exception.getMessage().contains("999"));
         verifyNoInteractions(workOrderAttachmentService);
     }
@@ -355,12 +361,6 @@ class WorkOrderServiceTest {
         user.setUserId(userId);
         user.setName(name);
         return user;
-    }
-
-    private UserRole userRole(Integer userId) {
-        UserRole userRole = new UserRole();
-        userRole.setId(new UserRoleId(userId, 1));
-        return userRole;
     }
 
     private Priority priority(Integer id, String name) {

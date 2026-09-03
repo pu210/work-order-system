@@ -14,12 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.eeit219.work_order_system.common.exception.AuthenticatedUserNotFoundException;
 import com.eeit219.work_order_system.common.exception.ResourceConflictException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
 import com.eeit219.work_order_system.modules.a.entity.Role;
 import com.eeit219.work_order_system.modules.a.entity.User;
-import com.eeit219.work_order_system.modules.a.repository.UserRepository;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderAttachmentResponse;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrderAttachment;
@@ -31,15 +29,12 @@ public class WorkOrderAttachmentService {
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
 
     private final WorkOrderAttachmentRepository workOrderAttachmentRepository;
-    private final UserRepository userRepository;
 
-    public WorkOrderAttachmentService(WorkOrderAttachmentRepository workOrderAttachmentRepository,
-            UserRepository userRepository) {
+    public WorkOrderAttachmentService(WorkOrderAttachmentRepository workOrderAttachmentRepository) {
         this.workOrderAttachmentRepository = workOrderAttachmentRepository;
-        this.userRepository = userRepository;
     }
 
-    // 保留B模組原有的工單附件上傳方式。
+    // 建單附件上傳入口：固定 contactRecordId=null，代表這是工單本體的附件，不是留言附圖
     @Transactional
     public WorkOrderAttachmentResponse upload(
             WorkOrder workOrder,
@@ -68,8 +63,6 @@ public class WorkOrderAttachmentService {
         } catch (IOException e) {
             throw new IllegalArgumentException("讀取上傳檔案失敗：" + file.getOriginalFilename(), e);
         }
-
-        // contentType 是使用者端自報、可偽造，實際解碼一次確認內容真的是可辨識的圖片格式
         try {
             if (ImageIO.read(new ByteArrayInputStream(fileBytes)) == null) {
                 throw new IllegalArgumentException("檔案內容不是有效的圖片格式：" + file.getOriginalFilename());
@@ -92,21 +85,6 @@ public class WorkOrderAttachmentService {
         return toResponse(saved);
     }
 
-    // 批次上傳：任何一張驗證失敗就整批中斷，不會部分成功。uploadedUserId 只查一次
-    @Transactional
-    public List<WorkOrderAttachmentResponse> uploadAll(WorkOrder workOrder, List<MultipartFile> files,
-            Integer uploadedUserId) {
-        if (files == null) {
-            return List.of();
-        }
-        User uploadedUser = userRepository.findById(uploadedUserId)
-                .orElseThrow(() -> new AuthenticatedUserNotFoundException("找不到使用者：" + uploadedUserId));
-
-        return files.stream()
-                .map(file -> upload(workOrder, file, uploadedUser))
-                .collect(Collectors.toList());
-    }
-
     // 查詢某工單的附件中繼資料列表：repository 直接投影成 DTO，不撈 fileData（見
     // WorkOrderAttachmentRepository 註解）
     public List<WorkOrderAttachmentResponse> listByWorkOrder(Integer workOrderId) {
@@ -115,7 +93,6 @@ public class WorkOrderAttachmentService {
 
     // 附件查看權限：ADMIN，或該附件所屬工單的建立者／被指派工程師，其餘一律拒絕。
     // 只給 WorkOrderAttachmentController 的 list()/view() 用；D 模組留言圖片走自己的
-    // WorkOrderAuthorizationService，那條路徑已經驗證過，不重複呼叫這支。
     public void validateViewPermission(WorkOrder workOrder, Integer currentUserId, List<String> roleCodes) {
         boolean isAdmin = roleCodes != null
                 && roleCodes.stream().anyMatch(Role.ADMIN::equalsIgnoreCase);

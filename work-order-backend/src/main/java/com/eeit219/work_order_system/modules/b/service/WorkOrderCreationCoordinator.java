@@ -10,7 +10,6 @@ import com.eeit219.work_order_system.modules.a.entity.User;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderCreateRequest;
 import com.eeit219.work_order_system.modules.b.dto.WorkOrderResponse;
 
-// 暫定
 @Service
 public class WorkOrderCreationCoordinator {
 

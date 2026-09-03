@@ -1,10 +1,15 @@
 package com.eeit219.work_order_system.modules.c.service;
 
+import java.util.List;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.eeit219.work_order_system.common.exception.InvalidWorkOrderStateException;
 import com.eeit219.work_order_system.common.exception.ResourceNotFoundException;
+import com.eeit219.work_order_system.modules.a.entity.User;
+import com.eeit219.work_order_system.modules.a.entity.UserRole;
+import com.eeit219.work_order_system.modules.a.repository.UserRoleRepository;
 import com.eeit219.work_order_system.modules.b.entity.WorkOrder;
 import com.eeit219.work_order_system.modules.b.repository.WorkOrderRepository;
 import com.eeit219.work_order_system.modules.c.dto.ProgressAcceptRequest;
@@ -26,17 +31,20 @@ public class ProgressService {
         private final NotificationService notificationService;
         private final RepairTicketHistoryRepository repairTicketHistoryRepository;
         private final RepairTargetRepository repairTargetsRepository;
+        private final UserRoleRepository userRoleRepository;
 
         public ProgressService(WorkOrderRepository workOrderRepository,
                         WorkOrderStateMachineService workOrderStateMachineService,
                         NotificationService notificationService,
                         RepairTicketHistoryRepository repairTicketHistoryRepository,
-                        RepairTargetRepository repairTargetsRepository) {
+                        RepairTargetRepository repairTargetsRepository,
+                        UserRoleRepository userRoleRepository) {
                 this.workOrderRepository = workOrderRepository;
                 this.workOrderStateMachineService = workOrderStateMachineService;
                 this.notificationService = notificationService;
                 this.repairTicketHistoryRepository = repairTicketHistoryRepository;
                 this.repairTargetsRepository = repairTargetsRepository;
+                this.userRoleRepository = userRoleRepository;
         }
 
         // 工程師回報完成維修（進行中 IN_PROGRESS -> 待使用者驗收 PENDING_USER_ACCEPTANCE）
@@ -91,25 +99,51 @@ public class ProgressService {
                                 WorkOrderEvent.REJECT);
                 workOrderRepository.save(workOrder);
 
-                // 2. 查詢歷史紀錄：找出「當初審核並接受這張工單」的那一位管理員
-                RepairTicketHistory reviewHistory = repairTicketHistoryRepository
-                                .findTopByWorkOrderWorkOrderIdAndEventOrderByHistoryIdDesc(workOrderId,
-                                                WorkOrderEvent.ACCEPT)
-                                .orElse(null);
+                // 2. 尋找接收退單通知的管理員 (多層級降級策略：1. workOrder.getAdmin() ➔ 2. 歷史紀錄 ➔ 3. 全體管理員廣播)
+                Integer adminUserId = null;
+                if (workOrder.getAdmin() != null) {
+                        adminUserId = workOrder.getAdmin().getUserId();
+                } else {
+                        RepairTicketHistory reviewHistory = repairTicketHistoryRepository
+                                        .findTopByWorkOrderWorkOrderIdAndEventOrderByHistoryIdDesc(workOrderId,
+                                                        WorkOrderEvent.ACCEPT)
+                                        .orElse(null);
+                        if (reviewHistory != null && reviewHistory.getEditor() != null) {
+                                adminUserId = reviewHistory.getEditor().getUserId();
+                        }
+                }
 
-                // 3. 如果有找到當初審核的管理員，發送退單通知給該位管理員
-                if (reviewHistory != null && reviewHistory.getEditor() != null) {
-                        Integer adminUserId = reviewHistory.getEditor().getUserId();
+                String handlerName = workOrder.getAssignedHandler() != null ? workOrder.getAssignedHandler().getName()
+                                : "工程師";
+                String reasonStr = (request.feedback() != null && !request.feedback().isBlank()) ? request.feedback()
+                                : "";
+                String reasonPart = reasonStr.isBlank() ? " 已退回處理，請重新審核與指派。"
+                                : " 已退回處理，退回原因：" + reasonStr + "，請重新審核與指派。";
+                String title = "工程師已退回工單，待重新審核！";
+                String message = "工單：" + workOrder.getWorkOrderNo() + "，處理人：" + handlerName + reasonPart;
 
+                // 3. 發送退單通知
+                if (adminUserId != null) {
                         notificationService.sendNotification(
                                         adminUserId, // 接收通知者：當初審核此工單的管理員 ID
                                         userId, // 發送通知者：退單工程師 ID
                                         workOrderId, // 工單 ID
-                                        "工程師已退回工單，待重新審核！", // 通知標題
-                                        "工單：" + workOrder.getWorkOrderNo() + "，處理人："
-                                                        + workOrder.getAssignedHandler().getName()
-                                                        + " 已退回處理，退回原因：" + request.feedback() + "，請重新審核與指派。", // 通知詳細內容
+                                        title, // 通知標題
+                                        message, // 通知詳細內容
                                         workOrder.getStatus()); // 當前狀態 (PENDING_REVIEW)
+                } else {
+                        // 保底備用：如果沒有指定特定管理員，廣播發送給所有活躍管理員
+                        List<Integer> adminUserIds = userRoleRepository.findUserIdsByRoleCodeAndStatus("ADMIN",
+                                        User.UserStatus.ACTIVE);
+                        for (Integer adminId : adminUserIds) {
+                                notificationService.sendNotification(
+                                                adminId,
+                                                userId,
+                                                workOrderId,
+                                                title,
+                                                message,
+                                                workOrder.getStatus());
+                        }
                 }
         }
 }

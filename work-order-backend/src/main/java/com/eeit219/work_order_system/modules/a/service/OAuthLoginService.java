@@ -78,7 +78,7 @@ public class OAuthLoginService {
                 user.getAccount(),
                 user.getName(),
                 user.getEmail(),
-                false,
+                user.getMustChangePassword(),
                 roleCodes);
     }
 

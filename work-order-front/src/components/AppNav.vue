@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth.js";
 import { useNotificationStore } from "@/stores/notification.js";
@@ -138,14 +138,20 @@ function handleClickOutside(event) {
   }
 }
 
+// 監聽使用者 ID 的變化，當使用者登入或身分轉換時自動觸發連線
+watch(
+  () => authStore.userId,
+  (newUserId) => {
+    if (newUserId && !authStore.mustChangePassword) {
+      notificationStore.fetchNotifications();
+      notificationStore.connectWebSocket(newUserId);
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
-
-  // 當 App 載入且使用者已登入，且「無需強制修改密碼」時，才自動建立 WebSocket 連線與拉取通知
-  if (authStore.userId && !authStore.mustChangePassword) {
-    notificationStore.fetchNotifications();
-    notificationStore.connectWebSocket(authStore.userId);
-  }
 });
 
 onUnmounted(() => document.removeEventListener("click", handleClickOutside));
