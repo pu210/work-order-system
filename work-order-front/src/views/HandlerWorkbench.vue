@@ -440,7 +440,10 @@ async function loadTickets() {
       page: 0,
       size: 100,
     });
-    tickets.value = result?.content ?? [];
+    const currentHandlerId = Number(authStore.userId);
+    tickets.value = (result?.content ?? []).filter(
+      (ticket) => Number(ticket.assignedHandlerId) === currentHandlerId,
+    );
     currentPage.value = 0;
     taskCurrentPage.value = 0;
   } catch (error) {

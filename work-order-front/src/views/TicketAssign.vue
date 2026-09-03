@@ -267,8 +267,10 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { getWorkOrderList } from "@/api/workOrder.js";
 import { statusBadgeClass, statusLabel } from "@/constants/workOrderStatus.js";
+import { useAuthStore } from "@/stores/auth.js";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const statusTabs = [
   { value: "", label: "未結案" },
@@ -520,11 +522,24 @@ async function loadTickets() {
   loading.value = true;
   errorMessage.value = "";
   try {
-    tickets.value = await fetchAllTickets();
+    if (!authStore.userId) throw new Error("無法取得目前登入的管理員資料");
+
+    const allTickets = await fetchAllTickets();
+    const currentAdminId = Number(authStore.userId);
+
+    tickets.value = allTickets.filter((ticket) => {
+      const isUnassignedReview =
+        ticket.status === "PENDING_REVIEW" && ticket.adminUserId == null;
+      const isAssignedToCurrentAdmin =
+        Number(ticket.adminUserId) === currentAdminId;
+
+      return isUnassignedReview || isAssignedToCurrentAdmin;
+    });
     currentPage.value = 0;
     taskCurrentPage.value = 0;
   } catch (error) {
-    errorMessage.value = error.response?.data?.message || "無法載入管理員工單";
+    errorMessage.value =
+      error.response?.data?.message || error.message || "無法載入管理員工單";
   } finally {
     loading.value = false;
   }
